@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net6.0-android;net6.0-ios</TargetFrameworks>
+    <!-- <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);net6.0-windows10.0.18362;</TargetFrameworks> -->
+    <AssemblyName>ZXing.Net.MAUI</AssemblyName>
+    <RootNamespace>ZXing.Net.Maui</RootNamespace>
+    <PackageId>ZXing.Net.Maui</PackageId>
+    <Summary>ZXing.Net.MAUI Barcode Scanner for .NET MAUI</Summary>
+    <Title>ZXing.Net.MAUI Barcode Scanner for .NET MAUI</Title>
+    <Product>$(AssemblyName) ($(TargetFramework))</Product>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <AssemblyFileVersion>1.0.0.0</AssemblyFileVersion>
+    <Version>1.0.0</Version>
+    <PackageVersion>1.0.0</PackageVersion>
+    <Authors>Redth</Authors>
+    <NeutralLanguage>en</NeutralLanguage>
+    <RepositoryUrl>https://github.com/redth/BigIslandBarcoding</RepositoryUrl>
+    <DefineConstants>$(DefineConstants);</DefineConstants>
+    <DebugType>portable</DebugType>
+    <Configurations>Debug;Release</Configurations>
+    <LangVersion>latest</LangVersion>
+    <SingleProject>True</SingleProject>
+    <UseMaui>True</UseMaui>
+ </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+</Project>
