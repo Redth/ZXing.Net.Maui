@@ -25,4 +25,18 @@
   <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
+  <ItemGroup>
+    <_MauiCompileToAdd Remove="Platforms\Android\FixedAspectSurfaceView.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Platforms\Android\CameraFrameProcessor.cs" />
+    <None Include="Platforms\Android\CameraOperator.cs" />
+    <None Include="Platforms\Android\FixedAspectSurfaceView.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <_MauiCompileToAdd Remove="Platforms\Android\CameraOperator.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <_MauiCompileToAdd Remove="Platforms\Android\CameraFrameProcessor.cs" />
+  </ItemGroup>
 </Project>

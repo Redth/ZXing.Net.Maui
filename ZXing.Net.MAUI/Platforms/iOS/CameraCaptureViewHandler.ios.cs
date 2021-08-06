@@ -7,7 +7,7 @@ using Microsoft.Maui;
 using Microsoft.Maui.Handlers;
 using UIKit;
 
-namespace BigIslandBarcode
+namespace ZXing.Net.Maui
 {
 	public partial class CameraCaptureViewHandler : ViewHandler<ICameraCaptureView, UIView>
 	{

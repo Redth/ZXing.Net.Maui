@@ -1,13 +1,8 @@
 ﻿using System;
 using Microsoft.Maui;
 
-namespace BigIslandBarcode
+namespace ZXing.Net.Maui
 {
-	public interface ICameraCaptureView : IView
-	{
-		event EventHandler Started;
-
-	}
 
 	public partial class CameraCaptureViewHandler
 	{
