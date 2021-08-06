@@ -33,7 +33,7 @@ namespace ZXing.Net.Maui
 			rgbTypeBuilder.SetX(dimensions.Width);
 			rgbTypeBuilder.SetY(dimensions.Height);
 			prevAllocation = Allocation.CreateTyped(rs, rgbTypeBuilder.Create(), AllocationUsage.Script);
-			outputAllocation = Allocation.CreateTyped(rs, rgbTypeBuilder.Create(), AllocationUsage.IoInput | AllocationUsage.Script);
+			outputAllocation = Allocation.CreateTyped(rs, rgbTypeBuilder.Create(), AllocationUsage.IoOutput | AllocationUsage.Script);
 
 			var processingThread = new HandlerThread(nameof(CameraFrameProcessor));
 			processingThread.Start();
@@ -85,6 +85,8 @@ namespace ZXing.Net.Maui
 					pendingFrames = this.pendingFrames;
 					this.pendingFrames = 0;
 
+
+
 					// Discard extra messages in case processing is slower than frame rate
 					processingHandler.RemoveCallbacks(this);
 				}
@@ -95,6 +97,7 @@ namespace ZXing.Net.Maui
 					inputAllocation.IoReceive();
 				}
 
+				
 				outputAllocation.IoSend();
 			}
 		}

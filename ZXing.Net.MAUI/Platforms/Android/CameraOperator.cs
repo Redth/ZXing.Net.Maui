@@ -29,6 +29,8 @@ namespace ZXing.Net.Maui
 			cameraThread = new HandlerThread("CameraOperatorThread");
 			cameraStateCallback = new CameraStateCallback(CameraOpened, CameraClosed, CameraDisconnected, CameraError);
 			cameraCaptureSessionStateCallback = new CameraCaptureSessionStateCallback(CameraConfigured, CameraConfigureFailed);
+
+			cameraThread.Start();
 		}
 
 		public event EventHandler CameraReady;
@@ -81,8 +83,9 @@ namespace ZXing.Net.Maui
 					var isBackfacing = facing.IntValue() == 1; //LENS_FACING_BACK
 					var isFrontFacing = facing.IntValue() == 0; //LENS_FACING_FRONT
 
+					Console.WriteLine($"{isBackfacing} {hasFullLevel}  {hasEnoughCapability}");
 
-					if ((hasFullLevel || hasEnoughCapability) && isBackfacing)
+					if (1==1 || (hasFullLevel || hasEnoughCapability) && isBackfacing)
 					{
 						// Found suitable camera - get info, open, and set up outputs
 						cameraCharacteristics = info;
