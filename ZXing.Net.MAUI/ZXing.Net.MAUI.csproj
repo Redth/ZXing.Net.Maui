@@ -1,42 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net6.0-android;net6.0-ios</TargetFrameworks>
-    <!-- <TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);net6.0-windows10.0.18362;</TargetFrameworks> -->
-    <AssemblyName>ZXing.Net.MAUI</AssemblyName>
-    <RootNamespace>ZXing.Net.Maui</RootNamespace>
+    <TargetFrameworks>net6.0-android;net6.0-maccatalyst;net6.0-ios</TargetFrameworks>
     <PackageId>ZXing.Net.Maui</PackageId>
-    <Summary>ZXing.Net.MAUI Barcode Scanner for .NET MAUI</Summary>
     <Title>ZXing.Net.MAUI Barcode Scanner for .NET MAUI</Title>
-    <Product>$(AssemblyName) ($(TargetFramework))</Product>
-    <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <AssemblyFileVersion>1.0.0.0</AssemblyFileVersion>
-    <Version>1.0.0</Version>
-    <PackageVersion>1.0.0</PackageVersion>
     <Authors>Redth</Authors>
-    <NeutralLanguage>en</NeutralLanguage>
-    <RepositoryUrl>https://github.com/redth/BigIslandBarcoding</RepositoryUrl>
-    <DefineConstants>$(DefineConstants);</DefineConstants>
-    <DebugType>portable</DebugType>
-    <Configurations>Debug;Release</Configurations>
-    <LangVersion>latest</LangVersion>
-    <SingleProject>True</SingleProject>
     <UseMaui>True</UseMaui>
+    <SingleProject>True</SingleProject>
  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)'=='Debug' ">
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-  <ItemGroup>
-    <_MauiCompileToAdd Remove="Platforms\Android\FixedAspectSurfaceView.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Platforms\Android\CameraFrameProcessor.cs" />
-    <None Include="Platforms\Android\CameraOperator.cs" />
-    <None Include="Platforms\Android\FixedAspectSurfaceView.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <_MauiCompileToAdd Remove="Platforms\Android\CameraOperator.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <_MauiCompileToAdd Remove="Platforms\Android\CameraFrameProcessor.cs" />
-  </ItemGroup>
+ <ItemGroup Condition="'$(TargetFramework)' == 'net6.0-android'">
+     <PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.0.1.1" />
+ </ItemGroup>
 </Project>

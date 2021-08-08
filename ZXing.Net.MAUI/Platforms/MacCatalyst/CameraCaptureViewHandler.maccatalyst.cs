@@ -1,5 +1,7 @@
 ﻿using System;
 using AVFoundation;
+using CoreFoundation;
+using CoreGraphics;
 using CoreMedia;
 using CoreVideo;
 using Foundation;
@@ -14,6 +16,7 @@ namespace ZXing.Net.Maui
 		AVCaptureSession captureSession;
 		AVCaptureDevice captureDevice;
 		AVCaptureInput captureInput;
+		UIView view;
 
 		protected override UIView CreateNativeView()
 		{
@@ -24,11 +27,14 @@ namespace ZXing.Net.Maui
 
 			captureSession.AddInput(captureInput);
 
+			view = new UIView();
 
 			videoPreviewLayer = new AVCaptureVideoPreviewLayer(captureSession);
 			videoPreviewLayer.VideoGravity = AVLayerVideoGravity.ResizeAspect;
+			videoPreviewLayer.Frame = new CGRect(0, 0, view.Frame.Width, view.Frame.Height);
+			videoPreviewLayer.Position = new CGPoint(view.Layer.Bounds.Width / 2, (view.Layer.Bounds.Height / 2));
 
-			var view = new UIView();
+			view.AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight;
 
 			view.Layer.AddSublayer(videoPreviewLayer);
 
@@ -38,6 +44,7 @@ namespace ZXing.Net.Maui
 		AVCaptureVideoDataOutput videoDataOutput;
 		AVCaptureVideoPreviewLayer videoPreviewLayer;
 		CaptureDelegate captureDelegate;
+		DispatchQueue dispatchQueue;
 
 		protected override async void ConnectHandler(UIView nativeView)
 		{
@@ -65,9 +72,15 @@ namespace ZXing.Net.Maui
 				}
 				};
 
-				videoDataOutput.SetSampleBufferDelegateQueue(captureDelegate, null);
+				if (dispatchQueue == null)
+					dispatchQueue = new DispatchQueue("CameraBufferQueue");
+
+				videoDataOutput.AlwaysDiscardsLateVideoFrames = true;
+				videoDataOutput.SetSampleBufferDelegateQueue(captureDelegate, dispatchQueue);
 
 				captureSession.AddOutput(videoDataOutput);
+
+				
 			}
 		}
 

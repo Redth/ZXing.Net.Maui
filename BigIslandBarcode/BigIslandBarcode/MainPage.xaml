@@ -4,8 +4,7 @@
              x:Class="BigIslandBarcode.MainPage"
              BackgroundColor="{DynamicResource PageBackgroundColor}">
 
-        <GridLayout RowSpacing="25" ColumnDefinitions="*"  RowDefinitions="Auto,Auto,Auto,Auto,*">
-		<zxing:CameraCaptureView />
+        <zxing:CameraCaptureView WidthRequest="500" HeightRequest="300" />
 
-	</GridLayout>
+	
 </ContentPage>

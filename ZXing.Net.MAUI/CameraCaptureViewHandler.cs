@@ -3,13 +3,9 @@ using Microsoft.Maui;
 
 namespace ZXing.Net.Maui
 {
-
 	public partial class CameraCaptureViewHandler
 	{
-		public static PropertyMapper<ICameraCaptureView, CameraCaptureViewHandler> CameraCaptureViewMapper = new PropertyMapper<ICameraCaptureView, CameraCaptureViewHandler>(CameraCaptureViewHandler.ViewMapper)
-		{
-			
-		};
+		public static PropertyMapper<ICameraCaptureView, CameraCaptureViewHandler> CameraCaptureViewMapper = new();
 
 		public CameraCaptureViewHandler() : base(CameraCaptureViewMapper)
 		{

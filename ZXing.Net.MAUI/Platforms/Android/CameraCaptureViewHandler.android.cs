@@ -10,6 +10,9 @@ using Android.Renderscripts;
 using Android.Runtime;
 using Android.Util;
 using Android.Views;
+using AndroidX.Camera.Core;
+using AndroidX.Camera.Lifecycle;
+using AndroidX.Camera.View;
 using Java.Lang;
 using Java.Util;
 using Microsoft.Maui;
@@ -24,18 +27,14 @@ namespace ZXing.Net.Maui
 {
 	public partial class CameraCaptureViewHandler : ViewHandler<ICameraCaptureView, AView>
 	{
-		CameraOperator cameraOperator;
-		FixedAspectSurfaceView surfaceView;
-		SurfaceViewHolderCallback surfaceViewHolderCallback;
-		CameraFrameProcessor cameraFrameProcessor;
-		RenderScript renderScript;
-		Surface previewSurface;
+		PreviewView viewFinder;
+		ImageCapture imageCapture;
 
 		protected override AView CreateNativeView()
 		{
-			surfaceView = new FixedAspectSurfaceView(Context, null);
-			renderScript = RenderScript.Create(Context);
-			return surfaceView;
+			previewView = new PreviewView();
+
+			return previewView;
 		}
 
 	
@@ -43,30 +42,70 @@ namespace ZXing.Net.Maui
 		{
 			base.ConnectHandler(nativeView);
 
-
-			surfaceViewHolderCallback = new SurfaceViewHolderCallback(SurfaceChanged, SurfaceCreated, SurfaceDestroyed);
-
-			surfaceView.Holder.AddCallback(surfaceViewHolderCallback);
-
-
 			var result = await Permissions.RequestAsync<Permissions.Camera>();
 
 			if (result == PermissionStatus.Granted)
 			{
-				FindAndOpenCamera();
+				StartCamera();
 			}
 
 		}
 
 		protected override void DisconnectHandler(AView nativeView)
 		{
-			surfaceView?.Holder?.RemoveCallback(surfaceViewHolderCallback);
-
-			surfaceViewHolderCallback.Dispose();
-			surfaceViewHolderCallback = null;
-
+			
 			base.DisconnectHandler(nativeView);
 		}
+
+
+		private void StartCamera()
+		{
+			var cameraProviderFuture = ProcessCameraProvider.GetInstance(this);
+
+			cameraProviderFuture.AddListener(new Runnable(() =>
+			{
+				// Used to bind the lifecycle of cameras to the lifecycle owner
+				var cameraProvider = (ProcessCameraProvider)cameraProviderFuture.Get();
+
+				// Preview
+				var preview = new Preview.Builder().Build();
+				preview.SetSurfaceProvider(viewFinder.CreateSurfaceProvider());
+
+				// Take Photo
+				this.imageCapture = new ImageCapture.Builder().Build();
+
+				// Frame by frame analyze
+				var imageAnalyzer = new ImageAnalysis.Builder().Build();
+				imageAnalyzer.SetAnalyzer(cameraExecutor, new LuminosityAnalyzer(luma =>
+					Log.Debug(TAG, $"Average luminosity: {luma}")
+					));
+
+				// Select back camera as a default, or front camera otherwise
+				CameraSelector cameraSelector = null;
+				if (cameraProvider.HasCamera(CameraSelector.DefaultBackCamera) == true)
+					cameraSelector = CameraSelector.DefaultBackCamera;
+				else if (cameraProvider.HasCamera(CameraSelector.DefaultFrontCamera) == true)
+					cameraSelector = CameraSelector.DefaultFrontCamera;
+				else
+					throw new System.Exception("Camera not found");
+
+				try
+				{
+					// Unbind use cases before rebinding
+					cameraProvider.UnbindAll();
+
+					// Bind use cases to camera
+					cameraProvider.BindToLifecycle(this, cameraSelector, preview, imageCapture, imageAnalyzer);
+				}
+				catch (Exception exc)
+				{
+					Log.Debug(TAG, "Use case binding failed", exc);
+					Toast.MakeText(this, $"Use case binding failed: {exc.Message}", ToastLength.Short).Show();
+				}
+
+			}), ContextCompat.GetMainExecutor(this)); //GetMainExecutor: returns an Executor that runs on the main thread.
+		}
+
 
 		private void FindAndOpenCamera()
 		{

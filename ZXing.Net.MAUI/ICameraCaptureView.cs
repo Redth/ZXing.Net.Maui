@@ -1,4 +1,5 @@
-﻿using Microsoft.Maui;
+﻿using System;
+using Microsoft.Maui;
 
 namespace ZXing.Net.Maui
 {
