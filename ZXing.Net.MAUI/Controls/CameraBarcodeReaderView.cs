@@ -11,8 +11,6 @@ namespace ZXing.Net.Maui.Controls
 {
 	public partial class CameraBarcodeReaderView : View, ICameraBarcodeReaderView
 	{
-		public event EventHandler Started;
-
 		public event EventHandler<BarcodeDetectionEventArgs> BarcodesDetected;
 
 		public void RaiseBarcodesDetected(BarcodeResult[] results)
@@ -26,7 +24,6 @@ namespace ZXing.Net.Maui.Controls
 			get => (BarcodeReaderOptions)GetValue(OptionsProperty);
 			set => SetValue(OptionsProperty, value);
 		}
-
 
 		public static readonly BindableProperty IsDetectingProperty =
 			BindableProperty.Create(nameof(IsDetecting), typeof(bool), typeof(CameraBarcodeReaderView), defaultValue: true);
