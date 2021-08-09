@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.31005.135
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31606.90
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZXing.Net.MAUI", "ZXing.Net.MAUI\ZXing.Net.MAUI.csproj", "{E4D3C7DE-CE07-444E-ADB8-31691A19406F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZXing.Net.MAUI", "ZXing.Net.MAUI\ZXing.Net.MAUI.csproj", "{E4D3C7DE-CE07-444E-ADB8-31691A19406F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BigIslandBarcode", "BigIslandBarcode\BigIslandBarcode\BigIslandBarcode.csproj", "{EDDCF13E-46A0-4E03-BF40-1197060AAEE5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BigIslandBarcode", "BigIslandBarcode\BigIslandBarcode\BigIslandBarcode.csproj", "{EDDCF13E-46A0-4E03-BF40-1197060AAEE5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,6 +19,7 @@ Global
 		{E4D3C7DE-CE07-444E-ADB8-31691A19406F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EDDCF13E-46A0-4E03-BF40-1197060AAEE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EDDCF13E-46A0-4E03-BF40-1197060AAEE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDDCF13E-46A0-4E03-BF40-1197060AAEE5}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 		{EDDCF13E-46A0-4E03-BF40-1197060AAEE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EDDCF13E-46A0-4E03-BF40-1197060AAEE5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection

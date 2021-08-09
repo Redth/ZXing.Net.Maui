@@ -1,13 +1,21 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFrameworks>net6.0-android;net6.0-maccatalyst;net6.0-ios</TargetFrameworks>
-    <PackageId>ZXing.Net.Maui</PackageId>
-    <Title>ZXing.Net.MAUI Barcode Scanner for .NET MAUI</Title>
-    <Authors>Redth</Authors>
-    <UseMaui>True</UseMaui>
-    <SingleProject>True</SingleProject>
- </PropertyGroup>
- <ItemGroup Condition="'$(TargetFramework)' == 'net6.0-android'">
-     <PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.0.1.1" />
- </ItemGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFrameworks>net6.0-android;net6.0-maccatalyst;net6.0-ios</TargetFrameworks>
+		<PackageId>ZXing.Net.Maui</PackageId>
+		<Title>ZXing.Net.MAUI Barcode Scanner for .NET MAUI</Title>
+		<Authors>Redth</Authors>
+		<UseMaui>True</UseMaui>
+		<SingleProject>True</SingleProject>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0-android'">
+		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.0.1.1" />
+		<PackageReference Include="Xamarin.AndroidX.Camera.Lifecycle" Version="1.0.1.1" />
+		<PackageReference Include="Xamarin.AndroidX.Camera.View" Version="1.0.0.5-alpha20" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="ZXing.Net" Version="0.16.6" />
+	</ItemGroup>
+
 </Project>

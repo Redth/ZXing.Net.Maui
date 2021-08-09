@@ -21,7 +21,7 @@ namespace BigIslandBarcode
 		{
 			appBuilder
 				.UseMauiApp<App>()
-				.UseCameraCaptureView()
+				.UseBarcodeReader()
 				
 				.ConfigureLifecycleEvents(life =>
 				{

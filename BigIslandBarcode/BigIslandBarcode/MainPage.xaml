@@ -4,7 +4,8 @@
              x:Class="BigIslandBarcode.MainPage"
              BackgroundColor="{DynamicResource PageBackgroundColor}">
 
-        <zxing:CameraCaptureView WidthRequest="500" HeightRequest="300" />
+	<zxing:CameraBarcodeReaderView x:Name="barcodeView" BarcodesDetected="BarcodesDetected">
+	</zxing:CameraBarcodeReaderView>
 
 	
 </ContentPage>
