@@ -19,27 +19,23 @@ namespace ZXing.Net.Maui
 		AVCaptureSession captureSession;
 		AVCaptureDevice captureDevice;
 		AVCaptureInput captureInput;
-		UIView view;
+		PreviewView view;
 
 		protected override UIView CreateNativeView()
 		{
-			captureSession = new AVCaptureSession();
+			captureSession = new AVCaptureSession {
+				SessionPreset = AVCaptureSession.Preset640x480
+			};
 			captureDevice = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
 
 			captureInput = new AVCaptureDeviceInput(captureDevice, out var err);
 
 			captureSession.AddInput(captureInput);
 
-			view = new UIView();
-
 			videoPreviewLayer = new AVCaptureVideoPreviewLayer(captureSession);
-			videoPreviewLayer.VideoGravity = AVLayerVideoGravity.ResizeAspect;
-			videoPreviewLayer.Frame = new CGRect(0, 0, view.Frame.Width, view.Frame.Height);
-			videoPreviewLayer.Position = new CGPoint(view.Layer.Bounds.Width / 2, (view.Layer.Bounds.Height / 2));
+			videoPreviewLayer.VideoGravity = AVLayerVideoGravity.ResizeAspectFill;
 
-			view.AutoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight;
-
-			view.Layer.AddSublayer(videoPreviewLayer);
+			view = new PreviewView(videoPreviewLayer);
 
 			return view;
 		}
@@ -48,7 +44,6 @@ namespace ZXing.Net.Maui
 		AVCaptureVideoPreviewLayer videoPreviewLayer;
 		CaptureDelegate captureDelegate;
 		DispatchQueue dispatchQueue;
-
 		protected override async void ConnectHandler(UIView nativeView)
 		{
 			base.ConnectHandler(nativeView);
@@ -104,6 +99,25 @@ namespace ZXing.Net.Maui
 			captureSession.StopRunning();
 
 			base.DisconnectHandler(nativeView);
+		}
+	}
+
+	class PreviewView : UIView
+	{
+		public PreviewView(AVCaptureVideoPreviewLayer layer) : base()
+		{
+			PreviewLayer = layer;
+
+			PreviewLayer.Frame = Layer.Bounds;
+			Layer.AddSublayer(PreviewLayer);
+		}
+
+		public readonly AVCaptureVideoPreviewLayer PreviewLayer;
+
+		public override void LayoutSubviews()
+		{
+			base.LayoutSubviews();
+			PreviewLayer.Frame = Layer.Bounds;
 		}
 	}
 }
