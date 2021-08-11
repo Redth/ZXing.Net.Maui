@@ -19,8 +19,13 @@
 
 		<GridLayout
 			GridLayout.Row="3"
-			BackgroundColor="#aa000000">
-			<Label GridLayout.Row="2" Text="Bottom text..." HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" />
+			BackgroundColor="#aa000000"
+			Padding="20"
+			ColumnDefinitions="Auto,*,Auto">
+
+			<Button Text="🔄️" GridLayout.Column="0" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="SwitchCameraButton_Clicked" />
+			<Label GridLayout.Column="1" Text="Bottom text..." HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" />
+			<Button Text="💡" GridLayout.Column="2" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="TorchButton_Clicked" />
 		</GridLayout>
 
 	</GridLayout>

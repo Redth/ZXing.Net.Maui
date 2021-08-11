@@ -23,5 +23,15 @@ namespace BigIslandBarcode
 			foreach (var barcode in e.Results)
 				Console.WriteLine($"Barcodes: {barcode.Format} -> {barcode.Value}");
 		}
+
+		void SwitchCameraButton_Clicked(object sender, EventArgs e)
+		{
+			barcodeView.CameraLocation = barcodeView.CameraLocation == CameraLocation.Rear ? CameraLocation.Front : CameraLocation.Rear;
+		}
+
+		void TorchButton_Clicked(object sender, EventArgs e)
+		{
+			barcodeView.IsTorchOn = !barcodeView.IsTorchOn;
+		}
 	}
 }
