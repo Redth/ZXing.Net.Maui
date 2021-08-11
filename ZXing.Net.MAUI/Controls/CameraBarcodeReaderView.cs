@@ -1,5 +1,6 @@
 ﻿using Microsoft.Maui;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,5 +34,30 @@ namespace ZXing.Net.Maui.Controls
 			get => (bool)GetValue(IsDetectingProperty);
 			set => SetValue(IsDetectingProperty, value);
 		}
+
+
+		public static readonly BindableProperty IsTorchOnProperty =
+			BindableProperty.Create(nameof(IsTorchOn), typeof(bool), typeof(CameraBarcodeReaderView), defaultValue: true);
+
+		public bool IsTorchOn
+		{
+			get => (bool)GetValue(IsTorchOnProperty);
+			set => SetValue(IsTorchOnProperty, value);
+		}
+
+		public static readonly BindableProperty CameraLocationProperty =
+			BindableProperty.Create(nameof(CameraLocation), typeof(CameraLocation), typeof(CameraBarcodeReaderView), defaultValue: CameraLocation.Rear);
+
+		public CameraLocation CameraLocation
+		{
+			get => (CameraLocation)GetValue(CameraLocationProperty);
+			set => SetValue(CameraLocationProperty, value);
+		}
+
+		public void AutoFocus()
+			=> (Handler as CameraBarcodeReaderViewHandler)?.AutoFocus();
+
+		public void Focus(Point point)
+			=> (Handler as CameraBarcodeReaderViewHandler)?.Focus(point);
 	}
 }

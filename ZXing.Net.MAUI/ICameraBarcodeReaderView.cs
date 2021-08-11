@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Maui;
+using Microsoft.Maui.Graphics;
 
 namespace ZXing.Net.Maui
 {
@@ -12,5 +13,19 @@ namespace ZXing.Net.Maui
 		void RaiseBarcodesDetected(BarcodeResult[] results);
 
 		bool IsDetecting { get; set; }
+
+		bool IsTorchOn { get; set; }
+
+		void AutoFocus();
+
+		void Focus(Point point);
+
+		CameraLocation CameraLocation { get; set; }
+	}
+
+	public enum CameraLocation
+	{
+		Rear,
+		Front
 	}
 }
