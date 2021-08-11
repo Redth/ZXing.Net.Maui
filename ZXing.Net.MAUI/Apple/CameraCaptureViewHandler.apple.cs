@@ -11,6 +11,10 @@ using Microsoft.Maui;
 using Microsoft.Maui.Handlers;
 using UIKit;
 using Microsoft.Maui.Graphics;
+using MapKit;
+using CarPlay;
+using System.Drawing;
+using MSize = Microsoft.Maui.Graphics.Size;
 
 namespace ZXing.Net.Maui
 {
@@ -18,7 +22,7 @@ namespace ZXing.Net.Maui
 	{
 		AVCaptureSession captureSession;
 		AVCaptureDevice captureDevice;
-		AVCaptureInput captureInput;
+		AVCaptureInput captureInput = null;
 		PreviewView view;
 
 		protected override UIView CreateNativeView()
@@ -26,11 +30,6 @@ namespace ZXing.Net.Maui
 			captureSession = new AVCaptureSession {
 				SessionPreset = AVCaptureSession.Preset640x480
 			};
-			captureDevice = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
-
-			captureInput = new AVCaptureDeviceInput(captureDevice, out var err);
-
-			captureSession.AddInput(captureInput);
 
 			videoPreviewLayer = new AVCaptureVideoPreviewLayer(captureSession);
 			videoPreviewLayer.VideoGravity = AVLayerVideoGravity.ResizeAspectFill;
@@ -39,6 +38,16 @@ namespace ZXing.Net.Maui
 
 			return view;
 		}
+
+		Dictionary<NSString, MSize> Resolutions => new()
+		{
+			{ AVCaptureSession.Preset352x288, new MSize (352,288) },
+			{ AVCaptureSession.PresetMedium, new MSize (480,360) },
+			{ AVCaptureSession.Preset640x480, new MSize (640, 480) },
+			{ AVCaptureSession.Preset1280x720, new MSize (1280, 720) },
+			{ AVCaptureSession.Preset1920x1080, new MSize (1920, 1080) },
+			{ AVCaptureSession.Preset3840x2160, new MSize (3840, 2160) },
+		};
 
 		AVCaptureVideoDataOutput videoDataOutput;
 		AVCaptureVideoPreviewLayer videoPreviewLayer;
@@ -52,7 +61,7 @@ namespace ZXing.Net.Maui
 
 			if (await CheckPermissions())
 			{
-				captureSession.StartRunning();
+				UpdateSession();
 
 				if (videoDataOutput == null)
 				{
@@ -75,7 +84,7 @@ namespace ZXing.Net.Maui
 									Decode(new Readers.PixelBufferHolder
 									{
 										Data = cvPixelBuffer,
-										Size = new Size(cvPixelBuffer.Width, cvPixelBuffer.Height)
+										Size = new MSize(cvPixelBuffer.Width, cvPixelBuffer.Height)
 									});
 								}
 							}
@@ -93,12 +102,116 @@ namespace ZXing.Net.Maui
 			}
 		}
 
+		void UpdateSession()
+		{
+			if (captureSession != null)
+			{
+				if (captureSession.Running)
+					captureSession.StopRunning();
+
+				// Cleanup old input
+				if (captureInput != null && captureSession.Inputs.Length > 0 && captureSession.Inputs.Contains(captureInput))
+				{
+					captureSession.RemoveInput(captureInput);
+					captureInput.Dispose();
+					captureInput = null;
+				}
+
+				// Cleanup old device
+				if (captureDevice != null)
+				{
+					captureDevice.Dispose();
+					captureDevice = null;
+				}
+
+				var devices = AVCaptureDevice.DevicesWithMediaType(AVMediaType.Video);
+				foreach (var device in devices)
+				{
+					if (VirtualView.CameraLocation == CameraLocation.Front &&
+						device.Position == AVCaptureDevicePosition.Front)
+					{
+						captureDevice = device;
+						break;
+					}
+					else if (VirtualView.CameraLocation == CameraLocation.Rear && device.Position == AVCaptureDevicePosition.Back)
+					{
+						captureDevice = device;
+						break;
+					}
+				}
+
+				if (captureDevice == null)
+					captureDevice = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
+
+				captureInput = new AVCaptureDeviceInput(captureDevice, out var err);
+
+				captureSession.AddInput(captureInput);
+
+				captureSession.StartRunning();
+			}
+		}
+
+
+
 		protected override void DisconnectHandler(UIView nativeView)
 		{
 			captureSession.RemoveOutput(videoDataOutput);
 			captureSession.StopRunning();
 
 			base.DisconnectHandler(nativeView);
+		}
+
+		internal void UpdateTorch()
+		{
+			if (captureDevice != null && captureDevice.HasTorch && captureDevice.TorchAvailable)
+				captureDevice.TorchMode = VirtualView.IsTorchOn ? AVCaptureTorchMode.On : AVCaptureTorchMode.Off;
+		}
+
+		internal void Focus(Microsoft.Maui.Graphics.Point point)
+		{
+			if (captureDevice == null)
+				return;
+
+			var focusMode = AVCaptureFocusMode.AutoFocus;
+			if (captureDevice.IsFocusModeSupported(AVCaptureFocusMode.ContinuousAutoFocus))
+				focusMode = AVCaptureFocusMode.ContinuousAutoFocus;
+
+			//See if it supports focusing on a point
+			if (captureDevice.FocusPointOfInterestSupported && !captureDevice.AdjustingFocus)
+			{
+				//Lock device to config
+				if (captureDevice.LockForConfiguration(out var err))
+				{
+					//Focus at the point touched
+					captureDevice.FocusPointOfInterest = point;
+					captureDevice.FocusMode = AVCaptureFocusMode.ContinuousAutoFocus;
+					captureDevice.UnlockForConfiguration();
+				}
+			}
+		}
+
+		internal void AutoFocus()
+		{
+			if (captureDevice == null)
+				return;
+
+			var focusMode = AVCaptureFocusMode.AutoFocus;
+			if (captureDevice.IsFocusModeSupported(AVCaptureFocusMode.ContinuousAutoFocus))
+				focusMode = AVCaptureFocusMode.ContinuousAutoFocus;
+
+			//Lock device to config
+			if (captureDevice.LockForConfiguration(out var err))
+			{
+				if (captureDevice.FocusPointOfInterestSupported)
+					captureDevice.FocusPointOfInterest = CGPoint.Empty;
+				captureDevice.FocusMode = focusMode;
+				captureDevice.UnlockForConfiguration();
+			}
+		}
+
+		internal void UpdateCameraLocation()
+		{
+			UpdateSession();
 		}
 	}
 
