@@ -24,7 +24,16 @@
 			ColumnDefinitions="Auto,*,Auto">
 
 			<Button Text="🔄️" GridLayout.Column="0" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="SwitchCameraButton_Clicked" />
-			<Label GridLayout.Column="1" Text="Bottom text..." HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" />
+
+			<zxing:BarcodeGeneratorView
+				x:Name="barcodeGenerator"
+				GridLayout.Column="1"
+				HorizontalOptions="FillAndExpand"
+				VerticalOptions="FillAndExpand"
+				ForegroundColor="DarkBlue"
+				Format="QrCode"
+				Value="test" />
+
 			<Button Text="💡" GridLayout.Column="2" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="TorchButton_Clicked" />
 		</GridLayout>
 
