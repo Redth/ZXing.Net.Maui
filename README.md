@@ -24,13 +24,13 @@ cameraBarcodeReaderView.Options = new BarcodeReaderOptions
 
 Toggle Torch
 ```csharp
-// Toggle Torch
 cameraBarcodeReaderView.IsTorchOn = !cameraBarcodeReaderView.IsTorchOn;
 ```
 
 Flip between Rear/Front cameras
 ```csharp
-cameraBarcodeReaderView.CameraLocation = cameraBarcodeReaderView.CameraLocation == CameraLocation.Rear ? CameraLocation.Front : CameraLocation.Rear;
+cameraBarcodeReaderView.CameraLocation
+  = cameraBarcodeReaderView.CameraLocation == CameraLocation.Rear ? CameraLocation.Front : CameraLocation.Rear;
 ```
 
 Handle detected barcode(s)
