@@ -16,6 +16,7 @@ namespace ZXing.Net.Maui
 			[nameof(IBarcodeGeneratorView.Value)] = MapValue,
 			[nameof(IBarcodeGeneratorView.ForegroundColor)] = MapForegroundColor,
 			[nameof(IBarcodeGeneratorView.BackgroundColor)] = MapBackgroundColor,
+			[nameof(IBarcodeGeneratorView.Margin)] = MapMargin,
 		};
 
 		public BarcodeGeneratorViewHandler() : base(BarcodeGeneratorViewMapper)
@@ -48,6 +49,9 @@ namespace ZXing.Net.Maui
 			=> handler.UpdateBarcode();
 
 		public static void MapBackgroundColor(BarcodeGeneratorViewHandler handler, IBarcodeGeneratorView barcodeGeneratorView)
+			=> handler.UpdateBarcode();
+
+		public static void MapMargin(BarcodeGeneratorViewHandler handler, IBarcodeGeneratorView barcodeGeneratorView)
 			=> handler.UpdateBarcode();
 	}
 }

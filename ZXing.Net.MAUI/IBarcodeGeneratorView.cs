@@ -13,5 +13,7 @@ namespace ZXing.Net.Maui
 		Color ForegroundColor { get; }
 
 		Color BackgroundColor { get; }
+
+		new int Margin { get; }
 	}
 }

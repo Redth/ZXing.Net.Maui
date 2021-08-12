@@ -28,11 +28,13 @@
 			<zxing:BarcodeGeneratorView
 				x:Name="barcodeGenerator"
 				GridLayout.Column="1"
-				HorizontalOptions="FillAndExpand"
-				VerticalOptions="FillAndExpand"
+				HorizontalOptions="Center"
+				VerticalOptions="Center"
+				HeightRequest="100"
+				WidthRequest="100"
 				ForegroundColor="DarkBlue"
 				Format="QrCode"
-				Value="test" />
+				Margin="1" />
 
 			<Button Text="💡" GridLayout.Column="2" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="TorchButton_Clicked" />
 		</GridLayout>

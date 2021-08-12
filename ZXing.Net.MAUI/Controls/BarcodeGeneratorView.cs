@@ -31,7 +31,6 @@ namespace ZXing.Net.Maui.Controls
 			set => SetValue(ValueProperty, value);
 		}
 
-
 		public static readonly BindableProperty ForegroundColorProperty =
 			BindableProperty.Create(nameof(ForegroundColor), typeof(Color), typeof(BarcodeGeneratorView), defaultValue: Colors.Black);
 
@@ -50,6 +49,13 @@ namespace ZXing.Net.Maui.Controls
 			set => SetValue(BackgroundColorProperty, value);
 		}
 
+		public new static readonly BindableProperty MarginProperty =
+			BindableProperty.Create(nameof(Margin), typeof(int), typeof(BarcodeGeneratorView), defaultValue: 1);
 
+		public new int Margin
+		{
+			get => (int)GetValue(MarginProperty);
+			set => SetValue(MarginProperty, value);
+		}
 	}
 }

@@ -15,7 +15,11 @@ namespace ZXing.Net.Maui
 		AImageView view;
 
 		protected override AImageView CreateNativeView()
-			=> view ??= new AImageView(Context);
+		{
+			view = new AImageView(Context);
+			view.SetBackgroundColor(Android.Graphics.Color.Transparent);
+			return view;
+		}
 
 		protected override async void ConnectHandler(AImageView nativeView)
 		{
@@ -26,9 +30,10 @@ namespace ZXing.Net.Maui
 
 		void UpdateBarcode()
 		{
-			writer.Format = this.VirtualView.Format.ToZXingList().FirstOrDefault();
+			writer.Format = VirtualView.Format.ToZXingList().FirstOrDefault();
 			writer.Options.Width = (int)desiredSize.Width;
 			writer.Options.Height = (int)desiredSize.Height;
+			writer.Options.Margin = VirtualView.Margin;
 			writer.ForegroundColor = VirtualView.ForegroundColor;
 			writer.BackgroundColor = VirtualView.BackgroundColor;
 
