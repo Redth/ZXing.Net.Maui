@@ -7,6 +7,7 @@ using Microsoft.Maui;
 using Microsoft.Maui.Handlers;
 using UIKit;
 using Microsoft.Maui.Graphics;
+using Microsoft.Maui.Graphics.Native;
 using MSize = Microsoft.Maui.Graphics.Size;
 
 namespace ZXing.Net.Maui
@@ -33,8 +34,10 @@ namespace ZXing.Net.Maui
 			writer.ForegroundColor = VirtualView.ForegroundColor;
 			writer.BackgroundColor = VirtualView.BackgroundColor;
 
-			var img = writer?.Write(VirtualView.Value);
-			imageView.Image = img;
+			UIImage image = null;
+			if (!string.IsNullOrEmpty(VirtualView.Value))
+				image = writer?.Write(VirtualView.Value);
+			imageView.Image = image;
 		}
 	}
 }

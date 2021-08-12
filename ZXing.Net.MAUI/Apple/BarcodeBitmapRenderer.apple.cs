@@ -2,14 +2,13 @@ using System;
 using ZXing.Rendering;
 using Microsoft.Maui.Graphics.Native;
 using MauiColor = Microsoft.Maui.Graphics.Color;
+using ZXing.Common;
 
 #if IOS || MACCATALYST
 using Foundation;
 using CoreFoundation;
 using CoreGraphics;
 using UIKit;
-
-using ZXing.Common;
 
 namespace ZXing.Net.Maui
 {
@@ -22,14 +21,14 @@ namespace ZXing.Net.Maui
 
 		public MauiColor ForegroundColor
 		{
-			get => bitmapRenderer.ForegroundColor.ToUIColor().AsColor();
-			set => bitmapRenderer.ForegroundColor = value.AsColor().ToUIColor().ToCGColor();
+			get => new UIColor(bitmapRenderer.ForegroundColor).AsColor();
+			set => bitmapRenderer.ForegroundColor = value.AsCGColor();
 		}
 
 		public MauiColor BackgroundColor
 		{
-			get => bitmapRenderer.BackgroundColor.ToUIColor().AsColor();
-			set => bitmapRenderer.BackgroundColor = value.AsColor().ToCGColor();
+			get => new UIColor(bitmapRenderer.BackgroundColor).AsColor();
+			set => bitmapRenderer.BackgroundColor = value.AsCGColor();
 		}
 	}
 

@@ -28,8 +28,15 @@ namespace ZXing.Net.Maui
 			writer = new BarcodeWriter();
 		}
 
-		public override Size GetDesiredSize(double widthConstraint, double heightConstraint)
-			=> desiredSize = base.GetDesiredSize(widthConstraint, heightConstraint);
+		public override void NativeArrange(Rectangle rect)
+		{
+			base.NativeArrange(rect);
+
+			desiredSize = rect.Size;
+
+			UpdateBarcode();
+		}
+
 
 		public static void MapFormat(BarcodeGeneratorViewHandler handler, IBarcodeGeneratorView barcodeGeneratorView)
 			=> handler.UpdateBarcode();

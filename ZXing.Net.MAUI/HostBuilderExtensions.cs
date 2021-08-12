@@ -14,7 +14,11 @@ namespace ZXing.Net.Maui
 	{
 		public static IAppHostBuilder UseBarcodeReader(this IAppHostBuilder appHostBuilder)
 			=> appHostBuilder.ConfigureMauiHandlers(handlers =>
-				handlers.AddHandler(typeof(ICameraBarcodeReaderView), typeof(CameraBarcodeReaderViewHandler)))
+			{
+				handlers.AddHandler(typeof(ICameraBarcodeReaderView), typeof(CameraBarcodeReaderViewHandler));
+				handlers.AddHandler(typeof(IBarcodeGeneratorView), typeof(BarcodeGeneratorViewHandler));
+			})
+
 				.ConfigureServices(serviceCollection =>
 				{
 					// Use default ZXing reader
@@ -23,7 +27,10 @@ namespace ZXing.Net.Maui
 
 		public static IAppHostBuilder UseBarcodeReader<TBarcodeReader>(this IAppHostBuilder appHostBuilder) where TBarcodeReader : class, Readers.IBarcodeReader
 			=> appHostBuilder.ConfigureMauiHandlers(handlers =>
-				handlers.AddHandler(typeof(ICameraBarcodeReaderView), typeof(CameraBarcodeReaderViewHandler)))
+			{
+				handlers.AddHandler(typeof(ICameraBarcodeReaderView), typeof(CameraBarcodeReaderViewHandler));
+				handlers.AddHandler(typeof(IBarcodeGeneratorView), typeof(BarcodeGeneratorViewHandler));
+			})
 				.ConfigureServices(serviceCollection =>
 				{
 					// Register a custom reader
