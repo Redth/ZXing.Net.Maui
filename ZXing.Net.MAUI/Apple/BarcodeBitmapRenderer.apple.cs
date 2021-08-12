@@ -1,5 +1,7 @@
 using System;
 using ZXing.Rendering;
+using Microsoft.Maui.Graphics.Native;
+using MauiColor = Microsoft.Maui.Graphics.Color;
 
 #if IOS || MACCATALYST
 using Foundation;
@@ -13,8 +15,22 @@ namespace ZXing.Net.Maui
 {
 	public class BarcodeWriter : BarcodeWriter<UIImage>, IBarcodeWriter
 	{
+		BarcodeBitmapRenderer bitmapRenderer;
+
 		public BarcodeWriter()
-			=> Renderer = new BarcodeBitmapRenderer();
+			=> Renderer = (bitmapRenderer = new BarcodeBitmapRenderer());
+
+		public MauiColor ForegroundColor
+		{
+			get => bitmapRenderer.ForegroundColor.ToUIColor().AsColor();
+			set => bitmapRenderer.ForegroundColor = value.AsColor().ToUIColor().ToCGColor();
+		}
+
+		public MauiColor BackgroundColor
+		{
+			get => bitmapRenderer.BackgroundColor.ToUIColor().AsColor();
+			set => bitmapRenderer.BackgroundColor = value.AsColor().ToCGColor();
+		}
 	}
 
 	internal class BarcodeBitmapRenderer : IBarcodeRenderer<UIImage>

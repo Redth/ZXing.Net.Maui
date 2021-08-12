@@ -28,10 +28,10 @@ namespace ZXing.Net.Maui
 		void UpdateBarcode()
 		{
 			writer.Format = this.VirtualView.Format.ToZXingList().FirstOrDefault();
-			writer.Options.Width = desiredSize.Width;
-			writer.Options.Height = desiredSize.Height;
-			writer.ForegroundColor = VirtualView.ForegroundColor.ToCGColor();
-			writer.BackgroundColor = VirtualView.BackgroundColor.ToCGColor();
+			writer.Options.Width = (int)desiredSize.Width;
+			writer.Options.Height = (int)desiredSize.Height;
+			writer.ForegroundColor = VirtualView.ForegroundColor;
+			writer.BackgroundColor = VirtualView.BackgroundColor;
 
 			var img = writer?.Write(VirtualView.Value);
 			imageView.Image = img;

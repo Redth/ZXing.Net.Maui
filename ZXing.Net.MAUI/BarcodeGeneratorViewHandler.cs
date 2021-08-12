@@ -32,15 +32,15 @@ namespace ZXing.Net.Maui
 			=> desiredSize = base.GetDesiredSize(widthConstraint, heightConstraint);
 
 		public static void MapFormat(BarcodeGeneratorViewHandler handler, IBarcodeGeneratorView barcodeGeneratorView)
-			=> UpdateBarcode();
+			=> handler.UpdateBarcode();
 
 		public static void MapValue(BarcodeGeneratorViewHandler handler, IBarcodeGeneratorView barcodeGeneratorView)
-			=> UpdateBarcode();
+			=> handler.UpdateBarcode();
 
 		public static void MapForegroundColor(BarcodeGeneratorViewHandler handler, IBarcodeGeneratorView barcodeGeneratorView)
-			=> UpdateBarcode();
+			=> handler.UpdateBarcode();
 
 		public static void MapBackgroundColor(BarcodeGeneratorViewHandler handler, IBarcodeGeneratorView barcodeGeneratorView)
-			=> UpdateBarcode();
+			=> handler.UpdateBarcode();
 	}
 }
