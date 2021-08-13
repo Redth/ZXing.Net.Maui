@@ -49,13 +49,13 @@ namespace ZXing.Net.Maui.Controls
 			set => SetValue(BackgroundColorProperty, value);
 		}
 
-		public new static readonly BindableProperty MarginProperty =
-			BindableProperty.Create(nameof(Margin), typeof(int), typeof(BarcodeGeneratorView), defaultValue: 1);
+		public static readonly BindableProperty BarcodeMarginProperty =
+			BindableProperty.Create(nameof(BarcodeMargin), typeof(int), typeof(BarcodeGeneratorView), defaultValue: 1);
 
-		public new int Margin
+		public int BarcodeMargin
 		{
-			get => (int)GetValue(MarginProperty);
-			set => SetValue(MarginProperty, value);
+			get => (int)GetValue(BarcodeMarginProperty);
+			set => SetValue(BarcodeMarginProperty, value);
 		}
 	}
 }

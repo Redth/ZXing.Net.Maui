@@ -10,6 +10,4 @@
 
 		public BarcodeResult[] Results { get; private set; }
 	}
-
-
 }

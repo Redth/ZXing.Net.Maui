@@ -1,33 +1,36 @@
-﻿#if MACCATALYST || IOS
-using System;
-using Microsoft.Extensions.DependencyInjection;
+﻿#if IOS || MACCATALYST
 using AVFoundation;
 using CoreFoundation;
-using CoreGraphics;
-using CoreMedia;
 using CoreVideo;
-using Foundation;
 using Microsoft.Maui;
-using Microsoft.Maui.Handlers;
-using UIKit;
-using Microsoft.Maui.Graphics;
-using MapKit;
-using CarPlay;
-using System.Drawing;
 using MSize = Microsoft.Maui.Graphics.Size;
 
 namespace ZXing.Net.Maui
 {
-	public partial class CameraBarcodeReaderViewHandler : ViewHandler<ICameraBarcodeReaderView, UIView>
+	internal partial class CameraManager
 	{
 		AVCaptureSession captureSession;
 		AVCaptureDevice captureDevice;
 		AVCaptureInput captureInput = null;
 		PreviewView view;
-
-		protected override UIView CreateNativeView()
+		AVCaptureVideoDataOutput videoDataOutput;
+		AVCaptureVideoPreviewLayer videoPreviewLayer;
+		CaptureDelegate captureDelegate;
+		DispatchQueue dispatchQueue;
+		Dictionary<NSString, MSize> Resolutions => new()
 		{
-			captureSession = new AVCaptureSession {
+			{ AVCaptureSession.Preset352x288, new MSize(352, 288) },
+			{ AVCaptureSession.PresetMedium, new MSize(480, 360) },
+			{ AVCaptureSession.Preset640x480, new MSize(640, 480) },
+			{ AVCaptureSession.Preset1280x720, new MSize(1280, 720) },
+			{ AVCaptureSession.Preset1920x1080, new MSize(1920, 1080) },
+			{ AVCaptureSession.Preset3840x2160, new MSize(3840, 2160) },
+		};
+
+		public NativePlatformCameraPreviewView CreateNativeView()
+		{
+			captureSession = new AVCaptureSession
+			{
 				SessionPreset = AVCaptureSession.Preset640x480
 			};
 
@@ -39,70 +42,44 @@ namespace ZXing.Net.Maui
 			return view;
 		}
 
-		Dictionary<NSString, MSize> Resolutions => new()
+		public void Connect()
 		{
-			{ AVCaptureSession.Preset352x288, new MSize (352,288) },
-			{ AVCaptureSession.PresetMedium, new MSize (480,360) },
-			{ AVCaptureSession.Preset640x480, new MSize (640, 480) },
-			{ AVCaptureSession.Preset1280x720, new MSize (1280, 720) },
-			{ AVCaptureSession.Preset1920x1080, new MSize (1920, 1080) },
-			{ AVCaptureSession.Preset3840x2160, new MSize (3840, 2160) },
-		};
+			UpdateCamera();
 
-		AVCaptureVideoDataOutput videoDataOutput;
-		AVCaptureVideoPreviewLayer videoPreviewLayer;
-		CaptureDelegate captureDelegate;
-		DispatchQueue dispatchQueue;
-		protected override async void ConnectHandler(UIView nativeView)
-		{
-			base.ConnectHandler(nativeView);
-
-			Init();
-
-			if (await CheckPermissions())
+			if (videoDataOutput == null)
 			{
-				UpdateSession();
+				videoDataOutput = new AVCaptureVideoDataOutput();
 
-				if (videoDataOutput == null)
+				var videoSettings = NSDictionary.FromObjectAndKey(
+					new NSNumber((int)CVPixelFormatType.CV32BGRA),
+					CVPixelBuffer.PixelFormatTypeKey);
+
+				videoDataOutput.WeakVideoSettings = videoSettings;
+
+				if (captureDelegate == null)
 				{
-					videoDataOutput = new AVCaptureVideoDataOutput();
-
-					var videoSettings = NSDictionary.FromObjectAndKey(
-						new NSNumber((int)CVPixelFormatType.CV32BGRA),
-						CVPixelBuffer.PixelFormatTypeKey);
-
-					videoDataOutput.WeakVideoSettings = videoSettings;
-
-					if (captureDelegate == null)
+					captureDelegate = new CaptureDelegate
 					{
-						captureDelegate = new CaptureDelegate
-						{
-							SampleProcessor = cvPixelBuffer =>
-							{
-								if (VirtualView.IsDetecting)
+						SampleProcessor = cvPixelBuffer =>
+							FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder
 								{
-									Decode(new Readers.PixelBufferHolder
-									{
-										Data = cvPixelBuffer,
-										Size = new MSize(cvPixelBuffer.Width, cvPixelBuffer.Height)
-									});
-								}
-							}
-						};
-					}
-
-					if (dispatchQueue == null)
-						dispatchQueue = new DispatchQueue("CameraBufferQueue");
-
-					videoDataOutput.AlwaysDiscardsLateVideoFrames = true;
-					videoDataOutput.SetSampleBufferDelegateQueue(captureDelegate, dispatchQueue);
+									Data = cvPixelBuffer,
+									Size = new MSize(cvPixelBuffer.Width, cvPixelBuffer.Height)
+								}))
+					};
 				}
 
-				captureSession.AddOutput(videoDataOutput);
+				if (dispatchQueue == null)
+					dispatchQueue = new DispatchQueue("CameraBufferQueue");
+
+				videoDataOutput.AlwaysDiscardsLateVideoFrames = true;
+				videoDataOutput.SetSampleBufferDelegateQueue(captureDelegate, dispatchQueue);
 			}
+
+			captureSession.AddOutput(videoDataOutput);
 		}
 
-		void UpdateSession()
+		public void UpdateCamera()
 		{
 			if (captureSession != null)
 			{
@@ -127,13 +104,13 @@ namespace ZXing.Net.Maui
 				var devices = AVCaptureDevice.DevicesWithMediaType(AVMediaType.Video);
 				foreach (var device in devices)
 				{
-					if (VirtualView.CameraLocation == CameraLocation.Front &&
+					if (CameraLocation == CameraLocation.Front &&
 						device.Position == AVCaptureDevicePosition.Front)
 					{
 						captureDevice = device;
 						break;
 					}
-					else if (VirtualView.CameraLocation == CameraLocation.Rear && device.Position == AVCaptureDevicePosition.Back)
+					else if (CameraLocation == CameraLocation.Rear && device.Position == AVCaptureDevicePosition.Back)
 					{
 						captureDevice = device;
 						break;
@@ -152,22 +129,19 @@ namespace ZXing.Net.Maui
 		}
 
 
-
-		protected override void DisconnectHandler(UIView nativeView)
+		public void Disconnect()
 		{
 			captureSession.RemoveOutput(videoDataOutput);
 			captureSession.StopRunning();
-
-			base.DisconnectHandler(nativeView);
 		}
 
-		internal void UpdateTorch()
+		public void UpdateTorch(bool on)
 		{
 			if (captureDevice != null && captureDevice.HasTorch && captureDevice.TorchAvailable)
-				captureDevice.TorchMode = VirtualView.IsTorchOn ? AVCaptureTorchMode.On : AVCaptureTorchMode.Off;
+				captureDevice.TorchMode = on ? AVCaptureTorchMode.On : AVCaptureTorchMode.Off;
 		}
 
-		internal void Focus(Microsoft.Maui.Graphics.Point point)
+		public void Focus(Microsoft.Maui.Graphics.Point point)
 		{
 			if (captureDevice == null)
 				return;
@@ -190,7 +164,7 @@ namespace ZXing.Net.Maui
 			}
 		}
 
-		internal void AutoFocus()
+		public void AutoFocus()
 		{
 			if (captureDevice == null)
 				return;
@@ -209,9 +183,8 @@ namespace ZXing.Net.Maui
 			}
 		}
 
-		internal void UpdateCameraLocation()
+		public void Dispose()
 		{
-			UpdateSession();
 		}
 	}
 

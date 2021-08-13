@@ -9,7 +9,7 @@
 		<zxing:CameraBarcodeReaderView
 			GridLayout.Row="0" GridLayout.RowSpan="3"
 			x:Name="barcodeView"
-			BarcodesDetected="BarcodesDetected" />
+			 />
 
 		<GridLayout
 			GridLayout.Row="0"
@@ -25,7 +25,7 @@
 
 			<Button Text="🔄️" GridLayout.Column="0" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="SwitchCameraButton_Clicked" />
 
-			<zxing:BarcodeGeneratorView
+			<!--<zxing:BarcodeGeneratorView
 				x:Name="barcodeGenerator"
 				GridLayout.Column="1"
 				HorizontalOptions="Center"
@@ -34,7 +34,7 @@
 				WidthRequest="100"
 				ForegroundColor="DarkBlue"
 				Format="QrCode"
-				Margin="1" />
+				BarcodeMargin="1" />-->
 
 			<Button Text="💡" GridLayout.Column="2" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="TorchButton_Clicked" />
 		</GridLayout>

@@ -23,8 +23,8 @@ namespace BigIslandBarcode
 			foreach (var barcode in e.Results)
 				Console.WriteLine($"Barcodes: {barcode.Format} -> {barcode.Value}");
 
-			Device.InvokeOnMainThreadAsync(() =>
-				barcodeGenerator.Value = e.Results.First().Value);
+			//Device.InvokeOnMainThreadAsync(() =>
+			//	barcodeGenerator.Value = e.Results.First().Value);
 		}
 
 		void SwitchCameraButton_Clicked(object sender, EventArgs e)
