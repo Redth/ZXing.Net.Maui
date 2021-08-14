@@ -10,10 +10,10 @@ namespace ZXing.Net.Maui.Controls
 		protected override void OnHandlerChanging(HandlerChangingEventArgs args)
 		{
 			base.OnHandlerChanging(args);
-			if (args.OldHandler is ICameraFrameAnalyzer oldHandler)
+			if (args.OldHandler is CameraViewHandler oldHandler)
 				oldHandler.FrameReady -= Handler_FrameReady;
 
-			if (args.NewHandler is ICameraFrameAnalyzer newHandler)
+			if (args.NewHandler is CameraViewHandler newHandler)
 				newHandler.FrameReady += Handler_FrameReady;
 		}
 
