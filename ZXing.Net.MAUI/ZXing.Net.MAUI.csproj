@@ -13,8 +13,9 @@
 		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.0.1.1" />
 		<PackageReference Include="Xamarin.AndroidX.Camera.Lifecycle" Version="1.0.1.1" />
 		<PackageReference Include="Xamarin.AndroidX.Camera.View" Version="1.0.0.5-alpha20" />
-	</ItemGroup>
 
+		<AndroidManifest Include="Platforms/Android/AndroidManifest.xml" />
+	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="ZXing.Net" Version="0.16.6" />
 	</ItemGroup>
