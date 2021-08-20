@@ -15,21 +15,21 @@ namespace ZXing.Net.Maui.Controls
 		public event EventHandler<BarcodeDetectionEventArgs> BarcodesDetected;
 		public event EventHandler<CameraFrameBufferEventArgs> FrameReady;
 
-		//protected override void OnHandlerChanging(HandlerChangingEventArgs args)
-		//{
-		//	base.OnHandlerChanging(args);
-		//	if (args.OldHandler is CameraBarcodeReaderViewHandler oldHandler)
-		//	{
-		//		oldHandler.BarcodesDetected -= Handler_BarcodesDetected;
-		//		oldHandler.FrameReady -= Handler_FrameReady;
-		//	}
+		protected override void OnHandlerChanging(HandlerChangingEventArgs args)
+		{
+			base.OnHandlerChanging(args);
+			if (args.OldHandler is CameraBarcodeReaderViewHandler oldHandler)
+			{
+				oldHandler.BarcodesDetected -= Handler_BarcodesDetected;
+				oldHandler.FrameReady -= Handler_FrameReady;
+			}
 
-		//	if (args.NewHandler is CameraBarcodeReaderViewHandler newHandler)
-		//	{
-		//		newHandler.BarcodesDetected += Handler_BarcodesDetected;
-		//		newHandler.FrameReady += Handler_FrameReady;
-		//	}
-		//}
+			if (args.NewHandler is CameraBarcodeReaderViewHandler newHandler)
+			{
+				newHandler.BarcodesDetected += Handler_BarcodesDetected;
+				newHandler.FrameReady += Handler_FrameReady;
+			}
+		}
 
 		void Handler_BarcodesDetected(object sender, BarcodeDetectionEventArgs e)
 			=> BarcodesDetected?.Invoke(this, e);
