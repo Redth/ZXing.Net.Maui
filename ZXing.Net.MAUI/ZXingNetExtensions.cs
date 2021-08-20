@@ -1,4 +1,6 @@
-﻿using Microsoft.Maui.Graphics;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Maui.Graphics;
 
 namespace ZXing.Net.Maui
 {
