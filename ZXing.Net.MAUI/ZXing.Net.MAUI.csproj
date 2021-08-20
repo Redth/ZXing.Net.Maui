@@ -7,6 +7,7 @@
 		<UseMaui>True</UseMaui>
 		<SingleProject>True</SingleProject>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<UseSystemResourceKeys>false</UseSystemResourceKeys>
 	</PropertyGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0-android'">
 		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.0.1.1" />
@@ -15,9 +16,7 @@
 
 		<AndroidManifest Include="Platforms/Android/AndroidManifest.xml" />
 	</ItemGroup>
-
 	<ItemGroup>
 		<PackageReference Include="ZXing.Net" Version="0.16.6" />
 	</ItemGroup>
-
 </Project>

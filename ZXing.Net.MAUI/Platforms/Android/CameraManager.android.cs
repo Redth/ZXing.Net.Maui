@@ -30,7 +30,7 @@ using AndroidX.Camera.Camera2.InterOp;
 
 namespace ZXing.Net.Maui
 {
-	public partial class CameraBarcodeReaderViewHandler : ViewHandler<ICameraBarcodeReaderView, AView>, IDisposable
+	internal partial class CameraManager
 	{
 		AndroidX.Camera.Core.Preview cameraPreview;
 		ImageAnalysis imageAnalyzer;
@@ -40,29 +40,17 @@ namespace ZXing.Net.Maui
 		ProcessCameraProvider cameraProvider;
 		ICamera camera;
 
-		protected override AView CreateNativeView()
+		public NativePlatformCameraPreviewView CreateNativeView()
 		{
-			previewView = new PreviewView(Context);
+			previewView = new PreviewView(Context.Context);
 			cameraExecutor = Executors.NewSingleThreadExecutor();
 
 			return previewView;
 		}
-	
-		protected override async void ConnectHandler(AView nativeView)
+
+		public void Connect()
 		{
-			base.ConnectHandler(nativeView);
-
-			Init();
-
-			if (await CheckPermissions())
-			{
-				StartCamera();
-			}
-		}
-
-		void StartCamera()
-		{
-			var cameraProviderFuture = ProcessCameraProvider.GetInstance(Context);
+			var cameraProviderFuture = ProcessCameraProvider.GetInstance(Context.Context);
 
 			cameraProviderFuture.AddListener(new Java.Lang.Runnable(() =>
 			{
@@ -80,24 +68,24 @@ namespace ZXing.Net.Maui
 					.Build();
 
 				imageAnalyzer.SetAnalyzer(cameraExecutor, new FrameAnalyzer((buffer, size) =>
-				{
-					if (VirtualView.IsDetecting)
-						Decode(new Readers.PixelBufferHolder { Data = buffer, Size = size });
-				}));
+					FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
 
-				BindCamera();
+				UpdateCamera();
 
-			}), ContextCompat.GetMainExecutor(Context)); //GetMainExecutor: returns an Executor that runs on the main thread.
+			}), ContextCompat.GetMainExecutor(Context.Context)); //GetMainExecutor: returns an Executor that runs on the main thread.
 		}
 
-		void BindCamera()
+		public void Disconnect()
+		{ }
+
+		public void UpdateCamera()
 		{
 			if (cameraProvider != null)
 			{
 				// Unbind use cases before rebinding
 				cameraProvider.UnbindAll();
 
-				var cameraLocation = VirtualView.CameraLocation;
+				var cameraLocation = CameraLocation;
 
 				// Select back camera as a default, or front camera otherwise
 				if (cameraLocation == CameraLocation.Rear && cameraProvider.HasCamera(CameraSelector.DefaultBackCamera))
@@ -105,7 +93,7 @@ namespace ZXing.Net.Maui
 				else if (cameraLocation == CameraLocation.Front && cameraProvider.HasCamera(CameraSelector.DefaultFrontCamera))
 					cameraSelector = CameraSelector.DefaultFrontCamera;
 				else
-					cameraSelector = CameraSelector.DefaultFrontCamera;
+					cameraSelector = CameraSelector.DefaultBackCamera;
 
 				if (cameraSelector == null)
 					throw new System.Exception("Camera not found");
@@ -116,26 +104,19 @@ namespace ZXing.Net.Maui
 			}
 		}
 
-		internal void UpdateTorch()
+		public void UpdateTorch(bool on)
 		{
-			var on = VirtualView.IsTorchOn;
-
 			camera?.CameraControl?.EnableTorch(on);
 		}
 
-		internal void Focus(Point point)
+		public void Focus(Point point)
 		{
 
 		}
 
-		internal void AutoFocus()
+		public void AutoFocus()
 		{
 
-		}
-
-		internal void UpdateCameraLocation()
-		{
-			BindCamera();
 		}
 
 		public void Dispose()

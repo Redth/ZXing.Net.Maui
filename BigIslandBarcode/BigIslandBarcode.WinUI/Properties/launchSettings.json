@@ -1,8 +1,0 @@
-﻿{
-  "profiles": {
-    "BigIslandBarcode.WinUI": {
-      "commandName": "MsixPackage",
-      "nativeDebugging": false
-    }
-  }
-}

@@ -1,4 +1,7 @@
-﻿namespace ZXing.Net.Maui
+﻿using System;
+using System.Collections.Generic;
+
+namespace ZXing.Net.Maui
 {
 	public static class BarcodeFormats
 	{
