@@ -13,7 +13,7 @@ namespace BigIslandBarcode
 
 			barcodeView.Options = new BarcodeReaderOptions
 			{
-				Formats = BarcodeFormats.OneDimensional,
+				Formats = BarcodeFormats.All,
 				AutoRotate = true,
 				Multiple = true
 			};
@@ -25,7 +25,12 @@ namespace BigIslandBarcode
 				Console.WriteLine($"Barcodes: {barcode.Format} -> {barcode.Value}");
 
 			Device.InvokeOnMainThreadAsync(() =>
-				barcodeGenerator.Value = e.Results.First().Value);
+			{
+				var r = e.Results.First();
+
+				barcodeGenerator.Value = r.Value;
+				barcodeGenerator.Format = r.Format;
+			});
 		}
 
 		void SwitchCameraButton_Clicked(object sender, EventArgs e)
