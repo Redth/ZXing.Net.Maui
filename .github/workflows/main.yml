@@ -1,0 +1,80 @@
+name: .NET Core
+
+on:
+  pull_request:
+  push:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: Build
+    env:
+      NUPKG_MAJOR: 0.999
+      CODESIGN_PFX: ${{ secrets.CODESIGN_PFX }}
+    runs-on: windows-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup .NET 3.1
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.1.x'
+    - name: Setup .NET 5.0
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '5.0.x'
+    - name: Setup NuGet 5.x
+      uses: nuget/setup-nuget@v1
+      with:
+        nuget-version: '5.x'
+    - name: Setup MAUI
+      shell: pwsh
+      run: |
+        & dotnet tool update --global redth.net.maui.check
+        & maui-check --preview --ci --non-interactive --fix --skip xcode --skip vswin --skip vsmac --skip edgewebview2
+
+    - name: Build
+      run: dotnet build --configuration Release
+   # - name: Test
+   #   run: dotnet test --configuration Release
+    - name: Package NuGets
+      shell: pwsh
+      run: |
+        $VERSION="$env:NUPKG_MAJOR-ci$env:GITHUB_RUN_ID"
+        if ($env:GITHUB_EVENT_NAME -eq "release") {
+          $VERSION = $env:GITHUB_REF.Substring($env:GITHUB_REF.LastIndexOf('/') + 1)
+        }
+        echo "::set-output name=pkgverci::$VERSION"
+        echo "PACKAGE VERSION: $VERSION"
+        
+        New-Item -ItemType Directory -Force -Path .\artifacts
+        dotnet pack --output ./artifacts --configuration Release -p:PackageVersion=$VERSION ./ZXing.Net.MAUI/ZXing.Net.MAUI.csproj
+        dotnet build --output ./artifacts --configuration Release -p:PackageVersion=$VERSION ./AndroidSdk.Tool/AndroidSdk.Tool.csproj
+        $pfxPath = Join-Path -Path $pwd -ChildPath "codesigncert.pfx"
+        [IO.File]::WriteAllBytes("$pfxPath", [System.Convert]::FromBase64String($env:CODESIGN_PFX))
+        nuget sign .\artifacts\*.nupkg -CertificatePath $pfxPath -Timestamper http://timestamp.entrust.net/TSS/RFC3161sha2TS
+        
+    - name: Artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: NuGet
+        path: ./artifacts
+
+  publish:
+    name: Publish
+    needs: build
+    runs-on: windows-latest
+    if: github.event_name == 'release'
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: NuGet
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '5.0.x'
+      - name: Push NuGet
+        run: |
+          dotnet nuget push NuGet\*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_ORG_API_KEY }}
