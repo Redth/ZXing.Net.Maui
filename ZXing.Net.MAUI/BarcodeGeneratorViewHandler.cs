@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui;
 using Microsoft.Maui.Graphics;
@@ -44,7 +45,7 @@ namespace ZXing.Net.Maui
 		protected override NativePlatformImageView CreateNativeView()
 		{
 #if IOS || MACCATALYST
-			imageView ??= new UIImageView { BackgroundColor = UIColor.Clear };
+			imageView ??= new UIKit.UIImageView { BackgroundColor = UIKit.UIColor.Clear };
 #elif ANDROID
 			imageView = new NativePlatformImageView(Context);
 			imageView.SetBackgroundColor(Android.Graphics.Color.Transparent);

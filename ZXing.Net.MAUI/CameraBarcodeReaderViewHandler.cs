@@ -2,6 +2,8 @@
 using Microsoft.Maui;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
+using System;
+using System.Linq;
 
 namespace ZXing.Net.Maui
 {

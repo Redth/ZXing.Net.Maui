@@ -1,4 +1,5 @@
-﻿using ZXing.Net.Maui.Readers;
+﻿using System;
+using ZXing.Net.Maui.Readers;
 
 namespace ZXing.Net.Maui
 {

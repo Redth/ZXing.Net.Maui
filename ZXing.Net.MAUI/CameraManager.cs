@@ -1,5 +1,7 @@
 ﻿using Microsoft.Maui;
 using Microsoft.Maui.Graphics;
+using System;
+using System.Threading.Tasks;
 
 namespace ZXing.Net.Maui
 {

@@ -2,13 +2,10 @@
 using Microsoft.Maui.Hosting;
 using Microsoft.Maui.Controls.Compatibility;
 using Microsoft.Maui.Controls.Hosting;
-using Microsoft.Maui.Controls.Xaml;
 using Microsoft.Maui.LifecycleEvents;
 using ZXing.Net.Maui;
 using Microsoft.Maui.Essentials;
-using Microsoft.Maui.Controls.Shapes;
 
-[assembly: XamlCompilationAttribute(XamlCompilationOptions.Compile)]
 #if ANDROID
 [assembly: Android.App.UsesPermission(Android.Manifest.Permission.Camera)]
 #endif

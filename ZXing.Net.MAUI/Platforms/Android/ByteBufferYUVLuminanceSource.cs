@@ -1,4 +1,5 @@
 ﻿using Java.Nio;
+using System;
 
 namespace ZXing.Net.Maui
 {

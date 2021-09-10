@@ -1,4 +1,6 @@
-﻿namespace ZXing.Net.Maui
+﻿using System;
+
+namespace ZXing.Net.Maui
 {
 	public class BarcodeDetectionEventArgs : EventArgs
 	{
