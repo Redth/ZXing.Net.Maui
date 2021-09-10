@@ -8,6 +8,13 @@
 		<SingleProject>True</SingleProject>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<UseSystemResourceKeys>false</UseSystemResourceKeys>
+		<Copyright>Copyright © Redth</Copyright>
+		<PackageProjectUrl>https://github.com/redth/BigIslandBarcoding</PackageProjectUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RepositoryUrl>https://github.com/redth/BigIslandBarcoding</RepositoryUrl>
+		<AssemblyFileVersion>$(PackageVersion)</AssemblyFileVersion>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<DebugType>portable</DebugType>
 	</PropertyGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0-android'">
 		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.0.1.1" />
