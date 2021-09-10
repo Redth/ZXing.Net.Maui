@@ -39,7 +39,7 @@ namespace ZXing.Net.Maui.Controls
 
 		public BarcodeReaderOptions Options
 		{
-			get => (BarcodeReaderOptions)new BarcodeReaderOptions(); // GetValue(OptionsProperty);
+			get => (BarcodeReaderOptions)GetValue(OptionsProperty);
 			set => SetValue(OptionsProperty, value);
 		}
 
