@@ -19,12 +19,4 @@
 		<PackageReference Include="ZXing.Net" Version="0.16.6" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <None Include="Platforms\Android\CameraManager.android.cs" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <_MauiCompileToAdd Remove="Platforms\Android\CameraManager.android.cs" />
-	</ItemGroup>
-
 </Project>
