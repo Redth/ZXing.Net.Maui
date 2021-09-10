@@ -99,7 +99,7 @@ namespace ZXing.Net.Maui
 					throw new System.Exception("Camera not found");
 
 				// The Context here SHOULD be something that's a lifecycle owner
-				if (Context is AndroidX.Lifecycle.ILifecycleOwner lifecycleOwner)
+				if (Context.Context is AndroidX.Lifecycle.ILifecycleOwner lifecycleOwner)
 					camera = cameraProvider.BindToLifecycle(lifecycleOwner, cameraSelector, cameraPreview, imageAnalyzer);
 			}
 		}

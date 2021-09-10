@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
+using System;
 
 namespace ZXing.Net.Maui.Controls
 {
