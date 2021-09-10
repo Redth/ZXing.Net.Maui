@@ -1,7 +1,10 @@
-﻿#if MACCATALYST || IOS
+﻿using System;
+#if MACCATALYST || IOS
 using AVFoundation;
 using CoreMedia;
 using CoreVideo;
+using Foundation;
+using UIKit;
 
 namespace ZXing.Net.Maui
 {

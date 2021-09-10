@@ -1,7 +1,12 @@
 ﻿#if IOS || MACCATALYST
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using AVFoundation;
 using CoreFoundation;
 using CoreVideo;
+using Foundation;
+using UIKit;
 using Microsoft.Maui;
 using MSize = Microsoft.Maui.Graphics.Size;
 
@@ -177,7 +182,7 @@ namespace ZXing.Net.Maui
 			if (captureDevice.LockForConfiguration(out var err))
 			{
 				if (captureDevice.FocusPointOfInterestSupported)
-					captureDevice.FocusPointOfInterest = CGPoint.Empty;
+					captureDevice.FocusPointOfInterest = CoreGraphics.CGPoint.Empty;
 				captureDevice.FocusMode = focusMode;
 				captureDevice.UnlockForConfiguration();
 			}
