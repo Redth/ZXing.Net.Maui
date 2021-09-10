@@ -24,33 +24,33 @@ namespace ZXing.Net.Maui
 {
 	public static class CameraViewExtensions
 	{
-		public static IAppHostBuilder UseBarcodeReader(this IAppHostBuilder appHostBuilder)
-			=> appHostBuilder.ConfigureMauiHandlers(handlers =>
+		public static MauiAppBuilder UseBarcodeReader(this MauiAppBuilder builder)
+		{
+			builder.ConfigureMauiHandlers(handlers =>
 			{
 				handlers.AddHandler(typeof(ICameraView), typeof(CameraViewHandler));
 				handlers.AddHandler(typeof(ICameraBarcodeReaderView), typeof(CameraBarcodeReaderViewHandler));
 				handlers.AddHandler(typeof(IBarcodeGeneratorView), typeof(BarcodeGeneratorViewHandler));
-			})
+			});
 
-				.ConfigureServices(serviceCollection =>
-				{
-					// Use default ZXing reader
-					serviceCollection.AddTransient<Readers.IBarcodeReader, Readers.ZXingBarcodeReader>();
-				});
+			builder.Services.AddTransient<Readers.IBarcodeReader, Readers.ZXingBarcodeReader>();
 
-		public static IAppHostBuilder UseBarcodeReader<TBarcodeReader>(this IAppHostBuilder appHostBuilder) where TBarcodeReader : class, Readers.IBarcodeReader
-			=> appHostBuilder.ConfigureMauiHandlers(handlers =>
+			return builder;
+		}
+
+		public static MauiAppBuilder UseBarcodeReader<TBarcodeReader>(this MauiAppBuilder builder) where TBarcodeReader : class, Readers.IBarcodeReader
+		{
+			builder.ConfigureMauiHandlers(handlers =>
 			{
 				handlers.AddHandler(typeof(ICameraView), typeof(CameraViewHandler));
 				handlers.AddHandler(typeof(ICameraBarcodeReaderView), typeof(CameraBarcodeReaderViewHandler));
 				handlers.AddHandler(typeof(IBarcodeGeneratorView), typeof(BarcodeGeneratorViewHandler));
-			})
-				.ConfigureServices(serviceCollection =>
-				{
-					// Register a custom reader
-					serviceCollection.AddTransient<Readers.IBarcodeReader, TBarcodeReader>();
-				});
+			});
 
+			builder.Services.AddTransient<Readers.IBarcodeReader, TBarcodeReader>();
+
+			return builder;
+		}
 
 	}
 }
