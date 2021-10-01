@@ -14,8 +14,7 @@
 		<ApplicationId>com.companyname.BigIslandBarcode</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationVersion>1.0</ApplicationVersion>
-		<AndroidVersionCode>1</AndroidVersionCode>
+		<ApplicationVersion>1</ApplicationVersion>
 
 		<UseSystemResourceKeys>false</UseSystemResourceKeys>
 
@@ -34,6 +33,7 @@
 		<!-- Custom Fonts -->
 		<MauiFont Include="Resources\Fonts\*" />
 	</ItemGroup>
+
 	<ItemGroup>
 	  <ProjectReference Include="..\ZXing.Net.MAUI\ZXing.Net.MAUI.csproj" />
 	</ItemGroup>
