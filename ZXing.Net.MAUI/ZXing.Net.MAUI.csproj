@@ -17,8 +17,8 @@
 		<DebugType>portable</DebugType>
 	</PropertyGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0-android'">
-		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.0.1.1" />
-		<PackageReference Include="Xamarin.AndroidX.Camera.Lifecycle" Version="1.0.1.1" />
+		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.0.1.3" />
+		<PackageReference Include="Xamarin.AndroidX.Camera.Lifecycle" Version="1.0.1.3" />
 		<PackageReference Include="Xamarin.AndroidX.Camera.View" Version="1.0.0.5-alpha20" />
 
 		<AndroidManifest Include="Platforms/Android/AndroidManifest.xml" />
