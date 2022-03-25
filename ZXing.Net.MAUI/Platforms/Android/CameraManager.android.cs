@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if ANDROID
+using System;
 using Android.Content;
 using Android.Graphics;
 using Android.Hardware.Camera2;
@@ -126,3 +127,4 @@ namespace ZXing.Net.Maui
 		}
 	}
 }
+#endif

@@ -1,4 +1,5 @@
-﻿using Java.Nio;
+﻿#if ANDROID
+using Java.Nio;
 using System;
 
 namespace ZXing.Net.Maui
@@ -147,3 +148,4 @@ namespace ZXing.Net.Maui
 			=> new PlanarYUVLuminanceSource(newLuminances, width, height, 0, 0, width, height, false);
 	}
 }
+#endif

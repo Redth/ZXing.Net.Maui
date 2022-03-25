@@ -32,7 +32,7 @@ namespace ZXing.Net.Maui
 			{ AVCaptureSession.Preset3840x2160, new MSize(3840, 2160) },
 		};
 
-		public NativePlatformCameraPreviewView CreateNativeView()
+		public NativePlatformCameraPreviewView CreatePlatformView()
 		{
 			captureSession = new AVCaptureSession
 			{
@@ -78,7 +78,7 @@ namespace ZXing.Net.Maui
 					dispatchQueue = new DispatchQueue("CameraBufferQueue");
 
 				videoDataOutput.AlwaysDiscardsLateVideoFrames = true;
-				videoDataOutput.SetSampleBufferDelegateQueue(captureDelegate, dispatchQueue);
+				videoDataOutput.SetSampleBufferDelegate(captureDelegate, dispatchQueue);
 			}
 
 			captureSession.AddOutput(videoDataOutput);
@@ -106,7 +106,7 @@ namespace ZXing.Net.Maui
 					captureDevice = null;
 				}
 
-				var devices = AVCaptureDevice.DevicesWithMediaType(AVMediaType.Video);
+				var devices = AVCaptureDevice.DevicesWithMediaType(AVMediaTypes.Video.ToString());
 				foreach (var device in devices)
 				{
 					if (CameraLocation == CameraLocation.Front &&

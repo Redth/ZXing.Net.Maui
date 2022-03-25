@@ -1,5 +1,5 @@
-﻿using System;
-#if MACCATALYST || IOS
+﻿#if MACCATALYST || IOS
+using System;
 using AVFoundation;
 using CoreMedia;
 using CoreVideo;

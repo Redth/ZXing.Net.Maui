@@ -1,10 +1,10 @@
+#if IOS || MACCATALYST
+
 using System;
 using ZXing.Rendering;
-using Microsoft.Maui.Graphics.Native;
+using Microsoft.Maui.Graphics.Platform;
 using MauiColor = Microsoft.Maui.Graphics.Color;
 using ZXing.Common;
-
-#if IOS || MACCATALYST
 using Foundation;
 using CoreFoundation;
 using CoreGraphics;
