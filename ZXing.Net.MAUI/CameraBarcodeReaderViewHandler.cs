@@ -4,8 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
-using System;
-using System.Linq;
 
 namespace ZXing.Net.Maui
 {
@@ -41,7 +39,7 @@ namespace ZXing.Net.Maui
 		protected Readers.IBarcodeReader BarcodeReader
 			=> Services.GetService<Readers.IBarcodeReader>();
 
-		protected override NativePlatformCameraPreviewView CreateNativeView()
+        protected override NativePlatformCameraPreviewView CreatePlatformView()
 		{
 			if (cameraManager == null)
 				cameraManager = new(MauiContext, VirtualView?.CameraLocation ?? CameraLocation.Rear);

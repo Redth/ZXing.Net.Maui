@@ -3,9 +3,9 @@ using ZXing.Common;
 using ZXing.Rendering;
 using Android.Graphics;
 using Microsoft.Maui.Graphics;
-using Microsoft.Maui.Graphics.Native;
 using AColor = Android.Graphics.Color;
 using MauiColor = Microsoft.Maui.Graphics.Color;
+using Microsoft.Maui.Graphics.Platform;
 
 namespace ZXing.Net.Maui
 {

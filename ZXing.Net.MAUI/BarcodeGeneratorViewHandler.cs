@@ -31,9 +31,9 @@ namespace ZXing.Net.Maui
 			writer = new BarcodeWriter();
 		}
 
-		public override void NativeArrange(Rectangle rect)
+        public override void PlatformArrange(Rect rect)
 		{
-			base.NativeArrange(rect);
+			base.PlatformArrange(rect);
 
 			desiredSize = rect.Size;
 
@@ -42,7 +42,7 @@ namespace ZXing.Net.Maui
 
 		NativePlatformImageView imageView;
 
-		protected override NativePlatformImageView CreateNativeView()
+		protected override NativePlatformImageView CreatePlatformView()
 		{
 #if IOS || MACCATALYST
 			imageView ??= new UIKit.UIImageView { BackgroundColor = UIKit.UIColor.Clear };
