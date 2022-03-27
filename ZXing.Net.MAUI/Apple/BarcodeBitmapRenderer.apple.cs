@@ -30,14 +30,6 @@ namespace ZXing.Net.Maui
 			get => new UIColor(bitmapRenderer.BackgroundColor).AsColor();
 			set => bitmapRenderer.BackgroundColor = value.AsCGColor();
 		}
-        public ZXing.BarcodeFormat Format { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public EncodingOptions Options { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-        public Writer Encoder { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-        public BitMatrix Encode(string contents)
-        {
-            throw new NotImplementedException();
-        }
     }
 
 	internal class BarcodeBitmapRenderer : IBarcodeRenderer<UIImage>
