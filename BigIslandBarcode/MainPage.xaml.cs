@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Essentials;
 using ZXing.Net.Maui;
 
 namespace BigIslandBarcode
@@ -24,7 +25,7 @@ namespace BigIslandBarcode
 			foreach (var barcode in e.Results)
 				Console.WriteLine($"Barcodes: {barcode.Format} -> {barcode.Value}");
 
-			Device.InvokeOnMainThreadAsync(() =>
+			MainThread.InvokeOnMainThreadAsync(() =>
 			{
 				var r = e.Results.First();
 
