@@ -78,7 +78,7 @@ namespace ZXing.Net.Maui
 					dispatchQueue = new DispatchQueue("CameraBufferQueue");
 
 				videoDataOutput.AlwaysDiscardsLateVideoFrames = true;
-				videoDataOutput.SetSampleBufferDelegateQueue(captureDelegate, dispatchQueue);
+				videoDataOutput.SetSampleBufferDelegate(captureDelegate, dispatchQueue);
 			}
 
 			captureSession.AddOutput(videoDataOutput);
@@ -106,7 +106,7 @@ namespace ZXing.Net.Maui
 					captureDevice = null;
 				}
 
-				var devices = AVCaptureDevice.DevicesWithMediaType(AVMediaType.Video);
+				var devices = AVCaptureDevice.DevicesWithMediaType(AVMediaTypes.Video.GetConstant());
 				foreach (var device in devices)
 				{
 					if (CameraLocation == CameraLocation.Front &&

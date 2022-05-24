@@ -41,7 +41,7 @@ namespace ZXing.Net.Maui
 		protected Readers.IBarcodeReader BarcodeReader
 			=> Services.GetService<Readers.IBarcodeReader>();
 
-		protected override NativePlatformCameraPreviewView CreateNativeView()
+		protected override NativePlatformCameraPreviewView CreatePlatformView()
 		{
 			if (cameraManager == null)
 				cameraManager = new(MauiContext, VirtualView?.CameraLocation ?? CameraLocation.Rear);

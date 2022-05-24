@@ -17,7 +17,6 @@ using AndroidX.Core.Content;
 using Java.Util;
 using Java.Util.Concurrent;
 using Microsoft.Maui;
-using Microsoft.Maui.Essentials;
 using Microsoft.Maui.Handlers;
 using Microsoft.Extensions.DependencyInjection;
 using static Android.Hardware.Camera;

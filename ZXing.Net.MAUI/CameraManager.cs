@@ -4,6 +4,7 @@ using Microsoft.Maui;
 using Microsoft.Maui.Graphics;
 using System;
 using System.Threading.Tasks;
+using Microsoft.Maui.ApplicationModel;
 
 namespace ZXing.Net.Maui
 {
@@ -28,6 +29,6 @@ namespace ZXing.Net.Maui
 		}
 
 		public async Task<bool> CheckPermissions()
-			=> (await Microsoft.Maui.Essentials.Permissions.RequestAsync<Microsoft.Maui.Essentials.Permissions.Camera>()) == Microsoft.Maui.Essentials.PermissionStatus.Granted;
+			=> (await Permissions.RequestAsync<Permissions.Camera>()) == PermissionStatus.Granted;
 	}
 }

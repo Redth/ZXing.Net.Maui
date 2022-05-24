@@ -10,7 +10,6 @@ global using NativePlatformImageView = global::Android.Widget.ImageView;
 global using NativePlatformImage = global::Android.Graphics.Bitmap;
 #endif
 
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Hosting;
 using Microsoft.Maui;
