@@ -9,9 +9,9 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<UseSystemResourceKeys>false</UseSystemResourceKeys>
 		<Copyright>Copyright © Redth</Copyright>
-		<PackageProjectUrl>https://github.com/redth/BigIslandBarcoding</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/redth/ZXing.Net.Maui</PackageProjectUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<RepositoryUrl>https://github.com/redth/BigIslandBarcoding.git</RepositoryUrl>
+		<RepositoryUrl>https://github.com/redth/ZXing.Net.Maui.git</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<AssemblyFileVersion>$(PackageVersion)</AssemblyFileVersion>
