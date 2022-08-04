@@ -11,11 +11,13 @@
 		<Copyright>Copyright © Redth</Copyright>
 		<PackageProjectUrl>https://github.com/redth/ZXing.Net.Maui</PackageProjectUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<RepositoryUrl>https://github.com/redth/ZXing.Net.Maui.git</RepositoryUrl>
+		<GitThisAssemblyMetadata>True</GitThisAssemblyMetadata>
+		<RepositoryUrl>$(GitRepositoryUrl)</RepositoryUrl>
+		<RepositoryCommit>$(GitCommit)</RepositoryCommit>
+		<RepositoryBranch>$(GitBranch)</RepositoryBranch>
 		<RepositoryType>git</RepositoryType>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<AssemblyFileVersion>$(PackageVersion)</AssemblyFileVersion>
-		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<DebugType>portable</DebugType>
 		<IsPackable>true</IsPackable>
 	</PropertyGroup>
