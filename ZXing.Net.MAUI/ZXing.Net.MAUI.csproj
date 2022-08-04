@@ -11,10 +11,13 @@
 		<Copyright>Copyright © Redth</Copyright>
 		<PackageProjectUrl>https://github.com/redth/BigIslandBarcoding</PackageProjectUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<RepositoryUrl>https://github.com/redth/BigIslandBarcoding</RepositoryUrl>
+		<RepositoryUrl>https://github.com/redth/BigIslandBarcoding.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<AssemblyFileVersion>$(PackageVersion)</AssemblyFileVersion>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<DebugType>portable</DebugType>
+		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0-android'">
 		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.1.0-beta02" />
@@ -25,5 +28,6 @@
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="ZXing.Net" Version="0.16.8" />
+		<PackageReference Include="GitInfo" Version="2.2.0" />
 	</ItemGroup>
 </Project>
