@@ -35,6 +35,10 @@ namespace ZXing.Net.Maui
 		{
 			base.PlatformArrange(rect);
 
+			// Don't update if it's the same size, otherwise we could infinite loop
+			if (desiredSize.Width == rect.Width && desiredSize.Height == rect.Height)
+				return;
+
 			desiredSize = rect.Size;
 
 			UpdateBarcode();
