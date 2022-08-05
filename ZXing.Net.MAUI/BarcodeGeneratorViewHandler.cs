@@ -49,6 +49,8 @@ namespace ZXing.Net.Maui
 #elif ANDROID
 			imageView = new NativePlatformImageView(Context);
 			imageView.SetBackgroundColor(Android.Graphics.Color.Transparent);
+#elif WINDOWS
+			imageView = new NativePlatformImageView();
 #endif
 			return imageView;
 		}
@@ -77,6 +79,8 @@ namespace ZXing.Net.Maui
 			imageView.Image = image;
 #elif ANDROID
 			imageView?.SetImageBitmap(image);
+#elif WINDOWS
+			imageView.Source = image;
 #endif
 		}
 

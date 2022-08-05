@@ -8,6 +8,11 @@ global using NativePlatformCameraPreviewView = global::AndroidX.Camera.View.Prev
 global using NativePlatformView = global::Android.Views.View;
 global using NativePlatformImageView = global::Android.Widget.ImageView;
 global using NativePlatformImage = global::Android.Graphics.Bitmap;
+#elif WINDOWS
+global using NativePlatformCameraPreviewView = global::Microsoft.UI.Xaml.FrameworkElement;
+global using NativePlatformView = global::Microsoft.UI.Xaml.FrameworkElement;
+global using NativePlatformImageView = global::Microsoft.UI.Xaml.Controls.Image;
+global using NativePlatformImage = global::Microsoft.UI.Xaml.Media.Imaging.WriteableBitmap;
 #endif
 
 using Microsoft.Extensions.DependencyInjection;
