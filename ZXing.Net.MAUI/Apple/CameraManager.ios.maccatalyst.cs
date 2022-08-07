@@ -136,14 +136,49 @@ namespace ZXing.Net.Maui
 
 		public void Disconnect()
 		{
-			captureSession.RemoveOutput(videoDataOutput);
-			captureSession.StopRunning();
+			if (captureSession != null)
+			{
+				if (captureSession.Running)
+					captureSession.StopRunning();
+
+				captureSession.RemoveOutput(videoDataOutput);
+				
+				// Cleanup old input
+				if (captureInput != null && captureSession.Inputs.Length > 0 && captureSession.Inputs.Contains(captureInput))
+				{
+					captureSession.RemoveInput(captureInput);
+					captureInput.Dispose();
+					captureInput = null;
+				}
+
+				// Cleanup old device
+				if (captureDevice != null)
+				{
+					captureDevice.Dispose();
+					captureDevice = null;
+				}
+			}
 		}
 
 		public void UpdateTorch(bool on)
 		{
 			if (captureDevice != null && captureDevice.HasTorch && captureDevice.TorchAvailable)
-				captureDevice.TorchMode = on ? AVCaptureTorchMode.On : AVCaptureTorchMode.Off;
+			{
+				var isOn = captureDevice?.TorchActive ?? false;
+
+				try
+				{
+					if (on != isOn)
+					{
+						CaptureDevicePerformWithLockedConfiguration(() =>
+							captureDevice.TorchMode = on ? AVCaptureTorchMode.On : AVCaptureTorchMode.Off);
+                    }
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(ex);
+				}
+			}
 		}
 
 		public void Focus(Microsoft.Maui.Graphics.Point point)
@@ -158,12 +193,25 @@ namespace ZXing.Net.Maui
 			//See if it supports focusing on a point
 			if (captureDevice.FocusPointOfInterestSupported && !captureDevice.AdjustingFocus)
 			{
-				//Lock device to config
-				if (captureDevice.LockForConfiguration(out var err))
+				CaptureDevicePerformWithLockedConfiguration(() =>
 				{
 					//Focus at the point touched
 					captureDevice.FocusPointOfInterest = point;
-					captureDevice.FocusMode = AVCaptureFocusMode.ContinuousAutoFocus;
+					captureDevice.FocusMode = focusMode;
+				});
+			}
+		}
+
+		void CaptureDevicePerformWithLockedConfiguration(Action handler)
+		{
+			if (captureDevice.LockForConfiguration(out var err))
+			{
+				try
+				{
+					handler();
+				}
+				finally
+				{
 					captureDevice.UnlockForConfiguration();
 				}
 			}
@@ -178,14 +226,12 @@ namespace ZXing.Net.Maui
 			if (captureDevice.IsFocusModeSupported(AVCaptureFocusMode.ContinuousAutoFocus))
 				focusMode = AVCaptureFocusMode.ContinuousAutoFocus;
 
-			//Lock device to config
-			if (captureDevice.LockForConfiguration(out var err))
+			CaptureDevicePerformWithLockedConfiguration(() =>
 			{
 				if (captureDevice.FocusPointOfInterestSupported)
 					captureDevice.FocusPointOfInterest = CoreGraphics.CGPoint.Empty;
 				captureDevice.FocusMode = focusMode;
-				captureDevice.UnlockForConfiguration();
-			}
+			});
 		}
 
 		public void Dispose()

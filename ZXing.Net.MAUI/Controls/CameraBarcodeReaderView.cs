@@ -56,7 +56,7 @@ namespace ZXing.Net.Maui.Controls
 			=> FrameReady?.Invoke(this, e);
 
 		public static readonly BindableProperty IsTorchOnProperty =
-			BindableProperty.Create(nameof(IsTorchOn), typeof(bool), typeof(CameraBarcodeReaderView), defaultValue: true);
+			BindableProperty.Create(nameof(IsTorchOn), typeof(bool), typeof(CameraBarcodeReaderView), defaultValue: false);
 
 		public bool IsTorchOn
 		{
