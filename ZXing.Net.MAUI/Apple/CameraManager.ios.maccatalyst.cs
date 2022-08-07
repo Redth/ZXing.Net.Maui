@@ -165,8 +165,19 @@ namespace ZXing.Net.Maui
 			if (captureDevice != null && captureDevice.HasTorch && captureDevice.TorchAvailable)
 			{
 				var isOn = captureDevice?.TorchActive ?? false;
-				if (on != isOn)
-					captureDevice.TorchMode = on ? AVCaptureTorchMode.On : AVCaptureTorchMode.Off;
+
+				try
+				{
+					if (on != isOn)
+					{
+						CaptureDevicePerformWithLockedConfiguration(() =>
+							captureDevice.TorchMode = on ? AVCaptureTorchMode.On : AVCaptureTorchMode.Off);
+                    }
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine(ex);
+				}
 			}
 		}
 
