@@ -23,8 +23,8 @@
 		<IsPackable>true</IsPackable>
 	</PropertyGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0-android'">
-		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.1.0-beta02" />
-		<PackageReference Include="Xamarin.AndroidX.Camera.Lifecycle" Version="1.1.0-beta02" />
+		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.1.0" />
+		<PackageReference Include="Xamarin.AndroidX.Camera.Lifecycle" Version="1.1.0" />
 		<PackageReference Include="Xamarin.AndroidX.Camera.View" Version="1.1.0-beta02" />
 
 		<AndroidManifest Include="Platforms/Android/AndroidManifest.xml" />
