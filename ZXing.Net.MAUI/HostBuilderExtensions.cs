@@ -23,6 +23,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ZXing.Net.Maui.Controls;
 
 namespace ZXing.Net.Maui
 {
@@ -32,9 +33,9 @@ namespace ZXing.Net.Maui
 		{
 			builder.ConfigureMauiHandlers(handlers =>
 			{
-				handlers.AddHandler(typeof(ICameraView), typeof(CameraViewHandler));
-				handlers.AddHandler(typeof(ICameraBarcodeReaderView), typeof(CameraBarcodeReaderViewHandler));
-				handlers.AddHandler(typeof(IBarcodeGeneratorView), typeof(BarcodeGeneratorViewHandler));
+				handlers.AddHandler(typeof(CameraView), typeof(CameraViewHandler));
+				handlers.AddHandler(typeof(CameraBarcodeReaderView), typeof(CameraBarcodeReaderViewHandler));
+				handlers.AddHandler(typeof(BarcodeGeneratorView), typeof(BarcodeGeneratorViewHandler));
 			});
 
 			builder.Services.AddTransient<Readers.IBarcodeReader, Readers.ZXingBarcodeReader>();
@@ -46,9 +47,9 @@ namespace ZXing.Net.Maui
 		{
 			builder.ConfigureMauiHandlers(handlers =>
 			{
-				handlers.AddHandler(typeof(ICameraView), typeof(CameraViewHandler));
-				handlers.AddHandler(typeof(ICameraBarcodeReaderView), typeof(CameraBarcodeReaderViewHandler));
-				handlers.AddHandler(typeof(IBarcodeGeneratorView), typeof(BarcodeGeneratorViewHandler));
+				handlers.AddHandler(typeof(CameraView), typeof(CameraViewHandler));
+				handlers.AddHandler(typeof(CameraBarcodeReaderView), typeof(CameraBarcodeReaderViewHandler));
+				handlers.AddHandler(typeof(BarcodeGeneratorView), typeof(BarcodeGeneratorViewHandler));
 			});
 
 			builder.Services.AddTransient<Readers.IBarcodeReader, TBarcodeReader>();
