@@ -12,8 +12,8 @@ namespace ZXing.Net.Maui.Readers
 		{
 			zxingReader = new BarcodeReaderGeneric()
 			{
-                AutoRotate = true,
-            };
+				AutoRotate = true,
+			};
 		}
 
 		BarcodeReaderOptions options;
