@@ -10,7 +10,10 @@ namespace ZXing.Net.Maui.Readers
 
 		public ZXingBarcodeReader()
 		{
-			zxingReader = new BarcodeReaderGeneric();
+			zxingReader = new BarcodeReaderGeneric()
+			{
+                AutoRotate = true,
+            };
 		}
 
 		BarcodeReaderOptions options;
