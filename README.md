@@ -1,5 +1,5 @@
-
 # ZXing.Net.MAUI
+
 The successor to ZXing.Net.Mobile: barcode scanning and generation for .NET MAUI applications
 
 <img src="https://user-images.githubusercontent.com/271950/129272315-b3f5a468-c585-49f2-bbab-68a884618b94.png" width="300" />
@@ -30,7 +30,32 @@ The successor to ZXing.Net.Mobile: barcode scanning and generation for .NET MAUI
     }
     ```
 
-1. Enable the camera permissions to all platforms that you want to target. See the [Docs](https://docs.microsoft.com/dotnet/maui/platform-integration/appmodel/permissions)
+Now we just need to add the right permissions to our app metadata. Find below how to do that for each platform.
+
+#### Android
+
+For Android go to your `AndroidManifest.xml` file (under the Platforms\Android folder) and add the following permissions inside of the `manifest` node:
+
+```xml
+<uses-permission android:name="android.permission.CAMERA" />
+```
+
+#### iOS
+
+For iOS go to your `info.plist` file (under the Platforms\iOS folder) and add the following permissions inside of the `dict` node:
+
+```xml
+<key>NSCameraUsageDescription</key>
+<string>This app uses barcode scanning to...</string>
+```
+
+Make sure that you enter a clear and valid reason for your app to access the camera. This description will be shown to the user.
+
+#### Windows
+
+Windows is not supported at this time for barcode scanning. You can however use the barcode generation. No extra permissions are required for that.
+
+For more information on permissions, see the [Microsoft Docs](https://docs.microsoft.com/dotnet/maui/platform-integration/appmodel/permissions).
 
 ### Using ZXing.Net.Maui
 
