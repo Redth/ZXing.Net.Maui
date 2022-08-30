@@ -12,5 +12,7 @@ namespace ZXing.Net.Maui
 		event EventHandler<BarcodeDetectionEventArgs> BarcodesDetected;
 
 		bool IsDetecting { get; set; }
+
+		Size TargetCaptureResolution { get; set; }
 	}
 }

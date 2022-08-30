@@ -26,6 +26,7 @@ using AView = Android.Views.View;
 using Android.Hardware;
 using static Android.Graphics.Paint;
 using AndroidX.Camera.Camera2.InterOp;
+using MSize = Microsoft.Maui.Graphics.Size;
 
 namespace ZXing.Net.Maui
 {
@@ -38,6 +39,8 @@ namespace ZXing.Net.Maui
 		CameraSelector cameraSelector = null;
 		ProcessCameraProvider cameraProvider;
 		ICamera camera;
+		FrameAnalyzer frameAnalyzer;
+        Google.Common.Util.Concurrent.IListenableFuture cameraProviderFuture;
 
 		public NativePlatformCameraPreviewView CreateNativeView()
 		{
@@ -49,37 +52,77 @@ namespace ZXing.Net.Maui
 
 		public void Connect()
 		{
-			var cameraProviderFuture = ProcessCameraProvider.GetInstance(Context.Context);
-
-			cameraProviderFuture.AddListener(new Java.Lang.Runnable(() =>
+			if (cameraProviderFuture is null)
 			{
-				// Used to bind the lifecycle of cameras to the lifecycle owner
-				cameraProvider = (ProcessCameraProvider)cameraProviderFuture.Get();
+				cameraProviderFuture = ProcessCameraProvider.GetInstance(Context.Context);
 
-				// Preview
-				cameraPreview = new AndroidX.Camera.Core.Preview.Builder().Build();
-				cameraPreview.SetSurfaceProvider(previewView.SurfaceProvider);
+				cameraProviderFuture.AddListener(new Java.Lang.Runnable(() =>
+				{
+					// Used to bind the lifecycle of cameras to the lifecycle owner
+					if (cameraProvider is null)
+						cameraProvider = (ProcessCameraProvider)cameraProviderFuture.Get();
 
-				// Frame by frame analyze
-				imageAnalyzer = new ImageAnalysis.Builder()
-					.SetDefaultResolution(new Android.Util.Size(640, 480))
-					.SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
-					.Build();
+					// Preview
+					if (cameraPreview is null)
+					{
+						cameraPreview = new AndroidX.Camera.Core.Preview.Builder().Build();
+						cameraPreview.SetSurfaceProvider(previewView.SurfaceProvider);
+					}
 
-				imageAnalyzer.SetAnalyzer(cameraExecutor, new FrameAnalyzer((buffer, size) =>
-					FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
+					if (frameAnalyzer is null)
+					{
+						frameAnalyzer = new FrameAnalyzer((buffer, size) =>
+							FrameReady?.Invoke(
+								this,
+								new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder
+								{
+									Data = buffer,
+									Size = size
+								})));
+					}
 
-				UpdateCamera();
+					UpdateCamera();
 
-			}), ContextCompat.GetMainExecutor(Context.Context)); //GetMainExecutor: returns an Executor that runs on the main thread.
+				}), ContextCompat.GetMainExecutor(Context.Context)); //GetMainExecutor: returns an Executor that runs on the main thread.
+			}
 		}
 
 		public void Disconnect()
-		{ }
-
-		public void UpdateCamera()
 		{
-			if (cameraProvider != null)
+			cameraPreview.SetSurfaceProvider(null);
+			cameraPreview.Dispose();
+			cameraPreview = null;
+
+			cameraProvider.UnbindAll();
+			cameraProvider.Dispose();
+			cameraProvider = null;
+        }
+
+        public MSize TargetCaptureResolution { get; private set; } = MSize.Zero;
+
+        public void UpdateTargetCaptureResolution(MSize targetCaptureResolution)
+        {
+            TargetCaptureResolution = targetCaptureResolution;
+
+			if (cameraProvider is not null)
+	           UpdateCamera();
+        }
+
+        public void UpdateCamera()
+		{
+			// If imageAnalyzer is previously created, clear it
+			imageAnalyzer?.ClearAnalyzer();
+
+            // Frame by frame analyze
+            imageAnalyzer = new ImageAnalysis.Builder()
+                .SetDefaultResolution(new Android.Util.Size(640, 480))
+				.SetTargetResolution(new Android.Util.Size((int)TargetCaptureResolution.Width, (int)TargetCaptureResolution.Height))
+                .SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
+                .Build();
+
+            imageAnalyzer.SetAnalyzer(cameraExecutor, frameAnalyzer);
+
+            if (cameraProvider != null)
 			{
 				// Unbind use cases before rebinding
 				cameraProvider.UnbindAll();

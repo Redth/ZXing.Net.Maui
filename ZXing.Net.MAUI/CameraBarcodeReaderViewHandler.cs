@@ -15,7 +15,8 @@ namespace ZXing.Net.Maui
 		{
 			[nameof(ICameraBarcodeReaderView.Options)] = MapOptions,
 			[nameof(ICameraBarcodeReaderView.IsDetecting)] = MapIsDetecting,
-			[nameof(ICameraBarcodeReaderView.IsTorchOn)] = (handler, virtualView) => handler.cameraManager.UpdateTorch(virtualView.IsTorchOn),
+            [nameof(ICameraBarcodeReaderView.TargetCaptureResolution)] = MapTargetCaptureResolution,
+            [nameof(ICameraBarcodeReaderView.IsTorchOn)] = (handler, virtualView) => handler.cameraManager.UpdateTorch(virtualView.IsTorchOn),
 			[nameof(ICameraBarcodeReaderView.CameraLocation)] = (handler, virtualView) => handler.cameraManager.UpdateCameraLocation(virtualView.CameraLocation)
 		};
 
@@ -89,7 +90,11 @@ namespace ZXing.Net.Maui
 		public static void MapIsDetecting(CameraBarcodeReaderViewHandler handler, ICameraBarcodeReaderView cameraBarcodeReaderView)
 		{ }
 
-		public void Focus(Point point)
+		public static void MapTargetCaptureResolution(CameraBarcodeReaderViewHandler handler, ICameraBarcodeReaderView cameraBarcodeReaderView)
+			=> handler.cameraManager?.UpdateTargetCaptureResolution(cameraBarcodeReaderView.TargetCaptureResolution);
+
+
+        public void Focus(Point point)
 			=> cameraManager?.Focus(point);
 
 		public void AutoFocus()

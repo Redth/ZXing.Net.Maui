@@ -17,6 +17,8 @@ namespace BigIslandBarcode
 				AutoRotate = true,
 				Multiple = true
 			};
+
+			barcodeView.TargetCaptureResolution = new Microsoft.Maui.Graphics.Size(960, 720);
 		}
 
 		protected void BarcodesDetected(object sender, BarcodeDetectionEventArgs e)

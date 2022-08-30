@@ -73,7 +73,16 @@ namespace ZXing.Net.Maui.Controls
 			set => SetValue(CameraLocationProperty, value);
 		}
 
-		public void AutoFocus()
+        public static readonly BindableProperty TargetCaptureResolutionProperty =
+            BindableProperty.Create(nameof(TargetCaptureResolution), typeof(Size), typeof(CameraBarcodeReaderView), defaultValue: Size.Zero);
+
+        public Size TargetCaptureResolution
+        {
+            get => (Size)GetValue(TargetCaptureResolutionProperty);
+            set => SetValue(TargetCaptureResolutionProperty, value);
+        }
+
+        public void AutoFocus()
 			=> StrongHandler?.Invoke(nameof(AutoFocus), null);
 
 		public void Focus(Point point)
