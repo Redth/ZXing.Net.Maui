@@ -22,6 +22,7 @@ namespace ZXing.Net.Maui.Readers
 				zxingReader.Options.PossibleFormats = options.Formats.ToZXingList();
 				zxingReader.Options.TryHarder = options.TryHarder;
 				zxingReader.AutoRotate = options.AutoRotate;
+				zxingReader.Options.TryInverted = options.TryInverted;
 			}
 		}
 

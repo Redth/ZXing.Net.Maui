@@ -4,7 +4,10 @@
 
 	{
 		public bool AutoRotate { get; init; }
+
 		public bool TryHarder { get; init; }
+
+		public bool TryInverted { get; init; }
 
 		public BarcodeFormat Formats { get; init; }
 
