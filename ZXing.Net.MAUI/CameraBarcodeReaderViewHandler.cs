@@ -38,8 +38,10 @@ namespace ZXing.Net.Maui
 
 		CameraManager cameraManager;
 
+		Readers.IBarcodeReader barcodeReader;
+
 		protected Readers.IBarcodeReader BarcodeReader
-			=> Services.GetService<Readers.IBarcodeReader>();
+			=> barcodeReader ??= Services.GetService<Readers.IBarcodeReader>();
 
 		protected override NativePlatformCameraPreviewView CreatePlatformView()
 		{

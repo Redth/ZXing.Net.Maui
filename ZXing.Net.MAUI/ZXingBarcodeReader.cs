@@ -2,8 +2,6 @@
 
 namespace ZXing.Net.Maui.Readers
 {
-
-
 	public class ZXingBarcodeReader : Readers.IBarcodeReader
 	{
 		BarcodeReaderGeneric zxingReader;
@@ -21,9 +19,9 @@ namespace ZXing.Net.Maui.Readers
 			set
 			{
 				options = value;
-				zxingReader.Options.PossibleFormats = Options.Formats.ToZXingList();
-				zxingReader.Options.TryHarder = Options.TryHarder;
-				zxingReader.AutoRotate = Options.AutoRotate;
+				zxingReader.Options.PossibleFormats = options.Formats.ToZXingList();
+				zxingReader.Options.TryHarder = options.TryHarder;
+				zxingReader.AutoRotate = options.AutoRotate;
 			}
 		}
 
