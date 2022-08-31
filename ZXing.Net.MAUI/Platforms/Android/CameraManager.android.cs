@@ -40,7 +40,7 @@ namespace ZXing.Net.Maui
 		ProcessCameraProvider cameraProvider;
 		ICamera camera;
 		FrameAnalyzer frameAnalyzer;
-        Google.Common.Util.Concurrent.IListenableFuture cameraProviderFuture;
+		Google.Common.Util.Concurrent.IListenableFuture cameraProviderFuture;
 
 		public NativePlatformCameraPreviewView CreateNativeView()
 		{
@@ -96,33 +96,33 @@ namespace ZXing.Net.Maui
 			cameraProvider.UnbindAll();
 			cameraProvider.Dispose();
 			cameraProvider = null;
-        }
+		}
 
-        public MSize TargetCaptureResolution { get; private set; } = MSize.Zero;
+		public MSize TargetCaptureResolution { get; private set; } = MSize.Zero;
 
-        public void UpdateTargetCaptureResolution(MSize targetCaptureResolution)
-        {
-            TargetCaptureResolution = targetCaptureResolution;
+		public void UpdateTargetCaptureResolution(MSize targetCaptureResolution)
+		{
+			TargetCaptureResolution = targetCaptureResolution;
 
 			if (cameraProvider is not null)
-	           UpdateCamera();
-        }
+				UpdateCamera();
+		}
 
-        public void UpdateCamera()
+		public void UpdateCamera()
 		{
 			// If imageAnalyzer is previously created, clear it
 			imageAnalyzer?.ClearAnalyzer();
 
-            // Frame by frame analyze
-            imageAnalyzer = new ImageAnalysis.Builder()
-                .SetDefaultResolution(new Android.Util.Size(640, 480))
+			// Frame by frame analyze
+			imageAnalyzer = new ImageAnalysis.Builder()
+				.SetDefaultResolution(new Android.Util.Size(640, 480))
 				.SetTargetResolution(new Android.Util.Size((int)TargetCaptureResolution.Width, (int)TargetCaptureResolution.Height))
-                .SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
-                .Build();
+				.SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
+				.Build();
 
-            imageAnalyzer.SetAnalyzer(cameraExecutor, frameAnalyzer);
+			imageAnalyzer.SetAnalyzer(cameraExecutor, frameAnalyzer);
 
-            if (cameraProvider != null)
+			if (cameraProvider != null)
 			{
 				// Unbind use cases before rebinding
 				cameraProvider.UnbindAll();

@@ -48,4 +48,13 @@
 		<ProjectReference Include="..\ZXing.Net.MAUI\ZXing.Net.MAUI.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <MauiXaml Update="InfoPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="ScannerPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
 </Project>

@@ -1,46 +1,8 @@
-﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+﻿<TabbedPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-	xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI"
+            xmlns:local="clr-namespace:BigIslandBarcode"
 	x:Class="BigIslandBarcode.MainPage"
 	BackgroundColor="#000000">
-
-	<Grid RowDefinitions="1*,3*,1*">
-
-		<zxing:CameraBarcodeReaderView
-			Grid.Row="0" Grid.RowSpan="3"
-			x:Name="barcodeView"
-			BarcodesDetected="BarcodesDetected"
-			 />
-
-		<Grid
-			Grid.Row="0"
-			BackgroundColor="#aa000000">
-			<Label Grid.Row="2" Text="Top text..." HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" />
-		</Grid>
-
-		<Grid
-			Grid.Row="3"
-			BackgroundColor="#aa000000"
-			Padding="20"
-			ColumnDefinitions="Auto,*,Auto">
-
-			<Button Text="🔄️" Grid.Column="0" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="SwitchCameraButton_Clicked" />
-
-			<zxing:BarcodeGeneratorView
-				x:Name="barcodeGenerator"
-				Grid.Column="1"
-				HorizontalOptions="Center"
-				VerticalOptions="Center"
-				HeightRequest="100"
-				WidthRequest="100"
-				ForegroundColor="DarkBlue"
-				Format="QrCode"
-				Value="Bla"
-				BarcodeMargin="1" />
-
-			<Button Text="💡" Grid.Column="2" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="TorchButton_Clicked" />
-		</Grid>
-
-	</Grid>
-	
-</ContentPage>
+    <local:ScannerPage />
+    <local:InfoPage />
+</TabbedPage>

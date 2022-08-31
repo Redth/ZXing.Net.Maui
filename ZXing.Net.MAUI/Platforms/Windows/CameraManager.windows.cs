@@ -7,6 +7,7 @@ using static Microsoft.Maui.ApplicationModel.Permissions;
 using Microsoft.UI.Xaml.Controls;
 using System.Diagnostics;
 using Microsoft.UI.Xaml;
+using Microsoft.Maui.Graphics;
 
 namespace ZXing.Net.Maui
 {
@@ -26,6 +27,12 @@ namespace ZXing.Net.Maui
 					Text = "NOT SUPPORTED"
 				}
 			};
+
+		public Size TargetCaptureResolution { get; private set; } = Size.Zero;
+
+		public void UpdateTargetCaptureResolution(Size targetCaptureResolution)
+		{
+		}
 
 		public void Connect()
 			=> LogUnsupported();
