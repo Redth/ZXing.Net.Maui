@@ -142,8 +142,9 @@ internal partial class CameraManager
 			return AVCaptureSession.Preset640x480;
 
         var current = new KeyValuePair<NSString, Size>(AVCaptureSession.Preset640x480, new Size(640, 480));
+		var possibleResolutions = availablResolutions.Where(res=>captureDevice.SupportsAVCaptureSessionPreset(res.Key));
 
-        foreach (var r in availablResolutions)
+        foreach (var r in possibleResolutions)
         {
             if (r.Value.Width >= target.Width && r.Value.Height >= target.Height)
             {
