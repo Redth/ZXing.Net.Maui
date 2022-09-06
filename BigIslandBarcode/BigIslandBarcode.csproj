@@ -12,7 +12,7 @@
 		<ApplicationTitle>BigIslandBarcode</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.greenit.companion</ApplicationId>
+		<ApplicationId>com.companyname.BigIslandBarcode</ApplicationId>
 		<ApplicationIdGuid>5D90C946-B749-4BC7-A409-868C44D73056</ApplicationIdGuid>
 		
 		<!-- Versions -->
@@ -30,10 +30,6 @@
 
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-ios|AnyCPU'">
-	  <CodesignProvision>Automatic</CodesignProvision>
-	  <CodesignKey>iPhone Developer</CodesignKey>
-	</PropertyGroup>
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiImage Include="Resources\appicon.svg" ForegroundScale="0.8" ForegroundFile="Resources\appiconfg.svg" IsAppIcon="true" Color="#512BD4" />
