@@ -1,0 +1,22 @@
+﻿<FlyoutPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI"
+    xmlns:local="clr-namespace:BigIslandBarcode"
+	x:Class="BigIslandBarcode.MainPageWithFlyout"
+	BackgroundColor="#000000"
+    Title="Foo">
+
+    <FlyoutPage.Flyout>
+        <ContentPage Title="Bar">
+            <Label Text="This is just a test" />
+        </ContentPage>
+    </FlyoutPage.Flyout>
+
+    <FlyoutPage.Detail>
+        <NavigationPage>
+            <x:Arguments>
+                <local:MainPage />
+            </x:Arguments>
+        </NavigationPage>
+    </FlyoutPage.Detail>
+</FlyoutPage>

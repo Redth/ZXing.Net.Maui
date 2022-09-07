@@ -48,4 +48,16 @@
 		<ProjectReference Include="..\ZXing.Net.MAUI\ZXing.Net.MAUI.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Compile Update="MainPageWithFlyout.xaml.cs">
+	    <DependentUpon>MainPageWithFlyout.xaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="MainPageWithFlyout.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
 </Project>

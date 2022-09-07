@@ -97,10 +97,17 @@ namespace ZXing.Net.Maui
 				if (cameraSelector == null)
 					throw new System.Exception("Camera not found");
 
-				// The Context here SHOULD be something that's a lifecycle owner
-				if (Context.Context is AndroidX.Lifecycle.ILifecycleOwner lifecycleOwner)
-					camera = cameraProvider.BindToLifecycle(lifecycleOwner, cameraSelector, cameraPreview, imageAnalyzer);
-			}
+                // The Context here SHOULD be something that's a lifecycle owner
+                if (Context.Context is AndroidX.Lifecycle.ILifecycleOwner lifecycleOwner)
+                {
+                    camera = cameraProvider.BindToLifecycle(lifecycleOwner, cameraSelector, cameraPreview, imageAnalyzer);
+                }
+                // if not, this should be sufficient as a fallback
+                else if (Microsoft.Maui.ApplicationModel.Platform.CurrentActivity is AndroidX.Lifecycle.ILifecycleOwner maLifecycleOwner)
+                {
+                    camera = cameraProvider.BindToLifecycle(maLifecycleOwner, cameraSelector, cameraPreview, imageAnalyzer);
+                }
+            }
 		}
 
 		public void UpdateTorch(bool on)
