@@ -9,6 +9,7 @@ using Foundation;
 using UIKit;
 using Microsoft.Maui;
 using MSize = Microsoft.Maui.Graphics.Size;
+using CoreAnimation;
 
 namespace ZXing.Net.Maui
 {
@@ -254,8 +255,26 @@ namespace ZXing.Net.Maui
 		public override void LayoutSubviews()
 		{
 			base.LayoutSubviews();
-			PreviewLayer.Frame = Layer.Bounds;
-		}
+            CATransform3D transform = CATransform3D.MakeRotation(0, 0, 0, 1.0f);
+            switch (UIDevice.CurrentDevice.Orientation)
+            {
+                case UIDeviceOrientation.Portrait:
+                    transform = CATransform3D.MakeRotation(0, 0, 0, 1.0f);
+                    break;
+                case UIDeviceOrientation.PortraitUpsideDown:
+                    transform = CATransform3D.MakeRotation((nfloat)Math.PI, 0, 0, 1.0f);
+                    break;
+                case UIDeviceOrientation.LandscapeLeft:
+                    transform = CATransform3D.MakeRotation((nfloat)(-Math.PI / 2), 0, 0, 1.0f);
+                    break;
+                case UIDeviceOrientation.LandscapeRight:
+                    transform = CATransform3D.MakeRotation((nfloat)Math.PI / 2, 0, 0, 1.0f);
+                    break;
+            }
+
+            PreviewLayer.Transform = transform;
+            PreviewLayer.Frame = Layer.Bounds;
+        }
 	}
 }
 #endif
