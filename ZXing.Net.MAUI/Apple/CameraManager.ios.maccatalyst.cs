@@ -68,10 +68,10 @@ namespace ZXing.Net.Maui
 					{
 						SampleProcessor = cvPixelBuffer =>
 							FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder
-								{
-									Data = cvPixelBuffer,
-									Size = new MSize(cvPixelBuffer.Width, cvPixelBuffer.Height)
-								}))
+							{
+								Data = cvPixelBuffer,
+								Size = new MSize(cvPixelBuffer.Width, cvPixelBuffer.Height)
+							}))
 					};
 				}
 
@@ -143,7 +143,7 @@ namespace ZXing.Net.Maui
 					captureSession.StopRunning();
 
 				captureSession.RemoveOutput(videoDataOutput);
-				
+
 				// Cleanup old input
 				if (captureInput != null && captureSession.Inputs.Length > 0 && captureSession.Inputs.Contains(captureInput))
 				{
@@ -173,7 +173,7 @@ namespace ZXing.Net.Maui
 					{
 						CaptureDevicePerformWithLockedConfiguration(() =>
 							captureDevice.TorchMode = on ? AVCaptureTorchMode.On : AVCaptureTorchMode.Off);
-                    }
+					}
 				}
 				catch (Exception ex)
 				{
@@ -255,26 +255,26 @@ namespace ZXing.Net.Maui
 		public override void LayoutSubviews()
 		{
 			base.LayoutSubviews();
-            CATransform3D transform = CATransform3D.MakeRotation(0, 0, 0, 1.0f);
-            switch (UIDevice.CurrentDevice.Orientation)
-            {
-                case UIDeviceOrientation.Portrait:
-                    transform = CATransform3D.MakeRotation(0, 0, 0, 1.0f);
-                    break;
-                case UIDeviceOrientation.PortraitUpsideDown:
-                    transform = CATransform3D.MakeRotation((nfloat)Math.PI, 0, 0, 1.0f);
-                    break;
-                case UIDeviceOrientation.LandscapeLeft:
-                    transform = CATransform3D.MakeRotation((nfloat)(-Math.PI / 2), 0, 0, 1.0f);
-                    break;
-                case UIDeviceOrientation.LandscapeRight:
-                    transform = CATransform3D.MakeRotation((nfloat)Math.PI / 2, 0, 0, 1.0f);
-                    break;
-            }
+			CATransform3D transform = CATransform3D.MakeRotation(0, 0, 0, 1.0f);
+			switch (UIDevice.CurrentDevice.Orientation)
+			{
+				case UIDeviceOrientation.Portrait:
+					transform = CATransform3D.MakeRotation(0, 0, 0, 1.0f);
+					break;
+				case UIDeviceOrientation.PortraitUpsideDown:
+					transform = CATransform3D.MakeRotation((nfloat)Math.PI, 0, 0, 1.0f);
+					break;
+				case UIDeviceOrientation.LandscapeLeft:
+					transform = CATransform3D.MakeRotation((nfloat)(-Math.PI / 2), 0, 0, 1.0f);
+					break;
+				case UIDeviceOrientation.LandscapeRight:
+					transform = CATransform3D.MakeRotation((nfloat)Math.PI / 2, 0, 0, 1.0f);
+					break;
+			}
 
-            PreviewLayer.Transform = transform;
-            PreviewLayer.Frame = Layer.Bounds;
-        }
+			PreviewLayer.Transform = transform;
+			PreviewLayer.Frame = Layer.Bounds;
+		}
 	}
 }
 #endif
