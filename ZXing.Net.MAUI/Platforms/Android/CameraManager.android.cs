@@ -223,6 +223,7 @@ namespace ZXing.Net.Maui
             _imageAnalyzer = new ImageAnalysis
                 .Builder()
                 .SetOutputImageFormat(ImageAnalysis.OutputImageFormatRgba8888)
+                .SetOutputImageRotationEnabled(true)
                 .SetResolutionSelector(_resolutionSelector)
                 .SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
                 .Build();
