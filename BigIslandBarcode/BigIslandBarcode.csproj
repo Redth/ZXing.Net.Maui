@@ -30,6 +30,11 @@
 
 	</PropertyGroup>
 
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+	  <WarningLevel>4</WarningLevel>
+	  <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<!-- App Icon -->
 		<MauiImage Include="Resources\appicon.svg" ForegroundScale="0.8" ForegroundFile="Resources\appiconfg.svg" IsAppIcon="true" Color="#512BD4" />

@@ -28,8 +28,9 @@ namespace BigIslandBarcode
 			{
 				var r = e.Results.First();
 
-				barcodeGenerator.Value = r.Value;
-				barcodeGenerator.Format = r.Format;
+				topText.Text = $"{r.Format.ToString()}: {r.Value}";
+				//barcodeGenerator.Value = r.Value;
+				//barcodeGenerator.Format = r.Format;
 			});
 		}
 
