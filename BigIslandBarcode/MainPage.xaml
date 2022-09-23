@@ -15,7 +15,7 @@
 		<Grid
 			Grid.Row="0"
 			BackgroundColor="#aa000000">
-			<Label x:Name="topText" Grid.Row="2" Text="Top text..." HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" />
+			<Label Grid.Row="2" Text="Top text..." HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" />
 		</Grid>
 
 		<Grid
@@ -26,7 +26,7 @@
 
 			<Button Text="🔄️" Grid.Column="0" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="SwitchCameraButton_Clicked" />
 
-			<!--<zxing:BarcodeGeneratorView
+			<zxing:BarcodeGeneratorView
 				x:Name="barcodeGenerator"
 				Grid.Column="1"
 				HorizontalOptions="Center"
@@ -36,7 +36,7 @@
 				ForegroundColor="DarkBlue"
 				Format="QrCode"
 				Value="Bla"
-				BarcodeMargin="1" />-->
+				BarcodeMargin="1" />
 
 			<Button Text="💡" Grid.Column="2" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="TorchButton_Clicked" />
 		</Grid>
