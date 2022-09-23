@@ -4,8 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Android.Graphics;
-
 using AndroidX.Camera.Core;
 using AndroidX.Camera.Core.ResolutionSelector;
 using AndroidX.Camera.Lifecycle;
@@ -47,12 +45,16 @@ namespace ZXing.Net.Maui
         private CameraSelector _cameraSelector = null;
         private ProcessCameraProvider _cameraProvider;
         private ICamera _camera;
+        private System.Threading.Timer _autoFocusTimer;
+        private TapFocusTouchListener _tapFocusTouchListener;
 
         private static readonly Android.Util.Size DefaultResolution = new(640, 480);
 
         public NativePlatformCameraPreviewView CreateNativeView()
         {
             _previewView = new PreviewView(Context.Context);
+            _tapFocusTouchListener = new TapFocusTouchListener(this);
+            _previewView.SetOnTouchListener(_tapFocusTouchListener);
             _cameraExecutor = Executors.NewSingleThreadExecutor();
 
             return _previewView;
@@ -76,6 +78,7 @@ namespace ZXing.Net.Maui
 
         public void Disconnect()
         {
+            StopAutoFocusTimer();
             _cameraProvider?.UnbindAll();
             _cameraExecutor?.Shutdown();
         }
@@ -143,6 +146,9 @@ namespace ZXing.Net.Maui
                     // if not, this should be sufficient as a fallback
                     _camera = _cameraProvider.BindToLifecycle(maLifecycleOwner, _cameraSelector, _cameraPreview, _imageAnalyzer);
                 }
+
+                AutoFocus();
+                StartAutoFocusTimer();
             }
         }
 
@@ -289,18 +295,23 @@ namespace ZXing.Net.Maui
             }
         }
 
-        public void Focus(Point point)
+        public void Focus(Microsoft.Maui.Graphics.Point point)
         {
-
+            StartFocusAndMetering((float)point.X, (float)point.Y, disableAutoCancel: true);
         }
 
         public void AutoFocus()
         {
+            if (_previewView == null)
+                return;
 
+            StartFocusAndMetering(_previewView.Width / 2f, _previewView.Height / 2f, disableAutoCancel: false);
         }
 
         public void Dispose()
         {
+            StopAutoFocusTimer();
+
             _imageAnalyzer?.Dispose();
             _imageAnalyzer = null;
 
@@ -319,11 +330,62 @@ namespace ZXing.Net.Maui
             _previewView?.Dispose();
             _previewView = null;
 
+            _tapFocusTouchListener?.Dispose();
+            _tapFocusTouchListener = null;
+
             _cameraExecutor?.Dispose();
             _cameraExecutor = null;
 
             _camera?.Dispose();
             _camera = null;
+        }
+
+        private void StartFocusAndMetering(float x, float y, bool disableAutoCancel)
+        {
+            var cameraControl = _camera?.CameraControl;
+            if (cameraControl == null || _previewView == null || _previewView.Width <= 0 || _previewView.Height <= 0)
+                return;
+
+            cameraControl.CancelFocusAndMetering();
+
+            var meteringPoint = _previewView.MeteringPointFactory.CreatePoint(x, y);
+            var actionBuilder = new FocusMeteringAction.Builder(meteringPoint, FocusMeteringAction.FlagAf);
+
+            if (disableAutoCancel)
+                actionBuilder.DisableAutoCancel();
+
+            cameraControl.StartFocusAndMetering(actionBuilder.Build());
+        }
+
+        private void StartAutoFocusTimer()
+        {
+            StopAutoFocusTimer();
+            _autoFocusTimer = new System.Threading.Timer(_ => AutoFocus(), null, System.TimeSpan.FromSeconds(5), System.TimeSpan.FromSeconds(5));
+        }
+
+        private void StopAutoFocusTimer()
+        {
+            _autoFocusTimer?.Dispose();
+            _autoFocusTimer = null;
+        }
+
+        private sealed class TapFocusTouchListener : Java.Lang.Object, Android.Views.View.IOnTouchListener
+        {
+            private readonly CameraManager _cameraManager;
+
+            public TapFocusTouchListener(CameraManager cameraManager)
+            {
+                _cameraManager = cameraManager;
+            }
+
+            public bool OnTouch(Android.Views.View view, Android.Views.MotionEvent e)
+            {
+                if (e.Action != Android.Views.MotionEventActions.Down)
+                    return false;
+
+                _cameraManager.Focus(new Microsoft.Maui.Graphics.Point(e.GetX(), e.GetY()));
+                return true;
+            }
         }
     }
 }
