@@ -14,8 +14,8 @@ namespace ZXing.Net.Maui
                 Format = (BarcodeFormat)(int)result.BarcodeFormat,
                 Metadata = new Dictionary<MetadataType, object>(result?.ResultMetadata?.Select(md => new KeyValuePair<MetadataType, object>((MetadataType)md.Key, md.Value))),
                 PointsOfInterest = result?.ResultPoints?
-                    .Where(p => p is not null)
-                    .Select(p => new PointF(p.X, p.Y))?.ToArray()
+                .Where(p => p is not null)
+                .Select(p => new PointF(p.X, p.Y))?.ToArray()
             };
 
         public static BarcodeResult[] ToBarcodeResults(this ZXing.Result[] results)
@@ -26,12 +26,8 @@ namespace ZXing.Net.Maui
                 Format = (BarcodeFormat)(int)result.BarcodeFormat,
                 Metadata = new Dictionary<MetadataType, object>(result?.ResultMetadata?.Select(md => new KeyValuePair<MetadataType, object>((MetadataType)md.Key, md.Value))),
                 PointsOfInterest = result?.ResultPoints?
-                    .Where(p => p is not null)
-                    .Select(p =>
-                    {
-                        return new PointF(p.X, p.Y);
-
-                    })?.ToArray()
+                .Where(p => p is not null)
+                .Select(p => new PointF(p.X, p.Y))?.ToArray()
             })?.ToArray();
     }
 }
