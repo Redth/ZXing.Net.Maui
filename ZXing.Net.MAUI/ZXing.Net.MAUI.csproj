@@ -22,10 +22,6 @@
 		<DebugType>portable</DebugType>
 		<IsPackable>true</IsPackable>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-ios|AnyCPU'">
-	  <CreatePackage>false</CreatePackage>
-	  <EnableCodeSigning>false</EnableCodeSigning>
-	</PropertyGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0-android'">
 		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.1.0" />
 		<PackageReference Include="Xamarin.AndroidX.Camera.Lifecycle" Version="1.1.0" />

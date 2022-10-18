@@ -18,10 +18,6 @@
 		<DebugType>portable</DebugType>
 		<OutputType>Library</OutputType>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net6.0-ios|AnyCPU'">
-	  <CreatePackage>false</CreatePackage>
-	  <EnableCodeSigning>false</EnableCodeSigning>
-	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="ZXing.Net" Version="0.16.8" />
 	</ItemGroup>
