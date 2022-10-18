@@ -4,8 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
-using System;
-using System.Linq;
 
 namespace ZXing.Net.Maui
 {
@@ -32,9 +30,6 @@ namespace ZXing.Net.Maui
 		public CameraBarcodeReaderViewHandler(PropertyMapper mapper = null) : base(mapper ?? CameraBarcodeReaderViewMapper)
 		{
 		}
-
-		public event EventHandler<BarcodeDetectionEventArgs> BarcodesDetected;
-		public event EventHandler<CameraFrameBufferEventArgs> FrameReady;
 
 		CameraManager cameraManager;
 
@@ -72,14 +67,14 @@ namespace ZXing.Net.Maui
 
 		private void CameraManager_FrameReady(object sender, CameraFrameBufferEventArgs e)
 		{
-			FrameReady?.Invoke(this, e);
+			VirtualView?.FrameReady(e);
 
 			if (VirtualView.IsDetecting)
 			{
 				var barcodes = BarcodeReader.Decode(e.Data);
 
 				if (barcodes?.Any() ?? false)
-					BarcodesDetected?.Invoke(this, new BarcodeDetectionEventArgs(barcodes));
+					VirtualView?.BarcodesDetected(new BarcodeDetectionEventArgs(barcodes));
 			}
 		}
 
