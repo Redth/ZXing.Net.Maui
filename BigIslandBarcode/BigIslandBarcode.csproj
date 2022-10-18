@@ -46,6 +46,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\ZXing.Net.MAUI\ZXing.Net.MAUI.csproj" />
+		<ProjectReference Include="..\ZXing.Net.MAUI.Controls\ZXing.Net.MAUI.Controls.csproj" />
 	</ItemGroup>
 
 </Project>

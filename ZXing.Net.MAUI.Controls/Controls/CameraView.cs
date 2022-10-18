@@ -9,17 +9,7 @@ namespace ZXing.Net.Maui.Controls
 	{
 		public event EventHandler<CameraFrameBufferEventArgs> FrameReady;
 
-		protected override void OnHandlerChanging(HandlerChangingEventArgs args)
-		{
-			base.OnHandlerChanging(args);
-			if (args.OldHandler is CameraViewHandler oldHandler)
-				oldHandler.FrameReady -= Handler_FrameReady;
-
-			if (args.NewHandler is CameraViewHandler newHandler)
-				newHandler.FrameReady += Handler_FrameReady;
-		}
-
-		void Handler_FrameReady(object sender, CameraFrameBufferEventArgs e)
+		void ICameraFrameAnalyzer.FrameReady(CameraFrameBufferEventArgs e)
 			=> FrameReady?.Invoke(this, e);
 
 		public static readonly BindableProperty IsTorchOnProperty =

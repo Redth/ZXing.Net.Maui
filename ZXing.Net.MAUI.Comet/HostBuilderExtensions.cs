@@ -23,11 +23,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ZXing.Net.Maui.Controls;
-
 namespace ZXing.Net.Maui
 {
-	public static class CameraViewExtensions
+	public static class MauiHostBuilderExtensions
 	{
 		public static MauiAppBuilder UseBarcodeReader(this MauiAppBuilder builder)
 		{

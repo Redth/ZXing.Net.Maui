@@ -4,6 +4,7 @@ using Microsoft.Maui.Controls.Compatibility;
 using Microsoft.Maui.Controls.Hosting;
 using Microsoft.Maui.LifecycleEvents;
 using ZXing.Net.Maui;
+using ZXing.Net.Maui.Controls;
 
 #if ANDROID
 [assembly: Android.App.UsesPermission(Android.Manifest.Permission.Camera)]

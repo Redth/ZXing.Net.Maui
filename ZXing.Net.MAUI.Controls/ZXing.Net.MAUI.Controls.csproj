@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFrameworks>net6.0-android;net6.0-maccatalyst;net6.0-ios</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net6.0-windows10.0.19041</TargetFrameworks>
+		<PackageId>ZXing.Net.Maui.Controls</PackageId>
+		<Title>ZXing.Net.MAUI Barcode Scanner for .NET MAUI</Title>
+		<Authors>Redth</Authors>
+		<UseMaui>True</UseMaui>
+		<SingleProject>True</SingleProject>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<UseSystemResourceKeys>false</UseSystemResourceKeys>
+		<Copyright>Copyright © Redth</Copyright>
+		<PackageProjectUrl>https://github.com/redth/BigIslandBarcoding</PackageProjectUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RepositoryUrl>https://github.com/redth/BigIslandBarcoding</RepositoryUrl>
+		<AssemblyFileVersion>$(PackageVersion)</AssemblyFileVersion>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<DebugType>portable</DebugType>
+		<OutputType>Library</OutputType>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="ZXing.Net" Version="0.16.8" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\ZXing.Net.MAUI\ZXing.Net.MAUI.csproj" />
+	</ItemGroup>
+</Project>
