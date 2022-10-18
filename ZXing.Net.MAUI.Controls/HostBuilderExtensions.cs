@@ -25,7 +25,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ZXing.Net.Maui.Controls;
 
-namespace ZXing.Net.Maui
+namespace ZXing.Net.Maui.Controls
 {
 	public static class CameraViewExtensions
 	{

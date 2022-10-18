@@ -7,7 +7,7 @@ namespace ZXing.Net.Maui
 {
 	public interface ICameraFrameAnalyzer
 	{
-		event EventHandler<CameraFrameBufferEventArgs> FrameReady;
+		void FrameReady(CameraFrameBufferEventArgs args);
 	}
 
 	public interface ICameraView : IView, ICameraFrameAnalyzer

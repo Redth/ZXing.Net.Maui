@@ -9,7 +9,7 @@ namespace ZXing.Net.Maui
 	{
 		BarcodeReaderOptions Options { get; }
 
-		event EventHandler<BarcodeDetectionEventArgs> BarcodesDetected;
+		void BarcodesDetected(BarcodeDetectionEventArgs args);
 
 		bool IsDetecting { get; set; }
 	}
