@@ -18,7 +18,7 @@ namespace ZXing.Net.Maui.Readers
 			get => options ??= new BarcodeReaderOptions();
 			set
 			{
-				options = value;
+				options = value ?? new BarcodeReaderOptions();
 				zxingReader.Options.PossibleFormats = options.Formats.ToZXingList();
 				zxingReader.Options.TryHarder = options.TryHarder;
 				zxingReader.AutoRotate = options.AutoRotate;
