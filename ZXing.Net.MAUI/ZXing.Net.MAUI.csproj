@@ -22,6 +22,9 @@
 		<DebugType>portable</DebugType>
 		<IsPackable>true</IsPackable>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-ios|AnyCPU'">
+	  <CreatePackage>false</CreatePackage>
+	</PropertyGroup>
 	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
 		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.1.0" />
 		<PackageReference Include="Xamarin.AndroidX.Camera.Lifecycle" Version="1.1.0" />
