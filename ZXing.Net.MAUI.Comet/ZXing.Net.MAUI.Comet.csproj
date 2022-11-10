@@ -20,7 +20,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="ZXing.Net" Version="0.16.8" />
-		<PackageReference Include="Clancey.Comet" Version="0.3.465-beta" />
+		<PackageReference Include="Clancey.Comet" Version="0.3.467-beta" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\ZXing.Net.MAUI\ZXing.Net.MAUI.csproj" />
