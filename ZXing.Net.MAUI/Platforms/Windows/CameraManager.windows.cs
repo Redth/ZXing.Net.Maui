@@ -25,10 +25,10 @@
 // Note 3 - the camera sharing mode is currently set to MediaCaptureSharingMode.SharedReadOnly, so multiple views of
 //          the same camera can be successfully created; the drawback is that the preview resolution can't be changed
 //          and the low level camera stream flows at its native resolution and format.
-//          To always get frames at the preview resolution (currently, 640 x 480) but preserving the native aspect
-//          ratio, keep the line "#define FORCE_FRAMES_AT_PREVIEW_RESOLUTION" uncommented; on the other hand, to get
-//          frames at the native stream resolution (1920 x 1080 or 640 x 480 or whatever it is), comment out that line.
-//
+//          To always get frames at the preview resolution (currently, 640 x 480 or 480 x 640, according to horizontal
+//          or vertical native camera layout) and also to preserve the native aspect ratio, keep the line
+//          "#define FORCE_FRAMES_AT_PREVIEW_RESOLUTION" uncommented; on the other hand, to get frames at the native
+//          stream resolution (1920 x 1080 or 640 x 480 or whatever it is), comment out that line.
 #define ENABLE_DEVICE_WATCHER
 #define ENABLE_CAMERA_PLACEHOLDER
 #define FORCE_FRAMES_AT_PREVIEW_RESOLUTION
@@ -339,13 +339,15 @@ namespace ZXing.Net.Maui
 				{
 					if (videoFormat.Width >= videoFormat.Height)
 					{
-						//Preserve preview height and native aspect ratio.
-						bitmapSize.Width = (PreviewHeight * videoFormat.Width) / videoFormat.Height;
+						//Horizontal layout: preserve preview minimal dimension as height; preserve native aspect ratio.
+						bitmapSize.Height = uint.Min(PreviewWidth, PreviewHeight);
+						bitmapSize.Width = (bitmapSize.Height * videoFormat.Width) / videoFormat.Height;
 					}
 					else
 					{
-						//Preserve preview width and native aspect ratio.
-						bitmapSize.Height = (PreviewWidth * videoFormat.Height) / videoFormat.Width;
+						//Vertical layout: preserve preview minimal dimension as width; preserve native aspect ratio.
+						bitmapSize.Width = uint.Min(PreviewWidth, PreviewHeight);
+						bitmapSize.Height = (bitmapSize.Width * videoFormat.Height) / videoFormat.Width;
 					}
 				}
 				_mediaFrameReader = await _mediaCapture.CreateFrameReaderAsync(selectedMediaFrameSource, MediaEncodingSubtypes.Bgra8, bitmapSize);
