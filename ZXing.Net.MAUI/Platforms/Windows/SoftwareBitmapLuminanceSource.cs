@@ -27,12 +27,14 @@ public class SoftwareBitmapLuminanceSource : BaseLuminanceSource
 
 	void CalculateLuminance(SoftwareBitmap bitmap)
 	{
-		if (bitmap.BitmapPixelFormat != BitmapPixelFormat.Gray8)
-		{
-			bitmap = SoftwareBitmap.Convert(bitmap, BitmapPixelFormat.Gray8);
-		}
-
-		var buffer = luminances.AsBuffer();
-		bitmap.CopyToBuffer(buffer);
+		if (softwareBitmap.BitmapPixelFormat != BitmapPixelFormat.Gray8)
+        {
+	        using SoftwareBitmap convertedSoftwareBitmap = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Gray8);
+	        convertedSoftwareBitmap.CopyToBuffer(luminances.AsBuffer());
+        }
+        else
+        {
+            softwareBitmap.CopyToBuffer(luminances.AsBuffer());
+        }
 	}
 }
