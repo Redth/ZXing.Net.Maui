@@ -45,6 +45,16 @@ namespace BigIslandBarcode
 		void TorchButton_Clicked(object sender, EventArgs e)
 		{
 			barcodeView.IsTorchOn = !barcodeView.IsTorchOn;
-		}
-	}
+        }
+
+        async void PickClicked(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new PickImagePage());
+        }
+
+        async void TakeClicked(object sender, EventArgs e)
+        {
+            await Navigation.PushAsync(new TakeImagePage());
+        }
+    }
 }

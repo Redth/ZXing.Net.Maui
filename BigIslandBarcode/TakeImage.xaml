@@ -1,0 +1,56 @@
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI.Controls"
+	xmlns:zxing2="clr-namespace:ZXing.Net.Maui;assembly=ZXing.Net.MAUI"
+	x:Class="BigIslandBarcode.TakeImagePage"
+	BackgroundColor="#000000">
+
+    <ScrollView HorizontalOptions="CenterAndExpand">
+        <StackLayout Padding="0,30"
+                     Spacing="30"
+                     HorizontalOptions="CenterAndExpand">
+
+            <Button x:Name="CaptureButton"
+                    Text="Take a picture of your barcode"
+                    Clicked="CaptureClicked"
+                    HorizontalOptions="Center"/>
+
+            <Label x:Name="FileInfo"
+                   HorizontalTextAlignment="Center"
+                   HorizontalOptions="CenterAndExpand"/>
+                
+            <Image x:Name="ImageOutput"
+                   WidthRequest="150"
+                   HeightRequest="150" />
+
+            <VerticalStackLayout x:Name="ActivityContainer"
+                         Spacing="30"
+                         HorizontalOptions="Center"
+                         IsVisible="False">
+                
+                <ActivityIndicator x:Name="ActivityIndicator"
+                                   HorizontalOptions="Center"
+                                   Scale="1.5" />
+                <Label x:Name="ActivityLabel"
+                       HorizontalTextAlignment="Center"
+                       HorizontalOptions="Center"/>
+            </VerticalStackLayout>
+
+            <Label x:Name="ParseResult"
+                   HorizontalTextAlignment="Center"
+                   HorizontalOptions="CenterAndExpand"/>
+            
+            <zxing:BarcodeGeneratorView
+				x:Name="barcodeGenerator"
+				HorizontalOptions="Center"
+				HeightRequest="100"
+				WidthRequest="150"
+				ForegroundColor="DarkBlue"
+				Format="QrCode"
+				BarcodeMargin="1"
+                IsVisible="False"/>
+
+        </StackLayout>
+    </ScrollView>
+
+</ContentPage>
