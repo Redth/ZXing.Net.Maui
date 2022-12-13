@@ -36,6 +36,9 @@
 		<PackageReference Include="ZXing.Net" Version="0.16.8" />
 		<PackageReference Include="GitInfo" Version="2.2.0" PrivateAssets="all" />
 	</ItemGroup>
+  <ItemGroup Condition="$(TargetFramework.Contains('-windows'))">
+    <PackageReference Include="Microsoft.Maui.Graphics.Skia" Version="7.0.49" />
+  </ItemGroup>
 
 	<ItemGroup>
 

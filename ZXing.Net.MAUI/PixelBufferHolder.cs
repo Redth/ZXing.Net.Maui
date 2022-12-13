@@ -1,4 +1,11 @@
 ﻿using Microsoft.Maui.Graphics;
+using System.IO;
+using System;
+#if WINDOWS || ANDROID
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+#endif
 
 namespace ZXing.Net.Maui.Readers
 {
@@ -17,5 +24,99 @@ namespace ZXing.Net.Maui.Readers
 #endif
 
 		Data { get; init; }
+
+		internal byte[] ByteData { get; set; }
+
+		public PixelBufferHolder() { }
+
+		/// <summary>
+		/// Create the necessary <see cref="PixelBufferHolder"/> from a stream
+		/// </summary>
+		/// <param name="stream">The stream to pick pixel data from</param>
+		/// <returns></returns>
+		/// <exception cref="NullReferenceException"></exception>
+		public static PixelBufferHolder FromStream(Stream stream)
+		{
+#if WINDOWS
+
+			var image = new Microsoft.Maui.Graphics.Skia.SkiaImageLoadingService().FromStream(stream) as Microsoft.Maui.Graphics.Skia.SkiaImage;
+
+			var dataList = new List<byte> { };
+
+			var mySpan = CollectionsMarshal.AsSpan(image!.PlatformRepresentation.Pixels.ToList());
+			for (var i = 0; i < mySpan.Length; i++)
+			{
+				dataList.Add(mySpan[i].Red);
+				dataList.Add(mySpan[i].Green);
+				dataList.Add(mySpan[i].Blue);
+			}
+
+			var data = dataList.ToArray();
+
+#else
+
+			var image =
+				(Microsoft.Maui.Graphics.Platform.PlatformImage.FromStream(stream)
+					as Microsoft.Maui.Graphics.Platform.PlatformImage)!;
+
+#if IOS || MACCATALYST
+
+			var uiImage = image.PlatformRepresentation;
+
+			var pixelBuffer = uiImage.CIImage?.PixelBuffer;
+
+			if (pixelBuffer != null)
+				return new PixelBufferHolder
+				{
+					Size = new(image.Width, image.Height),
+					Data = pixelBuffer
+				};
+
+			var data = uiImage.CGImage?.DataProvider.CopyData()?.ToArray();
+
+			if (data == null)
+				throw new NullReferenceException("Could not convert stream to native bytes");
+
+#elif ANDROID
+
+			var pixelArr = new int[(int)(image.Width * image.Height)];
+
+			image!.PlatformRepresentation.GetPixels(pixelArr, 0, (int)image.Width, 0, 0, (int)image.Width, (int)image.Height);
+			image!.PlatformRepresentation.Recycle();
+
+			var dataList = new List<byte> { };
+
+			var mySpan = CollectionsMarshal.AsSpan(pixelArr.ToList());
+
+			for (var i = 0; i < mySpan.Length; i++)
+			{
+				var intValue = mySpan[i];
+
+				dataList.Add(
+					(byte)((
+						(intValue >> 24) +
+						(intValue >> 16) +
+						(intValue >> 8) +
+						(byte)intValue
+						) / 4)
+				);
+			}
+
+			var data = dataList.ToArray();
+
+#else
+
+			throw new PlatformNotSupportedException();
+
+#endif
+
+#endif
+
+			return new PixelBufferHolder
+			{
+				Size = new(image.Width, image.Height),
+				ByteData = data
+			};
+		}
 	}
 }
