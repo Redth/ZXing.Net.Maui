@@ -1,8 +1,8 @@
-﻿using Microsoft.Maui.Graphics;
+﻿using System.IO;
 
 namespace ZXing.Net.Maui.Readers
 {
-	public class ZXingBarcodeReader : Readers.IBarcodeReader
+	public class ZXingBarcodeReader : IBarcodeReader
 	{
 		BarcodeReaderGeneric zxingReader;
 
@@ -28,16 +28,7 @@ namespace ZXing.Net.Maui.Readers
 
 		public BarcodeResult[] Decode(PixelBufferHolder image)
 		{
-			var w = (int)image.Size.Width;
-			var h = (int)image.Size.Height;
-
-			LuminanceSource ls = default;
-
-#if ANDROID
-			ls = new ByteBufferYUVLuminanceSource(image.Data, w, h, 0, 0, w, h);
-#elif MACCATALYST || IOS
-			ls = new CVPixelBufferBGRA32LuminanceSource(image.Data, w, h);
-#endif
+			LuminanceSource ls = GetLuminanceSource(image);
 
 			if (Options.Multiple)
 				return zxingReader.DecodeMultiple(ls)?.ToBarcodeResults();
@@ -47,6 +38,31 @@ namespace ZXing.Net.Maui.Readers
 				return new[] { b };
 
 			return null;
+		}
+
+		public BarcodeResult[] Decode(Stream stream)
+			=> Decode(PixelBufferHolder.FromStream(stream));
+
+		static LuminanceSource GetLuminanceSource(PixelBufferHolder image)
+		{
+			var w = (int)image.Size.Width;
+			var h = (int)image.Size.Height;
+
+#if MACCATALYST || IOS
+			if (image.Data != null)
+				return new CVPixelBufferBGRA32LuminanceSource(image.Data, w, h);
+#elif ANDROID
+			if (image.Data != null)
+				return new ByteBufferYUVLuminanceSource(image.Data, w, h, 0, 0, w, h);
+#endif
+
+			return
+				new RGBLuminanceSource(
+					image.ByteData,
+					w,
+					h,
+                    RGBLuminanceSource.BitmapFormat.Unknown
+				);
 		}
 	}
 }
