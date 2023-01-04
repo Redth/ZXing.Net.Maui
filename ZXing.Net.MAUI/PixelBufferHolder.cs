@@ -1,8 +1,7 @@
 ﻿using Microsoft.Maui.Graphics;
 using System.IO;
 using System;
-#if WINDOWS || ANDROID
-using System.Collections.Generic;
+#if ANDROID || WINDOWS
 using System.Linq;
 using System.Runtime.InteropServices;
 #endif
@@ -39,19 +38,18 @@ namespace ZXing.Net.Maui.Readers
 		{
 #if WINDOWS
 
-			var image = new Microsoft.Maui.Graphics.Skia.SkiaImageLoadingService().FromStream(stream) as Microsoft.Maui.Graphics.Skia.SkiaImage;
+			var decoder = Run(Windows.Graphics.Imaging.BitmapDecoder.CreateAsync(stream.AsRandomAccessStream()));
 
-			var dataList = new List<byte> { };
+			var image = 
+				new 
+				{
+					Width = decoder.PixelWidth, 
+					Height = decoder.PixelHeight
+				};
 
-			var mySpan = CollectionsMarshal.AsSpan(image!.PlatformRepresentation.Pixels.ToList());
-			for (var i = 0; i < mySpan.Length; i++)
-			{
-				dataList.Add(mySpan[i].Red);
-				dataList.Add(mySpan[i].Green);
-				dataList.Add(mySpan[i].Blue);
-			}
-
-			var data = dataList.ToArray();
+			var pixelData = Run(decoder.GetPixelDataAsync());
+			
+			var data = pixelData.DetachPixelData();
 
 #else
 
@@ -84,25 +82,9 @@ namespace ZXing.Net.Maui.Readers
 			image!.PlatformRepresentation.GetPixels(pixelArr, 0, (int)image.Width, 0, 0, (int)image.Width, (int)image.Height);
 			image!.PlatformRepresentation.Recycle();
 
-			var dataList = new List<byte> { };
-
-			var mySpan = CollectionsMarshal.AsSpan(pixelArr.ToList());
-
-			for (var i = 0; i < mySpan.Length; i++)
-			{
-				var intValue = mySpan[i];
-
-				dataList.Add(
-					(byte)((
-						(intValue >> 24) +
-						(intValue >> 16) +
-						(intValue >> 8) +
-						(byte)intValue
-						) / 4)
-				);
-			}
-
-			var data = dataList.ToArray();
+			var data =
+				MemoryMarshal.Cast<int, byte>(CollectionsMarshal.AsSpan(pixelArr.ToList()))
+					.ToArray();
 
 #else
 
@@ -118,5 +100,20 @@ namespace ZXing.Net.Maui.Readers
 				ByteData = data
 			};
 		}
+
+#if WINDOWS
+		static T Run<T>(Windows.Foundation.IAsyncOperation<T> operation)
+		{
+
+			var task = System.Threading.Tasks.Task.Run(async () => await operation);
+
+			task.Wait();
+
+			if (task.Exception != null)
+				throw task.Exception;
+
+			return task.Result;
+		}
+#endif
 	}
 }

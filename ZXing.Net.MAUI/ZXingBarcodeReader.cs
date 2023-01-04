@@ -59,10 +59,9 @@ namespace ZXing.Net.Maui.Readers
 			return
 				new RGBLuminanceSource(
 					image.ByteData,
-					w, h
-#if ANDROID || MACCATALYST || IOS
-					, RGBLuminanceSource.BitmapFormat.Gray8
-#endif
+					w,
+					h,
+                    RGBLuminanceSource.BitmapFormat.Unknown
 				);
 		}
 	}
