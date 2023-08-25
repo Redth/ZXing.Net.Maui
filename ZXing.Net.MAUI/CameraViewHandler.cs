@@ -53,10 +53,9 @@ namespace ZXing.Net.Maui
 			cameraManager.FrameReady += CameraManager_FrameReady;
 		}
 
-		void CameraManager_FrameReady(object sender, CameraFrameBufferEventArgs e)
-			=> FrameReady?.Invoke(this, e);
+        private void CameraManager_FrameReady(object sender, CameraFrameBufferEventArgs e) => VirtualView?.FrameReady(e);
 
-		protected override void DisconnectHandler(NativePlatformCameraPreviewView nativeView)
+        protected override void DisconnectHandler(NativePlatformCameraPreviewView nativeView)
 		{
 			cameraManager.FrameReady -= CameraManager_FrameReady;
 
