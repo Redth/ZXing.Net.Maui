@@ -59,7 +59,7 @@ For more information on permissions, see the [Microsoft Docs](https://docs.micro
 
 ### Using ZXing.Net.Maui
 
-If you're using the controls from XAML, make sure to add the right XML namespace in the root of your file, e.g: `xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI"`
+If you're using the controls from XAML, make sure to add the right XML namespace in the root of your file, e.g: `xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI.Controls"`
 
 ```xaml
 <zxing:CameraBarcodeReaderView
