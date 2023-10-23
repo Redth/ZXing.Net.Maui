@@ -37,6 +37,8 @@ namespace ZXing.Net.Maui.Readers
 			ls = new ByteBufferYUVLuminanceSource(image.Data, w, h, 0, 0, w, h);
 #elif MACCATALYST || IOS
 			ls = new CVPixelBufferBGRA32LuminanceSource(image.Data, w, h);
+#elif WINDOWS
+			ls = new SoftwareBitmapLuminanceSource(image.Data);
 #endif
 
 			if (Options.Multiple)
