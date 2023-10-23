@@ -30,13 +30,13 @@ namespace BigIslandBarcode
 			{
 				Dispatcher.Dispatch(() =>
 				{
-					// Update BarcodeGeneratorView
+                    // Update BarcodeGeneratorView
 					barcodeGenerator.ClearValue(BarcodeGeneratorView.ValueProperty);
 					barcodeGenerator.Format = first.Format;
 					barcodeGenerator.Value = first.Value;
-
-					// Update Label
-					ResultLabel.Text = $"Barcodes: {first.Format} -> {first.Value}";
+                    
+                    // Update Label
+                    ResultLabel.Text = $"Barcodes: {first.Format} -> {first.Value}";
 				});
 			}
 		}

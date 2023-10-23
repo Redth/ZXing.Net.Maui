@@ -8,7 +8,7 @@ The successor to ZXing.Net.Mobile: barcode scanning and generation for .NET MAUI
 
 ### Install ZXing.Net.MAUI
 
-1. Install [ZXing.Net.MAUI](https://www.nuget.org/packages/ZXing.Net.Maui) NuGet package on your .NET MAUI application
+1. Install [ZXing.Net.Maui.Controls](https://www.nuget.org/packages/ZXing.Net.Maui.Controls) NuGet package on your .NET MAUI application
 
 1. Make sure to initialize the plugin first in your `MauiProgram.cs`, see below
 
@@ -59,7 +59,7 @@ For more information on permissions, see the [Microsoft Docs](https://docs.micro
 
 ### Using ZXing.Net.Maui
 
-If you're using the controls from XAML, make sure to add the right XML namespace in the root of your file, e.g: `xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI"`
+If you're using the controls from XAML, make sure to add the right XML namespace in the root of your file, e.g: `xmlns:zxing="clr-namespace:ZXing.Net.Maui.Controls;assembly=ZXing.Net.MAUI.Controls"`
 
 ```xaml
 <zxing:CameraBarcodeReaderView

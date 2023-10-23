@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>net7.0-android;net7.0-maccatalyst;net7.0-ios</TargetFrameworks>
+		<TargetFrameworks>net7.0;net7.0-android;net7.0-maccatalyst;net7.0-ios</TargetFrameworks>
 		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net7.0-windows10.0.19041</TargetFrameworks>
 		<PackageId>ZXing.Net.Maui</PackageId>
 		<Title>ZXing.Net.MAUI Barcode Scanner for .NET MAUI</Title>
@@ -33,7 +33,7 @@
 		<AndroidManifest Include="Platforms/Android/AndroidManifest.xml" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="ZXing.Net" Version="0.16.8" />
+		<PackageReference Include="ZXing.Net" Version="0.16.9" />
 		<PackageReference Include="GitInfo" Version="2.2.0" PrivateAssets="all" />
 	</ItemGroup>
 
@@ -54,6 +54,9 @@
 		<Compile Update="**\*.windows*$(DefaultLanguageSourceExtension)">
 			<ExcludeFromCurrentConfiguration>true</ExcludeFromCurrentConfiguration>
 		</Compile>
+		<Compile Update="**\*.net*$(DefaultLanguageSourceExtension)">
+			<ExcludeFromCurrentConfiguration>true</ExcludeFromCurrentConfiguration>
+		</Compile>
 
 		<Compile Condition=" '$(TargetPlatformIdentifier)' == 'ios' " Update="*\*.ios*$(DefaultLanguageSourceExtension)">
 			<ExcludeFromCurrentConfiguration>False</ExcludeFromCurrentConfiguration>
@@ -70,9 +73,11 @@
 		<Compile Condition=" '$(TargetPlatformIdentifier)' == 'tizen' " Update="**\*.tizen*$(DefaultLanguageSourceExtension)">
 			<ExcludeFromCurrentConfiguration>False</ExcludeFromCurrentConfiguration>
 		</Compile>
+		<Compile Condition=" '$(TargetPlatformIdentifier)' == '' " Update="**\*.net*$(DefaultLanguageSourceExtension)">
+			<ExcludeFromCurrentConfiguration>False</ExcludeFromCurrentConfiguration>
+		</Compile>
 
 	</ItemGroup>
-
 
 	<Target Name="_MauiRemovePlatformFileNamePatternCompileItems" BeforeTargets="_MauiRemovePlatformCompileItems">
 		<ItemGroup>
@@ -81,6 +86,7 @@
 			<Compile Condition=" '%(Compile.ExcludeFromCurrentConfiguration)' == 'true' " Remove="**\*.android*$(DefaultLanguageSourceExtension)" />
 			<Compile Condition=" '%(Compile.ExcludeFromCurrentConfiguration)' == 'true' " Remove="**\*.windows*$(DefaultLanguageSourceExtension)" />
 			<Compile Condition=" '%(Compile.ExcludeFromCurrentConfiguration)' == 'true' " Remove="**\*.tizen*$(DefaultLanguageSourceExtension)" />
+			<Compile Condition=" '%(Compile.ExcludeFromCurrentConfiguration)' == 'true' " Remove="**\*.net*$(DefaultLanguageSourceExtension)" />
 		</ItemGroup>
 	</Target>
 </Project>
