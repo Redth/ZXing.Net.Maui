@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
 using System.Runtime.InteropServices.WindowsRuntime;
+using WinRT;
 
 namespace ZXing.Net.Maui;
 
@@ -27,14 +28,14 @@ public class SoftwareBitmapLuminanceSource : BaseLuminanceSource
 
 	void CalculateLuminance(SoftwareBitmap bitmap)
 	{
-		if (softwareBitmap.BitmapPixelFormat != BitmapPixelFormat.Gray8)
+		if (bitmap.BitmapPixelFormat != BitmapPixelFormat.Gray8)
         {
-	        using SoftwareBitmap convertedSoftwareBitmap = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Gray8);
+	        using SoftwareBitmap convertedSoftwareBitmap = SoftwareBitmap.Convert(bitmap, BitmapPixelFormat.Gray8);
 	        convertedSoftwareBitmap.CopyToBuffer(luminances.AsBuffer());
         }
         else
         {
-            softwareBitmap.CopyToBuffer(luminances.AsBuffer());
+            bitmap.CopyToBuffer(luminances.AsBuffer());
         }
 	}
 }

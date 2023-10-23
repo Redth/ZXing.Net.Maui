@@ -15,7 +15,7 @@
 		<Grid
 			Grid.Row="0"
 			BackgroundColor="#aa000000">
-			<Label Grid.Row="2" Text="Top text..." HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" />
+			<Label x:Name="ResultLabel" Grid.Row="2" Text="Top text..." HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" />
 		</Grid>
 
 		<Grid
