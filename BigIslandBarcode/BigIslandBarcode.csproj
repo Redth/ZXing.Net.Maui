@@ -52,10 +52,4 @@
 		<ProjectReference Include="..\ZXing.Net.MAUI.Controls\ZXing.Net.MAUI.Controls.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <MauiXaml Update="CameraPage.xaml">
-	    <Generator>MSBuild:Compile</Generator>
-	  </MauiXaml>
-	</ItemGroup>
-
 </Project>
