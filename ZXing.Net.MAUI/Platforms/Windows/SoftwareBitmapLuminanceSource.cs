@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Graphics.Imaging;
+using WinRT;
 
 namespace ZXing.Net.Maui;
 
@@ -41,16 +42,18 @@ public class SoftwareBitmapLuminanceSource : BaseLuminanceSource
 			const int BYTES_PER_PIXEL = 4;
 
 			using (var buffer = bitmap.LockBuffer(BitmapBufferAccessMode.Read))
-			using (var reference = buffer.CreateReference())
+			using (var bufferRef = buffer.CreateReference())
 			{
-				if (reference is IMemoryBufferByteAccess)
+				//See https://github.com/microsoft/CsWinRT/issues/646#issuecomment-754161785
+				var reference = bufferRef.As<IMemoryBufferByteAccess>();
+				if (reference != null)
 				{
 					try
 					{
 						// Get a pointer to the pixel buffer
 						byte* data;
 						uint capacity;
-						((IMemoryBufferByteAccess)reference).GetBuffer(out data, out capacity);
+						reference.GetBuffer(out data, out capacity);
 
 						// Get information about the BitmapBuffer
 						var desc = buffer.GetPlaneDescription(0);

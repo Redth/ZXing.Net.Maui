@@ -12,6 +12,8 @@ namespace ZXing.Net.Maui.Readers
 		Java.Nio.ByteBuffer
 #elif IOS || MACCATALYST
 		CoreVideo.CVPixelBuffer
+#elif WINDOWS
+		Windows.Graphics.Imaging.SoftwareBitmap
 #else
 		byte[]
 #endif
