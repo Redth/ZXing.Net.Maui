@@ -33,7 +33,7 @@
 		<AndroidManifest Include="Platforms/Android/AndroidManifest.xml" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="ZXing.Net" Version="0.16.8" />
+		<PackageReference Include="ZXing.Net" Version="0.16.9" />
 		<PackageReference Include="GitInfo" Version="2.2.0" PrivateAssets="all" />
 	</ItemGroup>
 
