@@ -19,11 +19,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '7.0.x'
-    - name: Setup NuGet 5.x
-      uses: nuget/setup-nuget@v1
-      with:
-        nuget-version: '5.x'
+        dotnet-version: '8.0.x'
     - name: Setup MAUI
       shell: pwsh
       run: |
@@ -49,8 +45,8 @@ jobs:
         dotnet pack --output ./artifacts --configuration Release -p:PackageVersion=$VERSION ./ZXing.Net.MAUI.Comet/ZXing.Net.MAUI.Comet.csproj
         $pfxPath = Join-Path -Path $pwd -ChildPath "codesigncert.pfx"
         [IO.File]::WriteAllBytes("$pfxPath", [System.Convert]::FromBase64String($env:CODESIGN_PFX))
-        nuget sign .\artifacts\*.nupkg -CertificatePath $pfxPath -Timestamper http://timestamp.entrust.net/TSS/RFC3161sha2TS
-        
+        dotnet nuget sign .\artifacts\*.nupkg --certificate-path $pfxPath --timestamper http://timestamp.entrust.net/TSS/RFC3161sha2TS
+
     - name: Artifacts
       uses: actions/upload-artifact@v1
       with:
@@ -67,10 +63,6 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: NuGet
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '7.0.x'
       - name: Push NuGet
         run: |
           dotnet nuget push NuGet\*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_ORG_API_KEY }}
