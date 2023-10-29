@@ -77,6 +77,7 @@ namespace ZXing.Net.Maui
 		//Active camera properties
 		string _currentMediaFrameSourceGroupId;
 		string _currentMediaFrameSourceInfoId;
+        string _lastUnloadedMediaFrameSourceGroupId = null;
         private SoftwareBitmap _backBuffer;
 		private volatile bool _taskRunning = false;
         private volatile bool _colorFrameReaderHandlerRunning = false;
@@ -165,6 +166,7 @@ namespace ZXing.Net.Maui
 				//See https://learn.microsoft.com/en-us/dotnet/maui/user-interface/handlers/create#native-view-cleanup
 				//for an explanation of DisconnectHandler() behaviour.
 				_cameraPreview.Unloaded += CameraPreview_Unloaded;
+                _cameraPreview.Loaded += CameraPreview_Loaded;
             }
 			return _cameraPreview;
 		}
@@ -216,6 +218,9 @@ namespace ZXing.Net.Maui
 		{
 			await ExecuteLockedAsync(async () =>
 			{
+                //Connecting: forget any previously unloaded camera.
+                _lastUnloadedMediaFrameSourceGroupId = null;
+
                 await InitCameraUnlockedAsync();
 
 #if ENABLE_DEVICE_WATCHER
@@ -228,6 +233,9 @@ namespace ZXing.Net.Maui
 		{
 			await ExecuteLockedAsync(async () =>
 			{
+                //Disconnecting: forget any previously unloaded camera.
+                _lastUnloadedMediaFrameSourceGroupId = null;
+
 #if ENABLE_DEVICE_WATCHER
                 UnregisterWatcher(this);
 #endif
@@ -241,6 +249,12 @@ namespace ZXing.Net.Maui
 		{
 			await ExecuteLockedAsync(async () =>
 			{
+				if (!string.IsNullOrEmpty(_lastUnloadedMediaFrameSourceGroupId) && _lastUnloadedMediaFrameSourceGroupId.Equals(sourceGroupId))
+				{
+                    //This cameraManager will be initialized in CameraPreview_Loaded handler.
+                    return;
+				}
+
 				await InitCameraUnlockedAsync(sourceGroupId);
 			});
 		}
@@ -642,9 +656,9 @@ namespace ZXing.Net.Maui
 #endif
 			_imageElement.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
 		}
-        #endregion
+		#endregion
 
-        #region Event handlers
+		#region Event handlers
         //Cleanup all camera resources when unloading the _cameraPreview element,
         //otherwise the camera stream continuously generates frames also when this camera
         //is temporarily hidden, for example when switching pages in Shell-based applications.
@@ -655,7 +669,18 @@ namespace ZXing.Net.Maui
 		{
 			//Use CleanupCameraAsync instead of Disconnect to keep the DeviceWatcher alive. Only DisconnectHandler()
 			//will call Disconnect() to also detach the DeviceWatcher.
+			_lastUnloadedMediaFrameSourceGroupId = _currentMediaFrameSourceGroupId;
             TryEnqueueUI(async () => await CleanupCameraAsync());
+        }
+
+        private void CameraPreview_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(_lastUnloadedMediaFrameSourceGroupId))
+			{
+				string sourceGroupId = _lastUnloadedMediaFrameSourceGroupId;
+                _lastUnloadedMediaFrameSourceGroupId = null;
+                TryEnqueueUI(async () => await UpdateCameraAsync(sourceGroupId));
+            }
         }
 
         //Reset the camera in case of errors
