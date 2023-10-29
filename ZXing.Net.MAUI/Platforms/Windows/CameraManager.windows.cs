@@ -77,9 +77,11 @@ namespace ZXing.Net.Maui
 		//Active camera properties
 		string _currentMediaFrameSourceGroupId;
 		string _currentMediaFrameSourceInfoId;
-		private SoftwareBitmap _backBuffer;
-		private bool _taskRunning = false;
-		private readonly DispatcherQueue _dispatcherQueueUI = DispatcherQueue.GetForCurrentThread();
+        private SoftwareBitmap _backBuffer;
+		private volatile bool _taskRunning = false;
+        private volatile bool _colorFrameReaderHandlerRunning = false;
+        private volatile bool _colorFrameReaderHandlerAvailable = false;
+        private readonly DispatcherQueue _dispatcherQueueUI = DispatcherQueue.GetForCurrentThread();
 
 		//MediaCapture
 		private MediaCapture _mediaCapture;
@@ -163,7 +165,7 @@ namespace ZXing.Net.Maui
 				//See https://learn.microsoft.com/en-us/dotnet/maui/user-interface/handlers/create#native-view-cleanup
 				//for an explanation of DisconnectHandler() behaviour.
 				_cameraPreview.Unloaded += CameraPreview_Unloaded;
-			}
+            }
 			return _cameraPreview;
 		}
 
@@ -214,7 +216,7 @@ namespace ZXing.Net.Maui
 		{
 			await ExecuteLockedAsync(async () =>
 			{
-				await InitCameraUnlockedAsync();
+                await InitCameraUnlockedAsync();
 
 #if ENABLE_DEVICE_WATCHER
 				RegisterWatcher(this);
@@ -227,7 +229,7 @@ namespace ZXing.Net.Maui
 			await ExecuteLockedAsync(async () =>
 			{
 #if ENABLE_DEVICE_WATCHER
-				UnregisterWatcher(this);
+                UnregisterWatcher(this);
 #endif
 
 				await UninitCameraUnlockedAsync();
@@ -354,7 +356,8 @@ namespace ZXing.Net.Maui
 #else
 				_mediaFrameReader = await _mediaCapture.CreateFrameReaderAsync(selectedMediaFrameSource, MediaEncodingSubtypes.Bgra8);
 #endif
-				_mediaFrameReader.FrameArrived += ColorFrameReader_FrameArrived;
+				_colorFrameReaderHandlerAvailable = true;
+                _mediaFrameReader.FrameArrived += ColorFrameReader_FrameArrived;
 				await _mediaFrameReader.StartAsync();
 
 				ShowPreviewBitmap();
@@ -375,7 +378,8 @@ namespace ZXing.Net.Maui
 			{
 				if (_mediaFrameReader != null)
 				{
-					await _mediaFrameReader.StopAsync();
+					_colorFrameReaderHandlerAvailable = false;
+                    await _mediaFrameReader.StopAsync();
 					_mediaFrameReader.FrameArrived -= ColorFrameReader_FrameArrived;
 					_mediaFrameReader.Dispose();
 					_mediaFrameReader = null;
@@ -388,7 +392,21 @@ namespace ZXing.Net.Maui
 				}
 				_currentMediaFrameSourceInfoId = null;
 				_currentMediaFrameSourceGroupId = null;
-				HidePreviewBitmap();
+                //Wait for and flush any pending 'ColorFrameReader_FrameArrived' event.
+                while (_colorFrameReaderHandlerRunning || _taskRunning)
+				{
+                    await Task.Delay(1);
+                }
+                //Detach any valid SoftwareBitmap from imageSource, to avoid random and unexpected win32 exceptions
+                //(such as 0xC000027B) when recreating the camera manager, after unloading and reloading the _cameraPreview control.
+                //The crash may happen in multipage applications, such as those based upon Shell layout.
+                _backBuffer?.Dispose();
+                _backBuffer = null;
+                {
+                    var imageSource = _imageElement?.Source as SoftwareBitmapSource;
+                    await imageSource?.SetBitmapAsync(null);
+                }
+                HidePreviewBitmap();
 			}
 		}
 
@@ -624,18 +642,24 @@ namespace ZXing.Net.Maui
 #endif
 			_imageElement.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
 		}
-#endregion
+        #endregion
 
-#region Event handlers
-		//Hack to call Disconnect() when closing the CameraManager owner, because,
-		//currently, DisconnectHandler() is not automatically called by Maui framework.
-		private void CameraPreview_Unloaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        #region Event handlers
+        //Cleanup all camera resources when unloading the _cameraPreview element,
+        //otherwise the camera stream continuously generates frames also when this camera
+        //is temporarily hidden, for example when switching pages in Shell-based applications.
+        //Note: this handler is needed since DisconnectHandler() is not automatically called by
+        //Maui framework when closing the page owning this camera.
+        //See https://learn.microsoft.com/en-us/dotnet/maui/user-interface/handlers/create#native-view-cleanup
+        private void CameraPreview_Unloaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
 		{
-			Disconnect();
-		}
+			//Use CleanupCameraAsync instead of Disconnect to keep the DeviceWatcher alive. Only DisconnectHandler()
+			//will call Disconnect() to also detach the DeviceWatcher.
+            TryEnqueueUI(async () => await CleanupCameraAsync());
+        }
 
-		//Reset the camera in case of errors
-		private void MediaCapture_Failed(MediaCapture sender, MediaCaptureFailedEventArgs errorEventArgs)
+        //Reset the camera in case of errors
+        private void MediaCapture_Failed(MediaCapture sender, MediaCaptureFailedEventArgs errorEventArgs)
 		{
 			Debug.WriteLine("MediaCapture_Failed: (0x{0:X}) {1}", errorEventArgs.Code, errorEventArgs.Message);
 
@@ -645,56 +669,70 @@ namespace ZXing.Net.Maui
 		//Display the captured frame and send it to the registered FrameReady owner.
 		private void ColorFrameReader_FrameArrived(MediaFrameReader sender, MediaFrameArrivedEventArgs args)
 		{
-			var mediaFrameReference = sender.TryAcquireLatestFrame();
-			var videoMediaFrame = mediaFrameReference?.VideoMediaFrame;
-			var softwareBitmap = videoMediaFrame?.SoftwareBitmap;
-
-			if (softwareBitmap != null)
+			if (_colorFrameReaderHandlerAvailable)
 			{
-				//Convert to Bgra8 Premultiplied softwareBitmap.
-				if (softwareBitmap.BitmapPixelFormat != Windows.Graphics.Imaging.BitmapPixelFormat.Bgra8 ||
-					softwareBitmap.BitmapAlphaMode != Windows.Graphics.Imaging.BitmapAlphaMode.Premultiplied)
+				_colorFrameReaderHandlerRunning = true;
+
+				try
 				{
-					softwareBitmap = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+					var mediaFrameReference = sender.TryAcquireLatestFrame();
+					var videoMediaFrame = mediaFrameReference?.VideoMediaFrame;
+					var softwareBitmap = videoMediaFrame?.SoftwareBitmap;
+
+					if (softwareBitmap != null)
+					{
+						//Convert to Bgra8 Premultiplied softwareBitmap.
+						if (softwareBitmap.BitmapPixelFormat != Windows.Graphics.Imaging.BitmapPixelFormat.Bgra8 ||
+							softwareBitmap.BitmapAlphaMode != Windows.Graphics.Imaging.BitmapAlphaMode.Premultiplied)
+						{
+							softwareBitmap = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+						}
+
+						//Send bitmap to BarCodeReaderView/CameraView
+						FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(
+							new Readers.PixelBufferHolder
+							{
+								Data = softwareBitmap,
+								Size = new Microsoft.Maui.Graphics.Size(softwareBitmap.PixelWidth, softwareBitmap.PixelHeight)
+							}));
+
+						// Swap the processed frame to _backBuffer and dispose of the unused image.
+						softwareBitmap = Interlocked.Exchange(ref _backBuffer, softwareBitmap);
+						softwareBitmap?.Dispose();
+
+						// Changes to XAML ImageElement must happen on UI thread through Dispatcher
+						TryEnqueueUI(
+							async () =>
+							{
+								// Don't let two copies of this task run at the same time.
+								if (_taskRunning || !_colorFrameReaderHandlerAvailable)
+								{
+									return;
+								}
+								_taskRunning = true;
+
+								// Keep draining frames from the backbuffer until the backbuffer is empty.
+								SoftwareBitmap latestBitmap;
+								while ((latestBitmap = Interlocked.Exchange(ref _backBuffer, null)) != null)
+								{
+									var imageSource = (SoftwareBitmapSource)_imageElement.Source;
+									await imageSource.SetBitmapAsync(latestBitmap);
+									latestBitmap.Dispose();
+								}
+
+								_taskRunning = false;
+							});
+					}
+
+					mediaFrameReference?.Dispose();
+				}
+				catch (Exception ex)
+				{
+					Debug.WriteLine(ex.Message);
 				}
 
-				//Send bitmap to BarCodeReaderView/CameraView
-				FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(
-					new Readers.PixelBufferHolder
-					{
-						Data = softwareBitmap,
-						Size = new Microsoft.Maui.Graphics.Size(softwareBitmap.PixelWidth, softwareBitmap.PixelHeight)
-					}));
-
-				// Swap the processed frame to _backBuffer and dispose of the unused image.
-				softwareBitmap = Interlocked.Exchange(ref _backBuffer, softwareBitmap);
-				softwareBitmap?.Dispose();
-
-				// Changes to XAML ImageElement must happen on UI thread through Dispatcher
-				TryEnqueueUI(
-					async () =>
-					{
-						// Don't let two copies of this task run at the same time.
-						if (_taskRunning)
-						{
-							return;
-						}
-						_taskRunning = true;
-
-						// Keep draining frames from the backbuffer until the backbuffer is empty.
-						SoftwareBitmap latestBitmap;
-						while ((latestBitmap = Interlocked.Exchange(ref _backBuffer, null)) != null)
-						{
-							var imageSource = (SoftwareBitmapSource)_imageElement.Source;
-							await imageSource.SetBitmapAsync(latestBitmap);
-							latestBitmap.Dispose();
-						}
-
-						_taskRunning = false;
-					});
-			}
-
-			mediaFrameReference?.Dispose();
+                _colorFrameReaderHandlerRunning = false;
+            }
 		}
 #endregion
 
