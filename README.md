@@ -14,7 +14,7 @@ The successor to ZXing.Net.Mobile: barcode scanning and generation for .NET MAUI
 
     ```csharp
     // Add the using to the top
-    using ZXing.Net.Maui;
+    using ZXing.Net.Maui.Controls;
     
     // ... other code 
     
