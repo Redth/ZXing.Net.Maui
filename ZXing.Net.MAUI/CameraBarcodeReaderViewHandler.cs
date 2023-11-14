@@ -62,6 +62,7 @@ namespace ZXing.Net.Maui
             cameraManager.FrameReady -= CameraManager_FrameReady;
 
             cameraManager.Disconnect();
+            cameraManager.Dispose();
 
             base.DisconnectHandler(nativeView);
         }

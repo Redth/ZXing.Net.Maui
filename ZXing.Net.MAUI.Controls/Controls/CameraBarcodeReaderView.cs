@@ -15,7 +15,12 @@ namespace ZXing.Net.Maui.Controls
 		public event EventHandler<BarcodeDetectionEventArgs> BarcodesDetected;
 		public event EventHandler<CameraFrameBufferEventArgs> FrameReady;
 
-		void ICameraBarcodeReaderView.BarcodesDetected(BarcodeDetectionEventArgs e) => BarcodesDetected?.Invoke(this, e);
+        public CameraBarcodeReaderView()
+        {
+			Unloaded += (s, e) => Cleanup();    
+        }
+
+        void ICameraBarcodeReaderView.BarcodesDetected(BarcodeDetectionEventArgs e) => BarcodesDetected?.Invoke(this, e);
 		void ICameraFrameAnalyzer.FrameReady(ZXing.Net.Maui.CameraFrameBufferEventArgs e) => FrameReady?.Invoke(this, e);
 
 		public static readonly BindableProperty OptionsProperty =
@@ -65,5 +70,8 @@ namespace ZXing.Net.Maui.Controls
 
 		CameraBarcodeReaderViewHandler StrongHandler
 			=> Handler as CameraBarcodeReaderViewHandler;
-	}
+
+        private void Cleanup() 
+			=> Handler?.DisconnectHandler();
+    }
 }

@@ -9,7 +9,12 @@ namespace ZXing.Net.Maui.Controls
 	{
 		public event EventHandler<CameraFrameBufferEventArgs> FrameReady;
 
-		void ICameraFrameAnalyzer.FrameReady(CameraFrameBufferEventArgs e)
+        public CameraView()
+        {
+			Unloaded += (s, e) => Cleanup();
+        }
+
+        void ICameraFrameAnalyzer.FrameReady(CameraFrameBufferEventArgs e)
 			=> FrameReady?.Invoke(this, e);
 
 		public static readonly BindableProperty IsTorchOnProperty =
@@ -38,5 +43,8 @@ namespace ZXing.Net.Maui.Controls
 
 		CameraViewHandler StrongHandler 
 			=> Handler as CameraViewHandler;
-	}
+
+        private void Cleanup()
+			=> Handler?.DisconnectHandler();
+    }
 }
