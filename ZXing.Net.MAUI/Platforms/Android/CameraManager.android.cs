@@ -63,6 +63,7 @@ namespace ZXing.Net.Maui
 				// Frame by frame analyze
 				imageAnalyzer = new ImageAnalysis.Builder()
 					.SetDefaultResolution(new Android.Util.Size(640, 480))
+                    .SetOutputImageFormat(ImageAnalysis.OutputImageFormatRgba8888)
 					.SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
 					.Build();
 
