@@ -3,6 +3,8 @@ using ZXing.Rendering;
 using Microsoft.Maui.Graphics.Platform;
 using MauiColor = Microsoft.Maui.Graphics.Color;
 using ZXing.Common;
+using System.Threading;
+
 
 #if IOS || MACCATALYST
 using Foundation;
