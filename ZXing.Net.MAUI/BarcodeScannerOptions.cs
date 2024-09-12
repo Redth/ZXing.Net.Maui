@@ -13,5 +13,7 @@
 
 		public bool Multiple { get; init; }
 
-	}
+		public bool UseCode39ExtendedMode { get; init; }
+
+    }
 }
