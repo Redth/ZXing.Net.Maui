@@ -23,7 +23,8 @@ namespace ZXing.Net.Maui.Readers
 				zxingReader.Options.TryHarder = options.TryHarder;
 				zxingReader.AutoRotate = options.AutoRotate;
 				zxingReader.Options.TryInverted = options.TryInverted;
-			}
+				zxingReader.Options.UseCode39ExtendedMode = options.UseCode39ExtendedMode;
+            }
 		}
 
 		public BarcodeResult[] Decode(PixelBufferHolder image)
