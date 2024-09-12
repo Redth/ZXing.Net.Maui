@@ -39,10 +39,12 @@ namespace ZXing.Net.Maui
 		ProcessCameraProvider cameraProvider;
 		ICamera camera;
 
+		Timer timer;
+
 		public NativePlatformCameraPreviewView CreateNativeView()
 		{
 			previewView = new PreviewView(Context.Context);
-			cameraExecutor = Executors.NewSingleThreadExecutor();
+            cameraExecutor = Executors.NewSingleThreadExecutor();
 
 			return previewView;
 		}
@@ -63,6 +65,7 @@ namespace ZXing.Net.Maui
 				// Frame by frame analyze
 				imageAnalyzer = new ImageAnalysis.Builder()
 					.SetDefaultResolution(new Android.Util.Size(640, 480))
+					.SetOutputImageRotationEnabled(true)
 					.SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
 					.Build();
 
@@ -71,8 +74,63 @@ namespace ZXing.Net.Maui
 
 				UpdateCamera();
 
-			}), ContextCompat.GetMainExecutor(Context.Context)); //GetMainExecutor: returns an Executor that runs on the main thread.
+				AutoFocus();
+				setupAutoFocusTimer();
+				((View)previewView.Parent).SetOnTouchListener(new TapFocusTouchListener(this));
+
+
+            }), ContextCompat.GetMainExecutor(Context.Context)); //GetMainExecutor: returns an Executor that runs on the main thread.
 		}
+
+		private class TapFocusTouchListener : Java.Lang.Object, View.IOnTouchListener {
+
+            private CameraManager cameraManager;
+
+            public TapFocusTouchListener(CameraManager cameraManager)
+            {
+                this.cameraManager = cameraManager;
+            }
+
+            public bool OnTouch(View v, MotionEvent e)
+            {
+
+                if (e.Action == MotionEventActions.Down)
+                {
+					Point point = new Point(((int)e.GetX()), ((int)e.GetY()));
+					cameraManager.Focus(point);
+                    return true;
+                }
+                return false;
+            }
+        }
+
+		private void setupAutoFocusTimer()
+        {
+			if(timer != null)
+            {
+				timer.Cancel();
+				timer.Dispose();
+				timer = null;
+            }
+			timer = new Timer();
+			var task = new AFTimerTask(this);
+			timer.ScheduleAtFixedRate(task, 5000, 5000);
+        }
+
+		private class AFTimerTask : TimerTask
+        {
+			private CameraManager cameraManager;
+
+			public AFTimerTask(CameraManager manager)
+            {
+				this.cameraManager = manager;
+            }
+
+			public override void Run()
+            {
+				cameraManager.AutoFocus();
+            }
+        }
 
 		public void Disconnect()
 		{ }
@@ -117,13 +175,30 @@ namespace ZXing.Net.Maui
 
 		public void Focus(Point point)
 		{
+			camera?.CameraControl?.CancelFocusAndMetering();
 
-		}
+			var factory = new SurfaceOrientedMeteringPointFactory(previewView.LayoutParameters.Width, previewView.LayoutParameters.Height);
+			var fpoint = factory.CreatePoint(point.X, point.Y);
+            var action = new FocusMeteringAction.Builder(fpoint, FocusMeteringAction.FlagAf)
+                                    .DisableAutoCancel()
+                                    .Build();
+
+            camera?.CameraControl?.StartFocusAndMetering(action);
+
+        }
 
 		public void AutoFocus()
 		{
+            camera?.CameraControl?.CancelFocusAndMetering();
+            var factory = new SurfaceOrientedMeteringPointFactory(1f, 1f);
+			var fpoint = factory.CreatePoint(.5f, .5f);
+            var action = new FocusMeteringAction.Builder(fpoint,FocusMeteringAction.FlagAf)
+                                    //.DisableAutoCancel()
+                                    .Build();
 
-		}
+            camera?.CameraControl?.StartFocusAndMetering(action);
+
+        }
 
 		public void Dispose()
 		{
