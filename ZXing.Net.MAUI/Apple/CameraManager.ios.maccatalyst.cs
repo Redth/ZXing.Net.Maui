@@ -23,6 +23,7 @@ namespace ZXing.Net.Maui
 		AVCaptureVideoPreviewLayer videoPreviewLayer;
 		CaptureDelegate captureDelegate;
 		DispatchQueue dispatchQueue;
+		NSObject orientationObserver;
 		Dictionary<NSString, MSize> Resolutions => new()
 		{
 			{ AVCaptureSession.Preset352x288, new MSize(352, 288) },
@@ -43,9 +44,20 @@ namespace ZXing.Net.Maui
 			videoPreviewLayer = new AVCaptureVideoPreviewLayer(captureSession);
 			videoPreviewLayer.VideoGravity = AVLayerVideoGravity.ResizeAspectFill;
 
+			// Observe device orientation changes to reapply layout subview		
+			orientationObserver = NSNotificationCenter.DefaultCenter.AddObserver(UIDevice.OrientationDidChangeNotification, OrientationChanged);
+
 			view = new PreviewView(videoPreviewLayer);
 
 			return view;
+		}
+
+		private void OrientationChanged(NSNotification notification)
+		{
+			if (view != null)
+			{
+				view.LayoutSubviews();
+			}
 		}
 
 		public void Connect()
@@ -161,6 +173,13 @@ namespace ZXing.Net.Maui
 					captureDevice.Dispose();
 					captureDevice = null;
 				}
+
+				// Removing the orientationObserver
+				if (orientationObserver != null)
+				{
+					NSNotificationCenter.DefaultCenter.RemoveObserver(orientationObserver);
+					orientationObserver = null;
+				}
 			}
 		}
 
@@ -176,7 +195,7 @@ namespace ZXing.Net.Maui
 					{
 						CaptureDevicePerformWithLockedConfiguration(() =>
 							captureDevice.TorchMode = on ? AVCaptureTorchMode.On : AVCaptureTorchMode.Off);
-                    }
+					}
 				}
 				catch (Exception ex)
 				{
@@ -258,26 +277,33 @@ namespace ZXing.Net.Maui
 		public override void LayoutSubviews()
 		{
 			base.LayoutSubviews();
+
+			// Determine the UIInterfaceOrientation based on the current interface (application) orientation instead of the device orientation
+			UIInterfaceOrientation uiInterfaceOrientation = (UIInterfaceOrientation)UIApplication.SharedApplication.ConnectedScenes.ToArray()
+				.Select(x => x as UIWindowScene)
+				.LastOrDefault(x => x?.Windows != null && x.Windows.Any(y => y.IsKeyWindow))?.InterfaceOrientation;
+
 			CATransform3D transform = CATransform3D.MakeRotation(0, 0, 0, 1.0f);
-			switch (UIDevice.CurrentDevice.Orientation)
+
+			switch (uiInterfaceOrientation)
 			{
-				case UIDeviceOrientation.Portrait:
+				case UIInterfaceOrientation.Portrait:
 					transform = CATransform3D.MakeRotation(0, 0, 0, 1.0f);
 					break;
-				case UIDeviceOrientation.PortraitUpsideDown:
-					transform = CATransform3D.MakeRotation((nfloat)Math.PI, 0, 0, 1.0f);
+				case UIInterfaceOrientation.PortraitUpsideDown:
+					transform = CATransform3D.MakeRotation((nfloat)(Math.PI), 0, 0, 1.0f);
 					break;
-				case UIDeviceOrientation.LandscapeLeft:
+				case UIInterfaceOrientation.LandscapeLeft:
+					transform = CATransform3D.MakeRotation((nfloat)(Math.PI / 2), 0, 0, 1.0f);
+					break;
+				case UIInterfaceOrientation.LandscapeRight:
 					transform = CATransform3D.MakeRotation((nfloat)(-Math.PI / 2), 0, 0, 1.0f);
-					break;
-				case UIDeviceOrientation.LandscapeRight:
-					transform = CATransform3D.MakeRotation((nfloat)Math.PI / 2, 0, 0, 1.0f);
 					break;
 			}
 
 			PreviewLayer.Transform = transform;
 			PreviewLayer.Frame = Layer.Bounds;
 		}
-    }
+	}
 }
 #endif
