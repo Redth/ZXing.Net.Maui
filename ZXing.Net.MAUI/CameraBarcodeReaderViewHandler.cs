@@ -51,17 +51,24 @@ namespace ZXing.Net.Maui
         {
             base.ConnectHandler(nativeView);
 
-            if (await cameraManager.CheckPermissions())
-                cameraManager.Connect();
+            if (cameraManager != null)
+            {
+                if (await cameraManager.CheckPermissions())
+                    cameraManager.Connect();
 
-            cameraManager.FrameReady += CameraManager_FrameReady;
+                cameraManager.FrameReady += CameraManager_FrameReady;
+            }
         }
 
         protected override void DisconnectHandler(NativePlatformCameraPreviewView nativeView)
         {
-            cameraManager.FrameReady -= CameraManager_FrameReady;
+            if (cameraManager != null)
+            {
+                cameraManager.FrameReady -= CameraManager_FrameReady;
 
-            cameraManager.Disconnect();
+                cameraManager.Disconnect();
+                cameraManager.Dispose();
+            }
 
             base.DisconnectHandler(nativeView);
         }
@@ -70,7 +77,7 @@ namespace ZXing.Net.Maui
         {
             VirtualView?.FrameReady(e);
 
-            if (VirtualView.IsDetecting)
+            if (VirtualView?.IsDetecting ?? false)
             {
                 var barcodes = BarcodeReader.Decode(e.Data);
 

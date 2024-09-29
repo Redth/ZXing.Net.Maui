@@ -3,6 +3,8 @@ using ZXing.Rendering;
 using Microsoft.Maui.Graphics.Platform;
 using MauiColor = Microsoft.Maui.Graphics.Color;
 using ZXing.Common;
+using System.Threading;
+
 
 #if IOS || MACCATALYST
 using Foundation;
@@ -42,23 +44,39 @@ namespace ZXing.Net.Maui
 
 		public UIImage Render(BitMatrix matrix, ZXing.BarcodeFormat format, string content, EncodingOptions options)
 		{
-			UIGraphics.BeginImageContext(new CGSize(matrix.Width, matrix.Height));
-			var context = UIGraphics.GetCurrentContext();
+			var renderer = new UIGraphicsImageRenderer(new CGSize(matrix.Width, matrix.Height), new UIGraphicsImageRendererFormat {
+				Opaque = false,
+				Scale = UIScreen.MainScreen.Scale
+			});
 
-			for (var x = 0; x < matrix.Width; x++)
+			var waiter = new ManualResetEvent(false);
+			UIImage image = null!;
+			
+			renderer.CreateImage(context =>
 			{
-				for (var y = 0; y < matrix.Height; y++)
+				var black = new CGColor(0f, 0f, 0f);
+				var white = new CGColor(1.0f, 1.0f, 1.0f);
+				
+				for (var x = 0; x < matrix.Width; x++)
 				{
-					context.SetFillColor(matrix[x, y] ? ForegroundColor : BackgroundColor);
-					context.FillRect(new CGRect(x, y, 1, 1));
+					for (var y = 0; y < matrix.Height; y++)
+					{
+						context.CGContext.SetFillColor(matrix[x, y] ? black : white);
+						context.CGContext.FillRect(new CGRect(x, y, 1, 1));
+					}
 				}
+				
+				SetImage(context.CurrentImage);
+			});
+
+			waiter.WaitOne();
+			return image;
+			
+			void SetImage(UIImage img)
+			{
+				image = img;
+				waiter.Set();
 			}
-
-			var img = UIGraphics.GetImageFromCurrentImageContext();
-
-			UIGraphics.EndImageContext();
-
-			return img;
 		}
 	}
 }
