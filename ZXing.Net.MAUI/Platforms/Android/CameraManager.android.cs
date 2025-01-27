@@ -58,7 +58,7 @@ namespace ZXing.Net.Maui
 
 				// Preview
 				cameraPreview = new AndroidX.Camera.Core.Preview.Builder().Build();
-				cameraPreview.SetSurfaceProvider(previewView.SurfaceProvider);
+				cameraPreview.SetSurfaceProvider(cameraExecutor, previewView.SurfaceProvider);
 
 				// Frame by frame analyze
 				imageAnalyzer = new ImageAnalysis.Builder()
@@ -67,7 +67,7 @@ namespace ZXing.Net.Maui
 					.Build();
 
 				imageAnalyzer.SetAnalyzer(cameraExecutor, new FrameAnalyzer((buffer, size) =>
-					FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
+					FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = new Microsoft.Maui.Graphics.Size(size.Width, size.Height) }))));
 
 				UpdateCamera();
 

@@ -2,10 +2,11 @@
 using Java.Nio;
 using Microsoft.Maui.Graphics;
 using System;
+using Size = Android.Util.Size;
 
 namespace ZXing.Net.Maui
 {
-	internal class FrameAnalyzer : Java.Lang.Object, ImageAnalysis.IAnalyzer
+	public class FrameAnalyzer : Java.Lang.Object, ImageAnalysis.IAnalyzer
 	{
 		readonly Action<ByteBuffer, Size> frameCallback;
 
@@ -13,6 +14,8 @@ namespace ZXing.Net.Maui
 		{
 			frameCallback = callback;
 		}
+
+        public Size DefaultTargetResolution => new Size(200, 200);
 
 		public void Analyze(IImageProxy image)
 		{
