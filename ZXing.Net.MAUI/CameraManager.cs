@@ -14,9 +14,12 @@ namespace ZXing.Net.Maui
 		}
 
 		protected readonly IMauiContext Context;
-		public event EventHandler<CameraFrameBufferEventArgs> FrameReady;
 
-		public CameraLocation CameraLocation { get; private set; }
+#pragma warning disable CS0067
+        public event EventHandler<CameraFrameBufferEventArgs> FrameReady;
+#pragma warning restore CS0067
+
+        public CameraLocation CameraLocation { get; private set; }
 
 		public void UpdateCameraLocation(CameraLocation cameraLocation)
 		{
@@ -25,7 +28,7 @@ namespace ZXing.Net.Maui
 			UpdateCamera();
 		}
 
-		public async Task<bool> CheckPermissions()
+		public static async Task<bool> CheckPermissions()
 			=> (await Permissions.RequestAsync<Permissions.Camera>()) == PermissionStatus.Granted;
 	}
 }
