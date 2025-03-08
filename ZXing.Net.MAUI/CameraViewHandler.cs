@@ -1,10 +1,7 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Maui;
+﻿using Microsoft.Maui;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
+using System;
 
 namespace ZXing.Net.Maui
 {
@@ -47,7 +44,7 @@ namespace ZXing.Net.Maui
    
 			if (cameraManager != null)
 			{
-				if (await cameraManager.CheckPermissions())
+				if (await CameraManager.CheckPermissions())
 					cameraManager.Connect();
 
 				cameraManager.FrameReady += CameraManager_FrameReady;
@@ -79,7 +76,7 @@ namespace ZXing.Net.Maui
 		public void AutoFocus()
 			=> cameraManager?.AutoFocus();
 
-		public static void MapFocus(CameraViewHandler handler, ICameraView cameraBarcodeReaderView, object? parameter)
+		public static void MapFocus(CameraViewHandler handler, ICameraView cameraBarcodeReaderView, object parameter)
 		{
 			if (parameter is not Point point)
 				throw new ArgumentException("Invalid parameter", "point");
@@ -87,7 +84,7 @@ namespace ZXing.Net.Maui
 			handler.Focus(point);
 		}
 
-		public static void MapAutoFocus(CameraViewHandler handler, ICameraView cameraBarcodeReaderView, object? parameters)
+		public static void MapAutoFocus(CameraViewHandler handler, ICameraView cameraBarcodeReaderView, object parameters)
 			=> handler.AutoFocus();
 	}
 }
