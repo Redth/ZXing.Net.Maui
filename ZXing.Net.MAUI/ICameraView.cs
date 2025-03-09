@@ -3,21 +3,21 @@ using Microsoft.Maui.Graphics;
 
 namespace ZXing.Net.Maui
 {
-    public interface ICameraFrameAnalyzer
-    {
-        void FrameReady(CameraFrameBufferEventArgs args);
-    }
+	public interface ICameraFrameAnalyzer
+	{
+		void FrameReady(CameraFrameBufferEventArgs args);
+	}
 
-    public interface ICameraView : IView, ICameraFrameAnalyzer
-    {
-        CameraLocation CameraLocation { get; set; }
+	public interface ICameraView : IView, ICameraFrameAnalyzer
+	{
+		CameraLocation CameraLocation { get; set; }
 
-        //CameraMode Mode { get; set; }
+		//CameraMode Mode { get; set; }
 
-        void AutoFocus();
+		void AutoFocus();
 
-        void Focus(Point point);
+		void Focus(Point point);
 
-        bool IsTorchOn { get; set; }
-    }
+		bool IsTorchOn { get; set; }
+	}
 }
