@@ -2,12 +2,13 @@
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
 using System;
+using System.Runtime.Versioning;
 
 #nullable enable
 
 namespace ZXing.Net.Maui
 {
-
+    [SupportedOSPlatform("android24.0")]
     public partial class CameraViewHandler : ViewHandler<ICameraView, NativePlatformCameraPreviewView>
     {
         public static PropertyMapper<ICameraView, CameraViewHandler> CameraViewMapper = new()

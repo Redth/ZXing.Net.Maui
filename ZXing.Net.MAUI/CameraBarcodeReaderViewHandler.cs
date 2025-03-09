@@ -3,12 +3,13 @@ using Microsoft.Maui;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
 using System;
-using System.Linq;
+using System.Runtime.Versioning;
 
 #nullable enable
 
 namespace ZXing.Net.Maui
 {
+    [SupportedOSPlatform("android24.0")]
     public partial class CameraBarcodeReaderViewHandler : ViewHandler<ICameraBarcodeReaderView, NativePlatformCameraPreviewView>
     {
         public static PropertyMapper<ICameraBarcodeReaderView, CameraBarcodeReaderViewHandler> CameraBarcodeReaderViewMapper = new()
@@ -75,6 +76,7 @@ namespace ZXing.Net.Maui
 
                 cameraManager.Disconnect();
                 cameraManager.Dispose();
+                cameraManager = null;
             }
 
             _virtualView = null;
@@ -99,8 +101,8 @@ namespace ZXing.Net.Maui
 
         public static void MapOptions(CameraBarcodeReaderViewHandler handler, ICameraBarcodeReaderView cameraBarcodeReaderView)
         {
-            if (handler.BarcodeReader != null) 
-            { 
+            if (handler.BarcodeReader != null)
+            {
                 handler.BarcodeReader.Options = cameraBarcodeReaderView.Options;
             }
         }
