@@ -1,7 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.Maui;
+﻿using Microsoft.Maui;
 using Microsoft.Maui.ApplicationModel;
+using System;
+using System.Threading.Tasks;
 
 namespace ZXing.Net.Maui
 {
@@ -16,10 +16,10 @@ namespace ZXing.Net.Maui
 		protected readonly IMauiContext Context;
 
 #pragma warning disable CS0067
-        public event EventHandler<CameraFrameBufferEventArgs> FrameReady;
+		public event EventHandler<CameraFrameBufferEventArgs> FrameReady;
 #pragma warning restore CS0067
 
-        public CameraLocation CameraLocation { get; private set; }
+		public CameraLocation CameraLocation { get; private set; }
 
 		public void UpdateCameraLocation(CameraLocation cameraLocation)
 		{
