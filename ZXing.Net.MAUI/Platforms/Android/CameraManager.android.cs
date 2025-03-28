@@ -75,7 +75,9 @@ namespace ZXing.Net.Maui
 		}
 
 		public void Disconnect()
-		{ }
+		{
+			cameraProvider.UnbindAll();
+		}
 
 		public void UpdateCamera()
 		{
