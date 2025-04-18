@@ -107,21 +107,12 @@ namespace ZXing.Net.Maui
 					captureDevice = null;
 				}
 
-				var devices = AVCaptureDevice.DevicesWithMediaType(AVMediaTypes.Video.GetConstant());
-				foreach (var device in devices)
-				{
-					if (CameraLocation == CameraLocation.Front &&
-						device.Position == AVCaptureDevicePosition.Front)
-					{
-						captureDevice = device;
-						break;
-					}
-					else if (CameraLocation == CameraLocation.Rear && device.Position == AVCaptureDevicePosition.Back)
-					{
-						captureDevice = device;
-						break;
-					}
-				}
+				var deviceDiscoverySession = AVCaptureDeviceDiscoverySession.Create(
+					[AVCaptureDeviceType.BuiltInTripleCamera, AVCaptureDeviceType.BuiltInDualCamera, AVCaptureDeviceType.BuiltInDualWideCamera, AVCaptureDeviceType.BuiltInTelephotoCamera, AVCaptureDeviceType.BuiltInWideAngleCamera, AVCaptureDeviceType.BuiltInUltraWideCamera],
+					AVMediaTypes.Video,
+					CameraLocation == CameraLocation.Front ? AVCaptureDevicePosition.Front : AVCaptureDevicePosition.Back);
+
+				captureDevice = deviceDiscoverySession.Devices.FirstOrDefault();
 
 				if (captureDevice == null)
 					captureDevice = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
@@ -134,9 +125,40 @@ namespace ZXing.Net.Maui
 				captureSession.AddInput(captureInput);
 
 				captureSession.StartRunning();
+
+				if (IsMacroModeDevice())
+					SetZoomFactorForMacroModeDevice();
 			}
 		}
 
+		private bool IsMacroModeDevice()
+		{
+			return captureDevice?.DeviceType == AVCaptureDeviceType.BuiltInTripleCamera ||
+				captureDevice?.DeviceType == AVCaptureDeviceType.BuiltInDualCamera ||
+				captureDevice?.DeviceType == AVCaptureDeviceType.BuiltInDualWideCamera;
+		}
+
+		private void SetZoomFactorForMacroModeDevice()
+		{
+			if (!IsMacroModeDevice())
+				return;
+
+			if (!captureDevice.VirtualDeviceSwitchOverVideoZoomFactors.Any())
+				return;
+
+			try
+			{
+				CaptureDevicePerformWithLockedConfiguration(() =>
+				{
+					var defaultZoomFactor = captureDevice.VirtualDeviceSwitchOverVideoZoomFactors.Select(f => f.FloatValue).First();
+					captureDevice.RampToVideoZoom(defaultZoomFactor, 0.25f);
+				});
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex);
+			}
+		}
 
 		public void Disconnect()
 		{
