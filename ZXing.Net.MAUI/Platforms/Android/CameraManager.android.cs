@@ -129,6 +129,7 @@ namespace ZXing.Net.Maui
 
 		public void Dispose()
 		{
+			cameraProvider?.Dispose();
 			cameraExecutor?.Shutdown();
 			cameraExecutor?.Dispose();
 		}
