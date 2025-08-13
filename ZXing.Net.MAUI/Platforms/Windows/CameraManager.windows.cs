@@ -416,11 +416,16 @@ namespace ZXing.Net.Maui
 				//The crash may happen in multipage applications, such as those based upon Shell layout.
 				_backBuffer?.Dispose();
 				_backBuffer = null;
+				// When closing the application, this async handler may be called with invalid Application handle and
+				// _imageElement can throw 'System.Runtime.InteropServices.COMException' in WinRT.Runtime.dll.
+				if (Application.Current != null)
 				{
-					var imageSource = _imageElement?.Source as SoftwareBitmapSource;
-					await imageSource?.SetBitmapAsync(null);
+					{
+						var imageSource = _imageElement?.Source as SoftwareBitmapSource;
+						await imageSource?.SetBitmapAsync(null);
+					}
+					HidePreviewBitmap();
 				}
-				HidePreviewBitmap();
 			}
 		}
 
@@ -741,7 +746,7 @@ namespace ZXing.Net.Maui
 
 							// Keep draining frames from the backbuffer until the backbuffer is empty.
 							SoftwareBitmap latestBitmap;
-							while ((latestBitmap = Interlocked.Exchange(ref _backBuffer, null)) != null)
+							while (_colorFrameReaderHandlerAvailable && (latestBitmap = Interlocked.Exchange(ref _backBuffer, null)) != null)
 							{
 								var imageSource = (SoftwareBitmapSource)_imageElement.Source;
 								await imageSource.SetBitmapAsync(latestBitmap);
