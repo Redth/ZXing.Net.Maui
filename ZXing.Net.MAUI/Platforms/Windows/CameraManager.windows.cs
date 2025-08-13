@@ -640,7 +640,7 @@ namespace ZXing.Net.Maui
 		}
 #endregion
 
-#region Preview bitmap visibility
+		#region Preview bitmap visibility
 		private void HidePreviewBitmap()
 		{
 #if ENABLE_CAMERA_PLACEHOLDER
@@ -694,74 +694,76 @@ namespace ZXing.Net.Maui
 		//Display the captured frame and send it to the registered FrameReady owner.
 		private void ColorFrameReader_FrameArrived(MediaFrameReader sender, MediaFrameArrivedEventArgs args)
 		{
-			if (_colorFrameReaderHandlerAvailable)
+			if (!_colorFrameReaderHandlerAvailable)
 			{
-				_colorFrameReaderHandlerRunning = true;
+				return;
+			}
 
-				try
+			_colorFrameReaderHandlerRunning = true;
+
+			try
+			{
+				var mediaFrameReference = sender.TryAcquireLatestFrame();
+				var videoMediaFrame = mediaFrameReference?.VideoMediaFrame;
+				var softwareBitmap = videoMediaFrame?.SoftwareBitmap;
+
+				if (softwareBitmap != null)
 				{
-					var mediaFrameReference = sender.TryAcquireLatestFrame();
-					var videoMediaFrame = mediaFrameReference?.VideoMediaFrame;
-					var softwareBitmap = videoMediaFrame?.SoftwareBitmap;
-
-					if (softwareBitmap != null)
+					//Convert to Bgra8 Premultiplied softwareBitmap.
+					if (softwareBitmap.BitmapPixelFormat != Windows.Graphics.Imaging.BitmapPixelFormat.Bgra8 ||
+						softwareBitmap.BitmapAlphaMode != Windows.Graphics.Imaging.BitmapAlphaMode.Premultiplied)
 					{
-						//Convert to Bgra8 Premultiplied softwareBitmap.
-						if (softwareBitmap.BitmapPixelFormat != Windows.Graphics.Imaging.BitmapPixelFormat.Bgra8 ||
-							softwareBitmap.BitmapAlphaMode != Windows.Graphics.Imaging.BitmapAlphaMode.Premultiplied)
-						{
-							softwareBitmap = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-						}
-
-						//Send bitmap to BarCodeReaderView/CameraView
-						FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(
-							new Readers.PixelBufferHolder
-							{
-								Data = softwareBitmap,
-								Size = new Microsoft.Maui.Graphics.Size(softwareBitmap.PixelWidth, softwareBitmap.PixelHeight)
-							}));
-
-						// Swap the processed frame to _backBuffer and dispose of the unused image.
-						softwareBitmap = Interlocked.Exchange(ref _backBuffer, softwareBitmap);
-						softwareBitmap?.Dispose();
-
-						// Changes to XAML ImageElement must happen on UI thread through Dispatcher
-						TryEnqueueUI(
-							async () =>
-							{
-								// Don't let two copies of this task run at the same time.
-								if (_taskRunning || !_colorFrameReaderHandlerAvailable)
-								{
-									return;
-								}
-								_taskRunning = true;
-
-								// Keep draining frames from the backbuffer until the backbuffer is empty.
-								SoftwareBitmap latestBitmap;
-								while ((latestBitmap = Interlocked.Exchange(ref _backBuffer, null)) != null)
-								{
-									var imageSource = (SoftwareBitmapSource)_imageElement.Source;
-									await imageSource.SetBitmapAsync(latestBitmap);
-									latestBitmap.Dispose();
-								}
-
-								_taskRunning = false;
-							});
+						softwareBitmap = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
 					}
 
-					mediaFrameReference?.Dispose();
-				}
-				catch (Exception ex)
-				{
-					Debug.WriteLine(ex.Message);
+					//Send bitmap to BarCodeReaderView/CameraView
+					FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(
+						new Readers.PixelBufferHolder
+						{
+							Data = softwareBitmap,
+							Size = new Microsoft.Maui.Graphics.Size(softwareBitmap.PixelWidth, softwareBitmap.PixelHeight)
+						}));
+
+					// Swap the processed frame to _backBuffer and dispose of the unused image.
+					softwareBitmap = Interlocked.Exchange(ref _backBuffer, softwareBitmap);
+					softwareBitmap?.Dispose();
+
+					// Changes to XAML ImageElement must happen on UI thread through Dispatcher
+					TryEnqueueUI(
+						async () =>
+						{
+							// Don't let two copies of this task run at the same time.
+							if (_taskRunning || !_colorFrameReaderHandlerAvailable)
+							{
+								return;
+							}
+							_taskRunning = true;
+
+							// Keep draining frames from the backbuffer until the backbuffer is empty.
+							SoftwareBitmap latestBitmap;
+							while ((latestBitmap = Interlocked.Exchange(ref _backBuffer, null)) != null)
+							{
+								var imageSource = (SoftwareBitmapSource)_imageElement.Source;
+								await imageSource.SetBitmapAsync(latestBitmap);
+								latestBitmap.Dispose();
+							}
+
+							_taskRunning = false;
+						});
 				}
 
-				_colorFrameReaderHandlerRunning = false;
+				mediaFrameReference?.Dispose();
 			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.Message);
+			}
+
+			_colorFrameReaderHandlerRunning = false;
 		}
 #endregion
 
-#region DeviceWatcher
+		#region DeviceWatcher
 
 #if ENABLE_DEVICE_WATCHER
 		//Device Watcher
