@@ -64,14 +64,14 @@ namespace ZXing.Net.Maui
 				if (captureDelegate == null)
 				{
 					captureDelegate = new CaptureDelegate
-					{
-						SampleProcessor = cvPixelBuffer =>
+					(
+						cvPixelBuffer =>
 							FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder
 							{
 								Data = cvPixelBuffer,
 								Size = new MSize(cvPixelBuffer.Width, cvPixelBuffer.Height)
 							}))
-					};
+					);
 				}
 
 				if (dispatchQueue == null)

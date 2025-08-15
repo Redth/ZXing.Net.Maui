@@ -2,6 +2,7 @@
 using Java.Nio;
 using Microsoft.Maui.Graphics;
 using System;
+using System.Diagnostics;
 
 namespace ZXing.Net.Maui
 {
@@ -16,13 +17,23 @@ namespace ZXing.Net.Maui
 
 		public void Analyze(IImageProxy image)
 		{
-			var buffer = image.GetPlanes()[0].Buffer;
+			try
+			{
+				var buffer = image.GetPlanes()[0].Buffer;
 
-			var s = new Size(image.Width, image.Height);
+				var s = new Size(image.Width, image.Height);
 
-			frameCallback?.Invoke(buffer, s);
+				frameCallback?.Invoke(buffer, s);
 
-			image.Close();
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine(e);
+			}
+			finally
+			{
+				image.Close();
+			}
 		}
 	}
 }
