@@ -246,7 +246,7 @@ namespace ZXing.Net.Maui
 			AVCaptureDeviceType[] deviceTypes =
 			[
 				AVCaptureDeviceType.BuiltInWideAngleCamera,
-			   AVCaptureDeviceType.BuiltInTelephotoCamera,
+				AVCaptureDeviceType.BuiltInTelephotoCamera,
 				AVCaptureDeviceType.BuiltInDualCamera
 			];
 
