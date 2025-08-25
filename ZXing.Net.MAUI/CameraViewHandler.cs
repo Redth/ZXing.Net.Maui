@@ -1,20 +1,20 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Maui;
+﻿using Microsoft.Maui;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
+using System;
+using System.Runtime.Versioning;
+
+#nullable enable
 
 namespace ZXing.Net.Maui
 {
-
+	[SupportedOSPlatform("android24.0")]
 	public partial class CameraViewHandler : ViewHandler<ICameraView, NativePlatformCameraPreviewView>
 	{
 		public static PropertyMapper<ICameraView, CameraViewHandler> CameraViewMapper = new()
 		{
-			[nameof(ICameraView.IsTorchOn)] = (handler, virtualView) => handler.cameraManager.UpdateTorch(virtualView.IsTorchOn),
-			[nameof(ICameraView.CameraLocation)] = (handler, virtualView) => handler.cameraManager.UpdateCameraLocation(virtualView.CameraLocation)
+			[nameof(ICameraView.IsTorchOn)] = (handler, virtualView) => handler.cameraManager?.UpdateTorch(virtualView.IsTorchOn),
+			[nameof(ICameraView.CameraLocation)] = (handler, virtualView) => handler.cameraManager?.UpdateCameraLocation(virtualView.CameraLocation)
 		};
 
 		public static CommandMapper<ICameraView, CameraViewHandler> CameraCommandMapper = new()
@@ -22,14 +22,16 @@ namespace ZXing.Net.Maui
 			[nameof(ICameraView.Focus)] = MapFocus,
 			[nameof(ICameraView.AutoFocus)] = MapAutoFocus,
 		};
-		
-		CameraManager cameraManager;
+
+		CameraManager? cameraManager;
+
+		volatile ICameraView? _virtualView;
 
 		public CameraViewHandler() : base(CameraViewMapper)
 		{
 		}
 
-		public CameraViewHandler(PropertyMapper mapper = null) : base(mapper ?? CameraViewMapper)
+		public CameraViewHandler(PropertyMapper? mapper = null) : base(mapper ?? CameraViewMapper)
 		{
 		}
 
@@ -44,28 +46,34 @@ namespace ZXing.Net.Maui
 		protected override async void ConnectHandler(NativePlatformCameraPreviewView nativeView)
 		{
 			base.ConnectHandler(nativeView);
-   
+
+			_virtualView = VirtualView;
+
 			if (cameraManager != null)
 			{
-				if (await cameraManager.CheckPermissions())
+				if (await CameraManager.CheckPermissions())
 					cameraManager.Connect();
 
 				cameraManager.FrameReady += CameraManager_FrameReady;
 			}
 		}
 
-		void CameraManager_FrameReady(object sender, CameraFrameBufferEventArgs e)
-			=> VirtualView?.FrameReady(e);
+		private void CameraManager_FrameReady(object? sender, CameraFrameBufferEventArgs e)
+		{
+			_virtualView?.FrameReady(e);
+		}
 
-        protected override void DisconnectHandler(NativePlatformCameraPreviewView nativeView)
+		protected override void DisconnectHandler(NativePlatformCameraPreviewView nativeView)
 		{
 			if (cameraManager != null)
 			{
 				cameraManager.FrameReady -= CameraManager_FrameReady;
 
-			  cameraManager.Disconnect();
-			  cameraManager.Dispose();
+				cameraManager.Disconnect();
+				cameraManager.Dispose();
 			}
+
+			_virtualView = null;
 
 			base.DisconnectHandler(nativeView);
 		}

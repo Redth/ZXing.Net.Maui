@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>net8.0;net8.0-android;net8.0-maccatalyst;net8.0-ios</TargetFrameworks>
-		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net8.0-windows10.0.19041</TargetFrameworks>
-		<PackageId>ZXing.Net.Maui</PackageId>
+    <TargetFrameworks>net9.0-android;net9.0-ios;net9.0-maccatalyst</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041</TargetFrameworks>
+    <PackageId>ZXing.Net.Maui</PackageId>
 		<Title>ZXing.Net.MAUI Barcode Scanner for .NET MAUI</Title>
 		<Authors>Redth</Authors>
 		<UseMaui>True</UseMaui>
@@ -21,19 +21,17 @@
 		<AssemblyFileVersion>$(PackageVersion)</AssemblyFileVersion>
 		<DebugType>portable</DebugType>
 		<IsPackable>true</IsPackable>
-	</PropertyGroup>
+  </PropertyGroup>
 	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
-		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.1.0" />
-		<PackageReference Include="Xamarin.AndroidX.Camera.Lifecycle" Version="1.1.0" />
-		<PackageReference Include="Xamarin.AndroidX.Camera.View" Version="1.1.0" />
-
-		<AndroidManifest Include="Platforms/Android/AndroidManifest.xml" />
+		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.4.1.1" />
+		<PackageReference Include="Xamarin.AndroidX.Camera.Lifecycle" Version="1.4.1.1" />
+		<PackageReference Include="Xamarin.AndroidX.Camera.View" Version="1.4.1.1" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="ZXing.Net" Version="0.16.9" />
-		<PackageReference Include="GitInfo" Version="2.2.0" PrivateAssets="all" />
+		<PackageReference Include="ZXing.Net" Version="0.16.10" />
+		<PackageReference Include="GitInfo" Version="3.5.0" PrivateAssets="all" />
 	</ItemGroup>
-
+  
 	<ItemGroup>
 
 		<Compile Update="**\*.ios*$(DefaultLanguageSourceExtension)">
@@ -88,6 +86,6 @@
 	</Target>
 
 	<ItemGroup>
-	  <PackageReference Include="Microsoft.Maui.Controls" Version="8.0.82" />
+	  <PackageReference Include="Microsoft.Maui.Controls" Version="9.0.40" />
 	</ItemGroup>
 </Project>

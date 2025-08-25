@@ -1,48 +1,75 @@
 ﻿using System;
+using System.Diagnostics;
+
 #if MACCATALYST || IOS
 using AVFoundation;
+
 using CoreMedia;
+
 using CoreVideo;
+
 using Foundation;
-using UIKit;
 
 namespace ZXing.Net.Maui
 {
-	class CaptureDelegate : NSObject, IAVCaptureVideoDataOutputSampleBufferDelegate
-	{
-		public Action<CVPixelBuffer> SampleProcessor { get; set; }
+    class CaptureDelegate : NSObject, IAVCaptureVideoDataOutputSampleBufferDelegate
+    {
+        private readonly Action<CVPixelBuffer> _sampleProcessor;
 
-		[Export("captureOutput:didOutputSampleBuffer:fromConnection:")]
-		public void DidOutputSampleBuffer(AVCaptureOutput captureOutput, CMSampleBuffer sampleBuffer, AVCaptureConnection connection)
-		{
-			// Get the CoreVideo image
-			using (var pixelBuffer = sampleBuffer.GetImageBuffer())
-			{
-				if (pixelBuffer is CVPixelBuffer cvPixelBuffer)
-				{
-					// Lock the base address
-					cvPixelBuffer.Lock(CVPixelBufferLock.ReadOnly); // MAYBE NEEDS READ/WRITE
+        public CaptureDelegate(Action<CVPixelBuffer> sampleProcessor)
+        {
+            ArgumentNullException.ThrowIfNull(sampleProcessor);
 
-					SampleProcessor?.Invoke(cvPixelBuffer);
+            _sampleProcessor = sampleProcessor;
+        }
 
-					cvPixelBuffer.Unlock(CVPixelBufferLock.ReadOnly);
-				}
-			}
+        [Export("captureOutput:didOutputSampleBuffer:fromConnection:")]
+        public void DidOutputSampleBuffer(AVCaptureOutput captureOutput, CMSampleBuffer sampleBuffer, AVCaptureConnection connection)
+        {
+            // Get the CoreVideo image
+            try
+            {
+                using CVImageBuffer imageBuffer = sampleBuffer.GetImageBuffer();
 
-			//
-			// Although this looks innocent "Oh, he is just optimizing this case away"
-			// this is incredibly important to call on this callback, because the AVFoundation
-			// has a fixed number of buffers and if it runs out of free buffers, it will stop
-			// delivering frames. 
-			//	
-			sampleBuffer?.Dispose();
-		}
+                if (imageBuffer is CVPixelBuffer pixelBuffer)
+                {
+                    // Lock the base address
+                    pixelBuffer.Lock(CVPixelBufferLock.ReadOnly); // MAYBE NEEDS READ/WRITE
+                    try
+                    {
+                        _sampleProcessor.Invoke(pixelBuffer);
+                    }
+                    finally
+                    {
+                        pixelBuffer.Unlock(CVPixelBufferLock.ReadOnly);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                // We sometimes see exceptions (rarely and in release mode).
+                // For now we just catch the exception to avoid a crash.
+                // But it would be necessary to understand the real reason for these exceptions, in a future work.
 
-		[Export("captureOutput:didDropSampleBuffer:fromConnection:")]
-		public void DidDropSampleBuffer(AVCaptureOutput captureOutput, CoreMedia.CMSampleBuffer sampleBuffer, AVCaptureConnection connection)
-		{
-			
-		}
-	}
+                Debug.WriteLine(e);
+            }
+            finally
+            {
+                //
+                // Although this looks innocent "Oh, he is just optimizing this case away"
+                // this is incredibly important to call on this callback, because the AVFoundation
+                // has a fixed number of buffers and if it runs out of free buffers, it will stop
+                // delivering frames. 
+                //	
+                sampleBuffer?.Dispose();
+            }
+        }
+
+        [Export("captureOutput:didDropSampleBuffer:fromConnection:")]
+        public void DidDropSampleBuffer(AVCaptureOutput captureOutput, CoreMedia.CMSampleBuffer sampleBuffer, AVCaptureConnection connection)
+        {
+
+        }
+    }
 }
 #endif
