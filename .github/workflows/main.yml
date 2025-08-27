@@ -64,6 +64,7 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: NuGet
+          path: NuGet
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v3
         with:
