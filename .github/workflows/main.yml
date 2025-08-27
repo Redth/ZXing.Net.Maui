@@ -61,14 +61,14 @@ jobs:
     if: github.event_name == 'release'
     steps:
       - name: Download Artifacts
+        id: download-artifacts
         uses: actions/download-artifact@v5
         with:
           name: NuGet
-          path: NuGet
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0.x'
       - name: Push NuGet
         run: |
-          dotnet nuget push NuGet\*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_ORG_API_KEY }}
+          dotnet nuget push ${{ steps.download-artifacts.outputs.download-path }}\*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_ORG_API_KEY }}
