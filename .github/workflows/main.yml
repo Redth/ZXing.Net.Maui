@@ -42,11 +42,11 @@ jobs:
         }
         echo "::set-output name=pkgverci::$VERSION"
         echo "PACKAGE VERSION: $VERSION"
-        
+
         New-Item -ItemType Directory -Force -Path .\artifacts
-        dotnet pack --output ./artifacts --configuration Release -p:PackageVersion=$VERSION ./ZXing.Net.MAUI/ZXing.Net.MAUI.csproj
-        dotnet pack --output ./artifacts --configuration Release -p:PackageVersion=$VERSION ./ZXing.Net.MAUI.Controls/ZXing.Net.MAUI.Controls.csproj
-        dotnet pack --output ./artifacts --configuration Release -p:PackageVersion=$VERSION ./ZXing.Net.MAUI.Comet/ZXing.Net.MAUI.Comet.csproj
+        dotnet pack --output ./artifacts --configuration Release -p:Version=$VERSION -p:PackageVersion=$VERSION ./ZXing.Net.MAUI/ZXing.Net.MAUI.csproj
+        dotnet pack --output ./artifacts --configuration Release -p:Version=$VERSION -p:PackageVersion=$VERSION ./ZXing.Net.MAUI.Controls/ZXing.Net.MAUI.Controls.csproj
+        dotnet pack --output ./artifacts --configuration Release -p:Version=$VERSION -p:PackageVersion=$VERSION ./ZXing.Net.MAUI.Comet/ZXing.Net.MAUI.Comet.csproj
         
     - name: Artifacts
       uses: actions/upload-artifact@v4
