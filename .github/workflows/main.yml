@@ -11,7 +11,7 @@ jobs:
     name: Build
     env:
       NUPKG_MAJOR: 0.999
-      CODESIGN_PFX: ${{ secrets.CODESIGN_PFX }}
+
     runs-on: windows-latest
     steps:
     - name: Checkout
