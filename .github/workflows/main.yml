@@ -40,7 +40,6 @@ jobs:
         if ($env:GITHUB_EVENT_NAME -eq "release") {
           $VERSION = $env:GITHUB_REF.Substring($env:GITHUB_REF.LastIndexOf('/') + 1)
         }
-        echo "::set-output name=pkgverci::$VERSION"
         echo "PACKAGE VERSION: $VERSION"
 
         New-Item -ItemType Directory -Force -Path .\artifacts
