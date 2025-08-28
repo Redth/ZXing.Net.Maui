@@ -1,14 +1,16 @@
 ﻿using AndroidX.Camera.Core;
 using Java.Nio;
-using Microsoft.Maui.Graphics;
 using System;
 using System.Diagnostics;
+using Size = Android.Util.Size;
 
 namespace ZXing.Net.Maui
 {
-	internal class FrameAnalyzer : Java.Lang.Object, ImageAnalysis.IAnalyzer
+	public class FrameAnalyzer : Java.Lang.Object, ImageAnalysis.IAnalyzer
 	{
 		readonly Action<ByteBuffer, Size> frameCallback;
+
+		public Size DefaultTargetResolution => new(200, 200);
 
 		public FrameAnalyzer(Action<ByteBuffer, Size> callback)
 		{

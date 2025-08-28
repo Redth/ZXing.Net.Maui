@@ -73,7 +73,7 @@ namespace ZXing.Net.Maui
                     .Build();
 
                 imageAnalyzer.SetAnalyzer(cameraExecutor, new FrameAnalyzer((buffer, size) =>
-                    FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
+                    FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = new Microsoft.Maui.Graphics.Size(size.Width, size.Height) }))));
 
                 UpdateCamera();
 
