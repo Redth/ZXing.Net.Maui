@@ -12,10 +12,6 @@ using Java.Util.Concurrent;
 
 namespace ZXing.Net.Maui
 {
-    // Android 24 is required to avoid crashing. See:
-    // https://github.com/dotnet/android-libraries/issues/767
-    // https://github.com/dotnet/android/pull/9656
-    [SupportedOSPlatform("android24.0")]
     internal partial class CameraManager
     {
         ResolutionSelector resolutionSelector;
@@ -73,7 +69,7 @@ namespace ZXing.Net.Maui
                     .Build();
 
                 imageAnalyzer.SetAnalyzer(cameraExecutor, new FrameAnalyzer((buffer, size) =>
-                    FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = new Microsoft.Maui.Graphics.Size(size.Width, size.Height) }))));
+                    FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
 
                 UpdateCamera();
 

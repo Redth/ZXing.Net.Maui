@@ -1,8 +1,10 @@
 ﻿using AndroidX.Camera.Core;
 using Java.Nio;
+
+using Microsoft.Maui.Graphics;
+
 using System;
 using System.Diagnostics;
-using Size = Android.Util.Size;
 
 namespace ZXing.Net.Maui
 {
@@ -10,7 +12,10 @@ namespace ZXing.Net.Maui
 	{
 		readonly Action<ByteBuffer, Size> frameCallback;
 
-		public Size DefaultTargetResolution => new(200, 200);
+        // See:
+        // https://github.com/dotnet/android-libraries/issues/767
+        // https://github.com/dotnet/android/pull/9656
+        public Android.Util.Size DefaultTargetResolution => null;
 
 		public FrameAnalyzer(Action<ByteBuffer, Size> callback)
 		{
