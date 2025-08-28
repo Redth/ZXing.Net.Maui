@@ -10,7 +10,6 @@ using Microsoft.Maui.Handlers;
 
 namespace ZXing.Net.Maui
 {
-    [SupportedOSPlatform("android24.0")]
     public partial class CameraBarcodeReaderViewHandler : ViewHandler<ICameraBarcodeReaderView, NativePlatformCameraPreviewView>
     {
         public static PropertyMapper<ICameraBarcodeReaderView, CameraBarcodeReaderViewHandler> CameraBarcodeReaderViewMapper = new()

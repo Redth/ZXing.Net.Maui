@@ -12,10 +12,6 @@ using Java.Util.Concurrent;
 
 namespace ZXing.Net.Maui
 {
-    // Android 24 is required to avoid crashing. See:
-    // https://github.com/dotnet/android-libraries/issues/767
-    // https://github.com/dotnet/android/pull/9656
-    [SupportedOSPlatform("android24.0")]
     internal partial class CameraManager
     {
         ResolutionSelector resolutionSelector;

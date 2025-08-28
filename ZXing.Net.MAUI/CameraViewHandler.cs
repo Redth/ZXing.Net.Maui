@@ -8,7 +8,6 @@ using System.Runtime.Versioning;
 
 namespace ZXing.Net.Maui
 {
-	[SupportedOSPlatform("android24.0")]
 	public partial class CameraViewHandler : ViewHandler<ICameraView, NativePlatformCameraPreviewView>
 	{
 		public static PropertyMapper<ICameraView, CameraViewHandler> CameraViewMapper = new()
