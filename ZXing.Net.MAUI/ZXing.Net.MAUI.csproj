@@ -69,7 +69,7 @@
 		<Compile Condition=" '$(TargetPlatformIdentifier)' == 'tizen' " Update="**\*.tizen*$(DefaultLanguageSourceExtension)">
 			<ExcludeFromCurrentConfiguration>False</ExcludeFromCurrentConfiguration>
 		</Compile>
-		<Compile Condition=" '$(TargetPlatformIdentifier)' == '' " Update="**\*.net*$(DefaultLanguageSourceExtension)">
+		<Compile Condition=" '$(TargetFramework)' == 'net9.0' " Update="**\*.net*$(DefaultLanguageSourceExtension)">
 			<ExcludeFromCurrentConfiguration>False</ExcludeFromCurrentConfiguration>
 		</Compile>
 
