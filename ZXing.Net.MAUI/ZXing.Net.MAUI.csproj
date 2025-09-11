@@ -57,7 +57,7 @@
 		<Compile Condition=" '$(TargetPlatformIdentifier)' == 'ios' " Update="**\*.ios*$(DefaultLanguageSourceExtension)">
 			<ExcludeFromCurrentConfiguration>False</ExcludeFromCurrentConfiguration>
 		</Compile>
-		<Compile Condition=" '$(TargetPlatformIdentifier)' == 'maccatalyst' " Update="**\*.maccatalyst*$(DefaultLanguageSourceExtension)">
+		<Compile Condition=" '$(TargetPlatformIdentifier)' == 'maccatalyst' " Update="**\*.ios*$(DefaultLanguageSourceExtension);**\*.maccatalyst*$(DefaultLanguageSourceExtension)">
 			<ExcludeFromCurrentConfiguration>False</ExcludeFromCurrentConfiguration>
 		</Compile>
 		<Compile Condition=" '$(TargetPlatformIdentifier)' == 'android' " Update="**\*.android*$(DefaultLanguageSourceExtension)">
