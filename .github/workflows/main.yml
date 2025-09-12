@@ -53,10 +53,6 @@ jobs:
         dotnet pack --output ./artifacts --configuration Release --no-build --verbosity normal -p:Version=$VERSION -p:PackageVersion=$VERSION ./ZXing.Net.MAUI.Controls/ZXing.Net.MAUI.Controls.csproj
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         
-        Write-Host "Packing ZXing.Net.MAUI.Comet..."
-        dotnet pack --output ./artifacts --configuration Release --no-build --verbosity normal -p:Version=$VERSION -p:PackageVersion=$VERSION ./ZXing.Net.MAUI.Comet/ZXing.Net.MAUI.Comet.csproj
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-        
     - name: Artifacts
       uses: actions/upload-artifact@v4
       with:
