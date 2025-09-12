@@ -30,7 +30,7 @@ jobs:
         & dotnet workload install maui ios android maccatalyst
 
     - name: Build
-      run: dotnet build --configuration Release
+      run: dotnet build --configuration Release --verbosity normal
    # - name: Test
    #   run: dotnet test --configuration Release
     - name: Package NuGets
@@ -43,9 +43,19 @@ jobs:
         echo "PACKAGE VERSION: $VERSION"
 
         New-Item -ItemType Directory -Force -Path .\artifacts
-        dotnet pack --output ./artifacts --configuration Release -p:Version=$VERSION -p:PackageVersion=$VERSION ./ZXing.Net.MAUI/ZXing.Net.MAUI.csproj
-        dotnet pack --output ./artifacts --configuration Release -p:Version=$VERSION -p:PackageVersion=$VERSION ./ZXing.Net.MAUI.Controls/ZXing.Net.MAUI.Controls.csproj
-        dotnet pack --output ./artifacts --configuration Release -p:Version=$VERSION -p:PackageVersion=$VERSION ./ZXing.Net.MAUI.Comet/ZXing.Net.MAUI.Comet.csproj
+        
+        # Pack with --no-build since we already built, and add error handling
+        Write-Host "Packing ZXing.Net.MAUI..."
+        dotnet pack --output ./artifacts --configuration Release --no-build --verbosity normal -p:Version=$VERSION -p:PackageVersion=$VERSION ./ZXing.Net.MAUI/ZXing.Net.MAUI.csproj
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        
+        Write-Host "Packing ZXing.Net.MAUI.Controls..."
+        dotnet pack --output ./artifacts --configuration Release --no-build --verbosity normal -p:Version=$VERSION -p:PackageVersion=$VERSION ./ZXing.Net.MAUI.Controls/ZXing.Net.MAUI.Controls.csproj
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        
+        Write-Host "Packing ZXing.Net.MAUI.Comet..."
+        dotnet pack --output ./artifacts --configuration Release --no-build --verbosity normal -p:Version=$VERSION -p:PackageVersion=$VERSION ./ZXing.Net.MAUI.Comet/ZXing.Net.MAUI.Comet.csproj
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         
     - name: Artifacts
       uses: actions/upload-artifact@v4
