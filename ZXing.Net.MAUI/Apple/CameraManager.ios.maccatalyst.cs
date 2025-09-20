@@ -1,15 +1,14 @@
 ﻿#if IOS || MACCATALYST
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using AVFoundation;
+using CoreAnimation;
 using CoreFoundation;
 using CoreVideo;
 using Foundation;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UIKit;
-using Microsoft.Maui;
 using MSize = Microsoft.Maui.Graphics.Size;
-using CoreAnimation;
 
 namespace ZXing.Net.Maui
 {
@@ -65,14 +64,14 @@ namespace ZXing.Net.Maui
 				if (captureDelegate == null)
 				{
 					captureDelegate = new CaptureDelegate
-					{
-						SampleProcessor = cvPixelBuffer =>
+					(
+						cvPixelBuffer =>
 							FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder
-								{
-									Data = cvPixelBuffer,
-									Size = new MSize(cvPixelBuffer.Width, cvPixelBuffer.Height)
-								}))
-					};
+							{
+								Data = cvPixelBuffer,
+								Size = new MSize(cvPixelBuffer.Width, cvPixelBuffer.Height)
+							}))
+					);
 				}
 
 				if (dispatchQueue == null)
@@ -107,8 +106,8 @@ namespace ZXing.Net.Maui
 					captureDevice = null;
 				}
 
-				var devices = AVCaptureDevice.DevicesWithMediaType(AVMediaTypes.Video.GetConstant());
-				foreach (var device in devices)
+				var discoverySession = AVCaptureDeviceDiscoverySession.Create(CaptureDevices(), AVMediaTypes.Video, AVCaptureDevicePosition.Unspecified);
+				foreach (var device in discoverySession.Devices)
 				{
 					if (CameraLocation == CameraLocation.Front &&
 						device.Position == AVCaptureDevicePosition.Front)
@@ -146,7 +145,7 @@ namespace ZXing.Net.Maui
 					captureSession.StopRunning();
 
 				captureSession.RemoveOutput(videoDataOutput);
-				
+
 				// Cleanup old input
 				if (captureInput != null && captureSession.Inputs.Length > 0 && captureSession.Inputs.Contains(captureInput))
 				{
@@ -176,7 +175,7 @@ namespace ZXing.Net.Maui
 					{
 						CaptureDevicePerformWithLockedConfiguration(() =>
 							captureDevice.TorchMode = on ? AVCaptureTorchMode.On : AVCaptureTorchMode.Off);
-                    }
+					}
 				}
 				catch (Exception ex)
 				{
@@ -241,6 +240,38 @@ namespace ZXing.Net.Maui
 		public void Dispose()
 		{
 		}
+
+		static AVCaptureDeviceType[] CaptureDevices()
+		{
+			AVCaptureDeviceType[] deviceTypes =
+			[
+				AVCaptureDeviceType.BuiltInWideAngleCamera,
+				AVCaptureDeviceType.BuiltInTelephotoCamera,
+				AVCaptureDeviceType.BuiltInDualCamera
+			];
+
+			if (UIDevice.CurrentDevice.CheckSystemVersion(11, 1))
+			{
+				deviceTypes = [.. deviceTypes,
+				AVCaptureDeviceType.BuiltInTrueDepthCamera];
+			}
+
+			if (UIDevice.CurrentDevice.CheckSystemVersion(13, 0))
+			{
+				deviceTypes = [.. deviceTypes,
+				AVCaptureDeviceType.BuiltInUltraWideCamera,
+				AVCaptureDeviceType.BuiltInTripleCamera,
+				AVCaptureDeviceType.BuiltInDualWideCamera];
+			}
+
+			if (UIDevice.CurrentDevice.CheckSystemVersion(15, 4))
+			{
+				deviceTypes = [.. deviceTypes,
+				AVCaptureDeviceType.BuiltInLiDarDepthCamera];
+			}
+
+			return deviceTypes;
+		}
 	}
 
 	class PreviewView : UIView
@@ -278,6 +309,6 @@ namespace ZXing.Net.Maui
 			PreviewLayer.Transform = transform;
 			PreviewLayer.Frame = Layer.Bounds;
 		}
-    }
+	}
 }
 #endif

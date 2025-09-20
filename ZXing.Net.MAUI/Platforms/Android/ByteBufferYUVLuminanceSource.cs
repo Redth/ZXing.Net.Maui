@@ -5,23 +5,22 @@ namespace ZXing.Net.Maui
 {
 	public sealed class ByteBufferYUVLuminanceSource : BaseLuminanceSource
 	{
-		protected readonly ByteBuffer Yuv;
-		protected readonly int DataWidth;
-		protected readonly int DataHeight;
-		protected readonly int Left;
-		protected readonly int Top;
+		readonly ByteBuffer Yuv;
+		readonly int DataWidth;
+		readonly int DataHeight;
+		readonly int Left;
+		readonly int Top;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PlanarYUVLuminanceSource"/> class.
 		/// </summary>
-		/// <param name="yuvData">The yuv data.</param>
+		/// <param name="yuv">The yuv data.</param>
 		/// <param name="dataWidth">Width of the data.</param>
 		/// <param name="dataHeight">Height of the data.</param>
 		/// <param name="left">The left.</param>
 		/// <param name="top">The top.</param>
 		/// <param name="width">The width.</param>
 		/// <param name="height">The height.</param>
-		/// <param name="reverseHoriz">if set to <c>true</c> [reverse horiz].</param>
 		public ByteBufferYUVLuminanceSource(ByteBuffer yuv,
 			int dataWidth,
 			int dataHeight,

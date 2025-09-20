@@ -1,28 +1,47 @@
-﻿using AndroidX.Camera.Core;
+﻿using System;
+using System.Diagnostics;
+
+using AndroidX.Camera.Core;
+
 using Java.Nio;
+
 using Microsoft.Maui.Graphics;
-using System;
 
 namespace ZXing.Net.Maui
 {
-	internal class FrameAnalyzer : Java.Lang.Object, ImageAnalysis.IAnalyzer
-	{
-		readonly Action<ByteBuffer, Size> frameCallback;
+    internal class FrameAnalyzer : Java.Lang.Object, ImageAnalysis.IAnalyzer
+    {
+        readonly Action<ByteBuffer, Size> frameCallback;
 
-		public FrameAnalyzer(Action<ByteBuffer, Size> callback)
-		{
-			frameCallback = callback;
-		}
+        // See:
+        // https://github.com/dotnet/android-libraries/issues/767
+        // https://github.com/dotnet/android/pull/9656
+        public Android.Util.Size DefaultTargetResolution => null;
 
-		public void Analyze(IImageProxy image)
-		{
-			var buffer = image.GetPlanes()[0].Buffer;
+        public FrameAnalyzer(Action<ByteBuffer, Size> callback)
+        {
+            frameCallback = callback;
+        }
 
-			var s = new Size(image.Width, image.Height);
+        public void Analyze(IImageProxy image)
+        {
+            try
+            {
+                var buffer = image.GetPlanes()[0].Buffer;
 
-			frameCallback?.Invoke(buffer, s);
+                var s = new Size(image.Width, image.Height);
 
-			image.Close();
-		}
-	}
+                frameCallback?.Invoke(buffer, s);
+
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+            }
+            finally
+            {
+                image.Close();
+            }
+        }
+    }
 }

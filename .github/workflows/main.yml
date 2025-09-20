@@ -11,7 +11,7 @@ jobs:
     name: Build
     env:
       NUPKG_MAJOR: 0.999
-      CODESIGN_PFX: ${{ secrets.CODESIGN_PFX }}
+
     runs-on: windows-latest
     steps:
     - name: Checkout
@@ -19,7 +19,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '7.0.x'
+        dotnet-version: '9.0.x'
     - name: Setup NuGet 5.x
       uses: nuget/setup-nuget@v1
       with:
@@ -30,7 +30,7 @@ jobs:
         & dotnet workload install maui ios android maccatalyst
 
     - name: Build
-      run: dotnet build --configuration Release
+      run: dotnet build --configuration Release --verbosity normal
    # - name: Test
    #   run: dotnet test --configuration Release
     - name: Package NuGets
@@ -40,19 +40,21 @@ jobs:
         if ($env:GITHUB_EVENT_NAME -eq "release") {
           $VERSION = $env:GITHUB_REF.Substring($env:GITHUB_REF.LastIndexOf('/') + 1)
         }
-        echo "::set-output name=pkgverci::$VERSION"
         echo "PACKAGE VERSION: $VERSION"
-        
+
         New-Item -ItemType Directory -Force -Path .\artifacts
-        dotnet pack --output ./artifacts --configuration Release -p:PackageVersion=$VERSION ./ZXing.Net.MAUI/ZXing.Net.MAUI.csproj
-        dotnet pack --output ./artifacts --configuration Release -p:PackageVersion=$VERSION ./ZXing.Net.MAUI.Controls/ZXing.Net.MAUI.Controls.csproj
-        dotnet pack --output ./artifacts --configuration Release -p:PackageVersion=$VERSION ./ZXing.Net.MAUI.Comet/ZXing.Net.MAUI.Comet.csproj
-        $pfxPath = Join-Path -Path $pwd -ChildPath "codesigncert.pfx"
-        [IO.File]::WriteAllBytes("$pfxPath", [System.Convert]::FromBase64String($env:CODESIGN_PFX))
-        nuget sign .\artifacts\*.nupkg -CertificatePath $pfxPath -Timestamper http://timestamp.entrust.net/TSS/RFC3161sha2TS
+        
+        # Pack with --no-build since we already built, and add error handling
+        Write-Host "Packing ZXing.Net.MAUI..."
+        dotnet pack --output ./artifacts --configuration Release --no-build --verbosity normal -p:Version=$VERSION -p:PackageVersion=$VERSION ./ZXing.Net.MAUI/ZXing.Net.MAUI.csproj
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        
+        Write-Host "Packing ZXing.Net.MAUI.Controls..."
+        dotnet pack --output ./artifacts --configuration Release --no-build --verbosity normal -p:Version=$VERSION -p:PackageVersion=$VERSION ./ZXing.Net.MAUI.Controls/ZXing.Net.MAUI.Controls.csproj
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
         
     - name: Artifacts
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: NuGet
         path: ./artifacts
@@ -64,13 +66,14 @@ jobs:
     if: github.event_name == 'release'
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v1
+        id: download-artifacts
+        uses: actions/download-artifact@v5
         with:
           name: NuGet
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '7.0.x'
+          dotnet-version: '9.0.x'
       - name: Push NuGet
         run: |
-          dotnet nuget push NuGet\*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_ORG_API_KEY }}
+          dotnet nuget push ${{ steps.download-artifacts.outputs.download-path }}\*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_ORG_API_KEY }}

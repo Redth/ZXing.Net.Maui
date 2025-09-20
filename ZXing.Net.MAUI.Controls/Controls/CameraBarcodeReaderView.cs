@@ -1,12 +1,6 @@
-﻿using Microsoft.Maui;
-using Microsoft.Maui.Controls;
+﻿using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ZXing.Net.Maui;
 
 namespace ZXing.Net.Maui.Controls
 {
@@ -15,23 +9,7 @@ namespace ZXing.Net.Maui.Controls
 		public event EventHandler<BarcodeDetectionEventArgs> BarcodesDetected;
 		public event EventHandler<CameraFrameBufferEventArgs> FrameReady;
 
-        public CameraBarcodeReaderView()
-        {
-#if WINDOWS
-			// On Windows multi-page Maui apps, this control can still be used after the "Unloaded" event,
-			// when its owning page reappears in AppShell VisualTree: so, don't manually disconnect handlers
-			// here, otherwise the "reborn" control doesn't have valid Handlers anymore, breaking its
-			// internal camera manager behaviour. For any reason, "OnLoaded" event isn't called
-			// when the page reappears, so the only possible (current) workaround is avoiding calling 
-			// the "Unloaded" event at all.
-			// However, low level camera resources are still released through the internal camera control, in
-			// its own "Unloaded" event (see CameraManager.windows.cs).
-#else
-			Unloaded += (s, e) => Cleanup();
-#endif
-		}
-
-        void ICameraBarcodeReaderView.BarcodesDetected(BarcodeDetectionEventArgs e) => BarcodesDetected?.Invoke(this, e);
+		void ICameraBarcodeReaderView.BarcodesDetected(BarcodeDetectionEventArgs e) => BarcodesDetected?.Invoke(this, e);
 		void ICameraFrameAnalyzer.FrameReady(ZXing.Net.Maui.CameraFrameBufferEventArgs e) => FrameReady?.Invoke(this, e);
 
 		public static readonly BindableProperty OptionsProperty =
@@ -82,7 +60,5 @@ namespace ZXing.Net.Maui.Controls
 		CameraBarcodeReaderViewHandler StrongHandler
 			=> Handler as CameraBarcodeReaderViewHandler;
 
-        private void Cleanup() 
-			=> Handler?.DisconnectHandler();
-    }
+	}
 }

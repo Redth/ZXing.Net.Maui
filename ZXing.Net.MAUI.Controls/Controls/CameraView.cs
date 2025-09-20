@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.Maui.Controls;
+﻿using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using System;
 
@@ -9,12 +8,7 @@ namespace ZXing.Net.Maui.Controls
 	{
 		public event EventHandler<CameraFrameBufferEventArgs> FrameReady;
 
-        public CameraView()
-        {
-			Unloaded += (s, e) => Cleanup();
-        }
-
-        void ICameraFrameAnalyzer.FrameReady(CameraFrameBufferEventArgs e)
+		void ICameraFrameAnalyzer.FrameReady(CameraFrameBufferEventArgs e)
 			=> FrameReady?.Invoke(this, e);
 
 		public static readonly BindableProperty IsTorchOnProperty =
@@ -41,10 +35,7 @@ namespace ZXing.Net.Maui.Controls
 		public void Focus(Point point)
 			=> StrongHandler?.Invoke(nameof(Focus), point);
 
-		CameraViewHandler StrongHandler 
+		CameraViewHandler StrongHandler
 			=> Handler as CameraViewHandler;
-
-        private void Cleanup()
-			=> Handler?.DisconnectHandler();
-    }
+	}
 }

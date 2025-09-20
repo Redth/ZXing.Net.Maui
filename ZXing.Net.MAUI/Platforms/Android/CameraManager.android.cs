@@ -1,136 +1,161 @@
-﻿using System;
-using Android.Content;
+﻿using System.Runtime.Versioning;
+
 using Android.Graphics;
-using Android.Hardware.Camera2;
-using Android.Hardware.Camera2.Params;
-using Android.Media;
-using Android.Nfc;
-using Android.OS;
-using Android.Renderscripts;
-using Android.Runtime;
-using Android.Util;
-using Android.Views;
+
 using AndroidX.Camera.Core;
+using AndroidX.Camera.Core.ResolutionSelector;
 using AndroidX.Camera.Lifecycle;
 using AndroidX.Camera.View;
 using AndroidX.Core.Content;
-using Java.Util;
+
 using Java.Util.Concurrent;
-using Microsoft.Maui;
-using Microsoft.Maui.Handlers;
-using Microsoft.Extensions.DependencyInjection;
-using static Android.Hardware.Camera;
-using static Android.Provider.Telephony;
-using static Java.Util.Concurrent.Flow;
-using AView = Android.Views.View;
-using Android.Hardware;
-using static Android.Graphics.Paint;
-using AndroidX.Camera.Camera2.InterOp;
 
 namespace ZXing.Net.Maui
 {
-	internal partial class CameraManager
-	{
-		AndroidX.Camera.Core.Preview cameraPreview;
-		ImageAnalysis imageAnalyzer;
-		PreviewView previewView;
-		IExecutorService cameraExecutor;
-		CameraSelector cameraSelector = null;
-		ProcessCameraProvider cameraProvider;
-		ICamera camera;
+    internal partial class CameraManager
+    {
+        ResolutionSelector resolutionSelector;
+        Preview cameraPreview;
+        ImageAnalysis imageAnalyzer;
+        PreviewView previewView;
+        IExecutorService cameraExecutor;
+        CameraSelector cameraSelector = null;
+        ProcessCameraProvider cameraProvider;
+        ICamera camera;
 
-		public NativePlatformCameraPreviewView CreateNativeView()
-		{
-			previewView = new PreviewView(Context.Context);
-			cameraExecutor = Executors.NewSingleThreadExecutor();
+        static readonly Android.Util.Size screenSize = new(640, 480);
 
-			return previewView;
-		}
+        public NativePlatformCameraPreviewView CreateNativeView()
+        {
+            previewView = new PreviewView(Context.Context);
+            cameraExecutor = Executors.NewSingleThreadExecutor();
 
-		public void Connect()
-		{
-			var cameraProviderFuture = ProcessCameraProvider.GetInstance(Context.Context);
+            return previewView;
+        }
 
-			cameraProviderFuture.AddListener(new Java.Lang.Runnable(() =>
-			{
-				// Used to bind the lifecycle of cameras to the lifecycle owner
-				cameraProvider = (ProcessCameraProvider)cameraProviderFuture.Get();
+        public void Connect()
+        {
+            var cameraProviderFuture = ProcessCameraProvider.GetInstance(Context.Context);
 
-				// Preview
-				cameraPreview = new AndroidX.Camera.Core.Preview.Builder().Build();
-				cameraPreview.SetSurfaceProvider(previewView.SurfaceProvider);
+            cameraProviderFuture.AddListener(new Java.Lang.Runnable(() =>
+            {
+                // Used to bind the lifecycle of cameras to the lifecycle owner
+                cameraProvider = (ProcessCameraProvider)cameraProviderFuture.Get();
 
-				// Frame by frame analyze
-				imageAnalyzer = new ImageAnalysis.Builder()
-					.SetDefaultResolution(new Android.Util.Size(640, 480))
-					.SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
-					.Build();
+                resolutionSelector?.Dispose();
 
-				imageAnalyzer.SetAnalyzer(cameraExecutor, new FrameAnalyzer((buffer, size) =>
-					FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
+                resolutionSelector = new ResolutionSelector
+                    .Builder()
+                    .SetResolutionStrategy(new ResolutionStrategy(screenSize, ResolutionStrategy.FallbackRuleClosestHigherThenLower))
+                    .Build();
 
-				UpdateCamera();
+                // Preview
+                cameraPreview?.Dispose();
 
-			}), ContextCompat.GetMainExecutor(Context.Context)); //GetMainExecutor: returns an Executor that runs on the main thread.
-		}
+                cameraPreview = new Preview
+                    .Builder()
+                    .SetResolutionSelector(resolutionSelector)
+                    .Build();
 
-		public void Disconnect()
-		{ }
+                cameraPreview.SetSurfaceProvider(cameraExecutor, previewView.SurfaceProvider);
 
-		public void UpdateCamera()
-		{
-			if (cameraProvider != null)
-			{
-				// Unbind use cases before rebinding
-				cameraProvider.UnbindAll();
+                // Frame by frame analyze
+                imageAnalyzer?.Dispose();
 
-				var cameraLocation = CameraLocation;
+                imageAnalyzer = new ImageAnalysis
+                    .Builder()
+                    .SetOutputImageFormat(ImageAnalysis.OutputImageFormatRgba8888)
+                    .SetResolutionSelector(resolutionSelector)
+                    .SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
+                    .Build();
 
-				// Select back camera as a default, or front camera otherwise
-				if (cameraLocation == CameraLocation.Rear && cameraProvider.HasCamera(CameraSelector.DefaultBackCamera))
-					cameraSelector = CameraSelector.DefaultBackCamera;
-				else if (cameraLocation == CameraLocation.Front && cameraProvider.HasCamera(CameraSelector.DefaultFrontCamera))
-					cameraSelector = CameraSelector.DefaultFrontCamera;
-				else
-					cameraSelector = CameraSelector.DefaultBackCamera;
+                imageAnalyzer.SetAnalyzer(cameraExecutor, new FrameAnalyzer((buffer, size) =>
+                    FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
 
-				if (cameraSelector == null)
-					throw new System.Exception("Camera not found");
+                UpdateCamera();
 
-				// The Context here SHOULD be something that's a lifecycle owner
-				if (Context.Context is AndroidX.Lifecycle.ILifecycleOwner lifecycleOwner)
-				{
-					camera = cameraProvider.BindToLifecycle(lifecycleOwner, cameraSelector, cameraPreview, imageAnalyzer);
-				}
-				else if (Microsoft.Maui.ApplicationModel.Platform.CurrentActivity is AndroidX.Lifecycle.ILifecycleOwner maLifecycleOwner)
-				{
-					// if not, this should be sufficient as a fallback
-					camera = cameraProvider.BindToLifecycle(maLifecycleOwner, cameraSelector, cameraPreview, imageAnalyzer);
-				}
-			}
-		}
+            }), ContextCompat.GetMainExecutor(Context.Context)); //GetMainExecutor: returns an Executor that runs on the main thread.
+        }
 
-		public void UpdateTorch(bool on)
-		{
-			camera?.CameraControl?.EnableTorch(on);
-		}
+        public void Disconnect()
+        {
+            cameraProvider?.UnbindAll();
+            cameraExecutor?.Shutdown();
+        }
 
-		public void Focus(Point point)
-		{
+        public void UpdateCamera()
+        {
+            if (cameraProvider != null)
+            {
+                // Unbind use cases before rebinding
+                cameraProvider.UnbindAll();
 
-		}
+                var cameraLocation = CameraLocation;
 
-		public void AutoFocus()
-		{
+                // Select back camera as a default, or front camera otherwise
+                if (cameraLocation == CameraLocation.Rear && cameraProvider.HasCamera(CameraSelector.DefaultBackCamera))
+                    cameraSelector = CameraSelector.DefaultBackCamera;
+                else if (cameraLocation == CameraLocation.Front && cameraProvider.HasCamera(CameraSelector.DefaultFrontCamera))
+                    cameraSelector = CameraSelector.DefaultFrontCamera;
+                else
+                    cameraSelector = CameraSelector.DefaultBackCamera;
 
-		}
+                if (cameraSelector == null)
+                    throw new System.Exception("Camera not found");
 
-		public void Dispose()
-		{
-			cameraProvider?.Shutdown();
+                // The Context here SHOULD be something that's a lifecycle owner
+                if (Context.Context is AndroidX.Lifecycle.ILifecycleOwner lifecycleOwner)
+                {
+                    camera = cameraProvider.BindToLifecycle(lifecycleOwner, cameraSelector, cameraPreview, imageAnalyzer);
+                }
+                else if (Microsoft.Maui.ApplicationModel.Platform.CurrentActivity is AndroidX.Lifecycle.ILifecycleOwner maLifecycleOwner)
+                {
+                    // if not, this should be sufficient as a fallback
+                    camera = cameraProvider.BindToLifecycle(maLifecycleOwner, cameraSelector, cameraPreview, imageAnalyzer);
+                }
+            }
+        }
 
-			cameraExecutor?.Shutdown();
-			cameraExecutor?.Dispose();
-		}
-	}
+        public void UpdateTorch(bool on)
+        {
+            camera?.CameraControl?.EnableTorch(on);
+        }
+
+        public void Focus(Point point)
+        {
+
+        }
+
+        public void AutoFocus()
+        {
+
+        }
+
+        public void Dispose()
+        {
+            imageAnalyzer?.Dispose();
+            imageAnalyzer = null;
+
+            cameraPreview?.Dispose();
+            cameraPreview = null;
+
+            resolutionSelector?.Dispose();
+            resolutionSelector = null;
+
+            cameraSelector?.Dispose();
+            cameraSelector = null;
+
+            cameraProvider?.Dispose();
+            cameraProvider = null;
+
+            previewView?.Dispose();
+            previewView = null;
+
+            cameraExecutor?.Dispose();
+            cameraExecutor = null;
+
+            camera?.Dispose();
+            camera = null;
+        }
+    }
 }

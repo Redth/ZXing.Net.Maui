@@ -1,6 +1,4 @@
-﻿using Microsoft.Maui.Graphics;
-
-namespace ZXing.Net.Maui.Readers
+﻿namespace ZXing.Net.Maui.Readers
 {
 	public class ZXingBarcodeReader : Readers.IBarcodeReader
 	{
@@ -24,7 +22,7 @@ namespace ZXing.Net.Maui.Readers
 				zxingReader.AutoRotate = options.AutoRotate;
 				zxingReader.Options.TryInverted = options.TryInverted;
 				zxingReader.Options.UseCode39ExtendedMode = options.UseCode39ExtendedMode;
-            }
+			}
 		}
 
 		public BarcodeResult[] Decode(PixelBufferHolder image)
@@ -35,7 +33,8 @@ namespace ZXing.Net.Maui.Readers
 			LuminanceSource ls = default;
 
 #if ANDROID
-			ls = new ByteBufferYUVLuminanceSource(image.Data, w, h, 0, 0, w, h);
+			Java.Nio.ByteBuffer imageData = Bitmap2Yuv420p(image.Data, w, h);
+			ls = new ByteBufferYUVLuminanceSource(imageData, w, h, 0, 0, w, h);
 #elif MACCATALYST || IOS
 			ls = new CVPixelBufferBGRA32LuminanceSource(image.Data, w, h);
 #elif WINDOWS
@@ -47,9 +46,40 @@ namespace ZXing.Net.Maui.Readers
 
 			var b = zxingReader.Decode(ls)?.ToBarcodeResult();
 			if (b != null)
-				return new[] { b };
+				return [b];
 
 			return null;
 		}
+
+#if ANDROID
+        private static unsafe Java.Nio.ByteBuffer Bitmap2Yuv420p(Java.Nio.ByteBuffer buffer, int w, int h)
+        {
+            byte[] image = new byte[buffer.Remaining()];
+            buffer.Get(image);
+
+            byte[] imageYuv = new byte[w * h];
+
+            fixed (byte* packet = image)
+            {
+                byte* pimage = packet;
+
+                fixed (byte* packetOut = imageYuv)
+                {
+                    byte* pimageOut = packetOut;
+
+                    for (int i = 0; i < (w * h); i++)
+                    {
+                        byte r = *pimage++;
+                        byte g = *pimage++;
+                        byte b = *pimage++;
+                        pimage++;   // a
+                        *pimageOut++ = (byte)(((66 * r + 129 * g + 25 * b) >> 8) + 16);
+                    }
+                }
+            }
+
+            return Java.Nio.ByteBuffer.Wrap(imageYuv);
+        }
+#endif
 	}
 }
