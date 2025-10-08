@@ -21,9 +21,9 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
-		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.5.0.1" />
-		<PackageReference Include="Xamarin.AndroidX.Camera.Lifecycle" Version="1.5.0.1" />
-		<PackageReference Include="Xamarin.AndroidX.Camera.View" Version="1.5.0.1" />
+		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.4.2.3" />
+		<PackageReference Include="Xamarin.AndroidX.Camera.Lifecycle" Version="1.4.2.3" />
+		<PackageReference Include="Xamarin.AndroidX.Camera.View" Version="1.4.2.3" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="ZXing.Net" Version="0.16.10" />
