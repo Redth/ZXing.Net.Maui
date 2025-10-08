@@ -140,12 +140,6 @@ namespace ZXing.Net.Maui
 					if (captureDevice.AutoFocusRangeRestrictionSupported)
 						captureDevice.AutoFocusRangeRestriction = AVCaptureAutoFocusRangeRestriction.Near;
 
-#if IOS
-					// Enable smooth autofocus if supported for better user experience
-					if (captureDevice.IsSmoothAutoFocusSupported)
-						captureDevice.SmoothAutoFocusEnabled = true;
-#endif
-
 					// Set continuous autofocus mode if supported
 					if (captureDevice.IsFocusModeSupported(AVCaptureFocusMode.ContinuousAutoFocus))
 						captureDevice.FocusMode = AVCaptureFocusMode.ContinuousAutoFocus;
@@ -225,12 +219,6 @@ namespace ZXing.Net.Maui
 					// This helps especially on iPhone Pro models with multiple cameras
 					if (captureDevice.AutoFocusRangeRestrictionSupported)
 						captureDevice.AutoFocusRangeRestriction = AVCaptureAutoFocusRangeRestriction.Near;
-
-#if IOS
-					// Enable smooth autofocus if supported for better user experience
-					if (captureDevice.IsSmoothAutoFocusSupported)
-						captureDevice.SmoothAutoFocusEnabled = true;
-#endif
 				});
 			}
 		}
@@ -269,12 +257,6 @@ namespace ZXing.Net.Maui
 				// This helps especially on iPhone Pro models with multiple cameras
 				if (captureDevice.AutoFocusRangeRestrictionSupported)
 					captureDevice.AutoFocusRangeRestriction = AVCaptureAutoFocusRangeRestriction.Near;
-
-#if IOS
-				// Enable smooth autofocus if supported for better user experience
-				if (captureDevice.IsSmoothAutoFocusSupported)
-					captureDevice.SmoothAutoFocusEnabled = true;
-#endif
 			});
 		}
 
