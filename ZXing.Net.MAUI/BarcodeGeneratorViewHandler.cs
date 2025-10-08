@@ -81,7 +81,6 @@ namespace ZXing.Net.Maui
 			// Set character encoding hint
 			if (!string.IsNullOrEmpty(VirtualView.CharacterSet))
 			{
-				writer.Options.Hints ??= new System.Collections.Generic.Dictionary<EncodeHintType, object>();
 				writer.Options.Hints[EncodeHintType.CHARACTER_SET] = VirtualView.CharacterSet;
 			}
 
