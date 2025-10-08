@@ -3,6 +3,7 @@ using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
 using System.Linq;
 using System;
+using ZXing;
 
 #nullable enable
 
@@ -20,6 +21,7 @@ namespace ZXing.Net.Maui
 			[nameof(IBarcodeGeneratorView.ForegroundColor)] = MapUpdateBarcode,
 			[nameof(IBarcodeGeneratorView.BackgroundColor)] = MapUpdateBarcode,
 			[nameof(IBarcodeGeneratorView.Margin)] = MapUpdateBarcode,
+			[nameof(IBarcodeGeneratorView.CharacterSet)] = MapUpdateBarcode,
 		};
 
 		public BarcodeGeneratorViewHandler() : base(BarcodeGeneratorViewMapper)
@@ -75,6 +77,13 @@ namespace ZXing.Net.Maui
 			writer.Options.Margin = VirtualView.BarcodeMargin;
 			writer.ForegroundColor = VirtualView.ForegroundColor;
 			writer.BackgroundColor = VirtualView.BackgroundColor;
+
+			// Set character encoding hint
+			if (!string.IsNullOrEmpty(VirtualView.CharacterSet))
+			{
+				writer.Options.Hints ??= new System.Collections.Generic.Dictionary<EncodeHintType, object>();
+				writer.Options.Hints[EncodeHintType.CHARACTER_SET] = VirtualView.CharacterSet;
+			}
 
 			NativePlatformImage? image = null;
 			if (!string.IsNullOrEmpty(VirtualView.Value))
