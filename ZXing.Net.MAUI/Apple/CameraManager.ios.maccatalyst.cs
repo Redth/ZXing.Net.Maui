@@ -201,6 +201,15 @@ namespace ZXing.Net.Maui
 					//Focus at the point touched
 					captureDevice.FocusPointOfInterest = point;
 					captureDevice.FocusMode = focusMode;
+
+					// Set autofocus range restriction to near for better QR code scanning
+					// This helps especially on iPhone Pro models with multiple cameras
+					if (captureDevice.AutoFocusRangeRestrictionSupported)
+						captureDevice.AutoFocusRangeRestriction = AVCaptureAutoFocusRangeRestriction.Near;
+
+					// Enable smooth autofocus if supported for better user experience
+					if (captureDevice.IsSmoothAutoFocusSupported)
+						captureDevice.SmoothAutoFocusEnabled = true;
 				});
 			}
 		}
@@ -234,6 +243,15 @@ namespace ZXing.Net.Maui
 				if (captureDevice.FocusPointOfInterestSupported)
 					captureDevice.FocusPointOfInterest = CoreGraphics.CGPoint.Empty;
 				captureDevice.FocusMode = focusMode;
+
+				// Set autofocus range restriction to near for better QR code scanning
+				// This helps especially on iPhone Pro models with multiple cameras
+				if (captureDevice.AutoFocusRangeRestrictionSupported)
+					captureDevice.AutoFocusRangeRestriction = AVCaptureAutoFocusRangeRestriction.Near;
+
+				// Enable smooth autofocus if supported for better user experience
+				if (captureDevice.IsSmoothAutoFocusSupported)
+					captureDevice.SmoothAutoFocusEnabled = true;
 			});
 		}
 
