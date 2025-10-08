@@ -132,6 +132,23 @@ namespace ZXing.Net.Maui
 
 				captureSession.AddInput(captureInput);
 
+				// Configure autofocus settings for better QR code scanning
+				// This is especially helpful for iPhone Pro models with multiple cameras
+				CaptureDevicePerformWithLockedConfiguration(() =>
+				{
+					// Set autofocus range restriction to near for better QR code scanning
+					if (captureDevice.AutoFocusRangeRestrictionSupported)
+						captureDevice.AutoFocusRangeRestriction = AVCaptureAutoFocusRangeRestriction.Near;
+
+					// Enable smooth autofocus if supported for better user experience
+					if (captureDevice.IsSmoothAutoFocusSupported)
+						captureDevice.SmoothAutoFocusEnabled = true;
+
+					// Set continuous autofocus mode if supported
+					if (captureDevice.IsFocusModeSupported(AVCaptureFocusMode.ContinuousAutoFocus))
+						captureDevice.FocusMode = AVCaptureFocusMode.ContinuousAutoFocus;
+				});
+
 				captureSession.StartRunning();
 			}
 		}
