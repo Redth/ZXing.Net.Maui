@@ -124,20 +124,37 @@ namespace ZXing.Net.Maui
 				else
 				{
 					var discoverySession = AVCaptureDeviceDiscoverySession.Create(CaptureDevices(), AVMediaTypes.Video, AVCaptureDevicePosition.Unspecified);
+					
+					// Prioritize cameras suitable for barcode scanning
+					AVCaptureDevice selectedDevice = null;
+					
 					foreach (var device in discoverySession.Devices)
 					{
-						if (CameraLocation == CameraLocation.Front &&
-							device.Position == AVCaptureDevicePosition.Front)
+						// Skip depth-only cameras (TrueDepth, LiDAR) as they're not suitable for barcode scanning
+						if (device.DeviceType == AVCaptureDeviceType.BuiltInTrueDepthCamera ||
+							device.DeviceType == AVCaptureDeviceType.BuiltInLiDarDepthCamera)
+							continue;
+						
+						var isCorrectPosition = (CameraLocation == CameraLocation.Front && device.Position == AVCaptureDevicePosition.Front) ||
+												(CameraLocation == CameraLocation.Rear && device.Position == AVCaptureDevicePosition.Back);
+						
+						if (isCorrectPosition)
 						{
-							captureDevice = device;
-							break;
-						}
-						else if (CameraLocation == CameraLocation.Rear && device.Position == AVCaptureDevicePosition.Back)
-						{
-							captureDevice = device;
-							break;
+							// Prefer wide-angle cameras for barcode scanning
+							if (device.DeviceType == AVCaptureDeviceType.BuiltInWideAngleCamera)
+							{
+								selectedDevice = device;
+								break; // Wide-angle is ideal, use it immediately
+							}
+							else if (selectedDevice == null)
+							{
+								// Accept other camera types as fallback (dual, triple, ultra-wide, telephoto)
+								selectedDevice = device;
+							}
 						}
 					}
+					
+					captureDevice = selectedDevice;
 
 					if (captureDevice == null)
 						captureDevice = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
@@ -161,6 +178,11 @@ namespace ZXing.Net.Maui
 			var discoverySession = AVCaptureDeviceDiscoverySession.Create(CaptureDevices(), AVMediaTypes.Video, AVCaptureDevicePosition.Unspecified);
 			foreach (var device in discoverySession.Devices)
 			{
+				// Skip depth-only cameras (TrueDepth, LiDAR) as they're not suitable for barcode scanning
+				if (device.DeviceType == AVCaptureDeviceType.BuiltInTrueDepthCamera ||
+					device.DeviceType == AVCaptureDeviceType.BuiltInLiDarDepthCamera)
+					continue;
+				
 				var location = device.Position == AVCaptureDevicePosition.Front 
 					? CameraLocation.Front 
 					: CameraLocation.Rear;
