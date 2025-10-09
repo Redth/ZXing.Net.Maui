@@ -49,9 +49,9 @@ namespace ZXing.Net.Maui.Controls
 		public async Task<IReadOnlyList<CameraInfo>> GetAvailableCameras()
 		{
 			var handler = StrongHandler;
-			if (handler?.CameraManager != null)
+			if (handler != null)
 			{
-				return await handler.CameraManager.GetAvailableCameras();
+				return await handler.GetAvailableCamerasAsync();
 			}
 			return new List<CameraInfo>();
 		}

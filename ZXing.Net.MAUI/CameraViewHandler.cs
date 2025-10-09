@@ -27,8 +27,6 @@ namespace ZXing.Net.Maui
 
 		volatile ICameraView? _virtualView;
 
-		internal CameraManager? CameraManager => cameraManager;
-
 		public CameraViewHandler() : base(CameraViewMapper)
 		{
 		}
@@ -88,6 +86,15 @@ namespace ZXing.Net.Maui
 
 		public void AutoFocus()
 			=> cameraManager?.AutoFocus();
+
+		public async System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<CameraInfo>> GetAvailableCamerasAsync()
+		{
+			if (cameraManager != null)
+			{
+				return await cameraManager.GetAvailableCameras();
+			}
+			return new System.Collections.Generic.List<CameraInfo>();
+		}
 
 		public static void MapFocus(CameraViewHandler handler, ICameraView cameraBarcodeReaderView, object? parameter)
 		{

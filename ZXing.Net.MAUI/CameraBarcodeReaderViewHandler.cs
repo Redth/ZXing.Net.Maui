@@ -43,8 +43,6 @@ namespace ZXing.Net.Maui
 
         Readers.IBarcodeReader? barcodeReader;
 
-        internal CameraManager? CameraManager => cameraManager;
-
         protected Readers.IBarcodeReader? BarcodeReader
             => barcodeReader ??= Services?.GetService<Readers.IBarcodeReader>();
 
@@ -123,6 +121,15 @@ namespace ZXing.Net.Maui
 
         public void AutoFocus()
             => cameraManager?.AutoFocus();
+
+        public async System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<CameraInfo>> GetAvailableCamerasAsync()
+        {
+            if (cameraManager != null)
+            {
+                return await cameraManager.GetAvailableCameras();
+            }
+            return new System.Collections.Generic.List<CameraInfo>();
+        }
 
         public static void MapFocus(CameraBarcodeReaderViewHandler handler, ICameraBarcodeReaderView cameraBarcodeReaderView, object? parameter)
         {
