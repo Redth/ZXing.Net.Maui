@@ -35,7 +35,8 @@
 				WidthRequest="100"
 				ForegroundColor="DarkBlue"
 				Format="QrCode"
-				Value="Bla"
+				Value="测试中文 Test UTF-8"
+				CharacterSet="UTF-8"
 				BarcodeMargin="1" />
 
 			<Button Text="💡" Grid.Column="2" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="TorchButton_Clicked" />

@@ -15,5 +15,7 @@ namespace ZXing.Net.Maui
 		Color BackgroundColor { get; }
 
 		int BarcodeMargin { get; }
+
+		string CharacterSet { get; }
 	}
 }

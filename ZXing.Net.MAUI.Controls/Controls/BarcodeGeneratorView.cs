@@ -49,5 +49,14 @@ namespace ZXing.Net.Maui.Controls
 			get => (int)GetValue(BarcodeMarginProperty);
 			set => SetValue(BarcodeMarginProperty, value);
 		}
+
+		public static readonly BindableProperty CharacterSetProperty =
+			BindableProperty.Create(nameof(CharacterSet), typeof(string), typeof(BarcodeGeneratorView), defaultValue: "UTF-8");
+
+		public string CharacterSet
+		{
+			get => (string)GetValue(CharacterSetProperty);
+			set => SetValue(CharacterSetProperty, value);
+		}
 	}
 }
