@@ -88,6 +88,30 @@ cameraBarcodeReaderView.CameraLocation
   = cameraBarcodeReaderView.CameraLocation == CameraLocation.Rear ? CameraLocation.Front : CameraLocation.Rear;
 ```
 
+Select a specific camera
+```csharp
+// Get available cameras
+var cameras = await cameraBarcodeReaderView.GetAvailableCameras();
+
+// Select a specific camera by setting the SelectedCamera property
+if (cameras.Count > 0)
+{
+  cameraBarcodeReaderView.SelectedCamera = cameras[0];
+}
+
+// Or loop through available cameras and select one by name
+foreach (var camera in cameras)
+{
+  Console.WriteLine($"Camera: {camera.Name} ({camera.Location})");
+  // Select the first rear camera found
+  if (camera.Location == CameraLocation.Rear)
+  {
+    cameraBarcodeReaderView.SelectedCamera = camera;
+    break;
+  }
+}
+```
+
 Handle detected barcode(s)
 ```csharp
 protected void BarcodesDetected(object sender, BarcodeDetectionEventArgs e)

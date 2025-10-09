@@ -17,7 +17,8 @@ namespace ZXing.Net.Maui
             [nameof(ICameraBarcodeReaderView.Options)] = MapOptions,
             [nameof(ICameraBarcodeReaderView.IsDetecting)] = MapIsDetecting,
             [nameof(ICameraBarcodeReaderView.IsTorchOn)] = (handler, virtualView) => handler.cameraManager?.UpdateTorch(virtualView.IsTorchOn),
-            [nameof(ICameraBarcodeReaderView.CameraLocation)] = (handler, virtualView) => handler.cameraManager?.UpdateCameraLocation(virtualView.CameraLocation)
+            [nameof(ICameraBarcodeReaderView.CameraLocation)] = (handler, virtualView) => handler.cameraManager?.UpdateCameraLocation(virtualView.CameraLocation),
+            [nameof(ICameraBarcodeReaderView.SelectedCamera)] = (handler, virtualView) => handler.cameraManager?.UpdateSelectedCamera(virtualView.SelectedCamera)
         };
 
         public static CommandMapper<ICameraBarcodeReaderView, CameraBarcodeReaderViewHandler> CameraBarcodeReaderCommandMapper = new()
@@ -41,6 +42,8 @@ namespace ZXing.Net.Maui
         volatile bool _isDetecting;
 
         Readers.IBarcodeReader? barcodeReader;
+
+        internal CameraManager? CameraManager => cameraManager;
 
         protected Readers.IBarcodeReader? BarcodeReader
             => barcodeReader ??= Services?.GetService<Readers.IBarcodeReader>();
