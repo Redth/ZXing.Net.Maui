@@ -127,6 +127,7 @@ namespace ZXing.Net.Maui
 					
 					// Prioritize cameras suitable for barcode scanning
 					AVCaptureDevice selectedDevice = null;
+					AVCaptureDevice fallbackDevice = null;
 					
 					foreach (var device in discoverySession.Devices)
 					{
@@ -140,21 +141,29 @@ namespace ZXing.Net.Maui
 						
 						if (isCorrectPosition)
 						{
-							// Prefer wide-angle cameras for barcode scanning
-							if (device.DeviceType == AVCaptureDeviceType.BuiltInWideAngleCamera)
+							// Prefer multi-camera systems (Dual, Triple, DualWide) - these are the main cameras on modern iPhones
+							if (device.DeviceType == AVCaptureDeviceType.BuiltInDualCamera ||
+								device.DeviceType == AVCaptureDeviceType.BuiltInTripleCamera ||
+								device.DeviceType == AVCaptureDeviceType.BuiltInDualWideCamera)
 							{
 								selectedDevice = device;
-								break; // Wide-angle is ideal, use it immediately
+								break; // Multi-camera systems are ideal for barcode scanning
 							}
-							else if (selectedDevice == null)
+							// Wide-angle is a good standard camera
+							else if (device.DeviceType == AVCaptureDeviceType.BuiltInWideAngleCamera && selectedDevice == null)
 							{
-								// Accept other camera types as fallback (dual, triple, ultra-wide, telephoto)
 								selectedDevice = device;
+							}
+							// Avoid ultra-wide and telephoto, but keep as last resort fallback
+							else if (fallbackDevice == null)
+							{
+								fallbackDevice = device;
 							}
 						}
 					}
 					
-					captureDevice = selectedDevice;
+					// Use selected device, or fallback if nothing better was found
+					captureDevice = selectedDevice ?? fallbackDevice;
 
 					if (captureDevice == null)
 						captureDevice = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
