@@ -13,7 +13,8 @@ namespace ZXing.Net.Maui
 		public static PropertyMapper<ICameraView, CameraViewHandler> CameraViewMapper = new()
 		{
 			[nameof(ICameraView.IsTorchOn)] = (handler, virtualView) => handler.cameraManager?.UpdateTorch(virtualView.IsTorchOn),
-			[nameof(ICameraView.CameraLocation)] = (handler, virtualView) => handler.cameraManager?.UpdateCameraLocation(virtualView.CameraLocation)
+			[nameof(ICameraView.CameraLocation)] = (handler, virtualView) => handler.cameraManager?.UpdateCameraLocation(virtualView.CameraLocation),
+			[nameof(ICameraView.SelectedCamera)] = (handler, virtualView) => handler.cameraManager?.UpdateSelectedCamera(virtualView.SelectedCamera)
 		};
 
 		public static CommandMapper<ICameraView, CameraViewHandler> CameraCommandMapper = new()
@@ -25,6 +26,8 @@ namespace ZXing.Net.Maui
 		CameraManager? cameraManager;
 
 		volatile ICameraView? _virtualView;
+
+		internal CameraManager? CameraManager => cameraManager;
 
 		public CameraViewHandler() : base(CameraViewMapper)
 		{
