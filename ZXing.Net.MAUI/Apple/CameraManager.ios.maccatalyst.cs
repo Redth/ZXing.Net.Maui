@@ -178,11 +178,6 @@ namespace ZXing.Net.Maui
 			var discoverySession = AVCaptureDeviceDiscoverySession.Create(CaptureDevices(), AVMediaTypes.Video, AVCaptureDevicePosition.Unspecified);
 			foreach (var device in discoverySession.Devices)
 			{
-				// Skip depth-only cameras (TrueDepth, LiDAR) as they're not suitable for barcode scanning
-				if (device.DeviceType == AVCaptureDeviceType.BuiltInTrueDepthCamera ||
-					device.DeviceType == AVCaptureDeviceType.BuiltInLiDarDepthCamera)
-					continue;
-				
 				var location = device.Position == AVCaptureDevicePosition.Front 
 					? CameraLocation.Front 
 					: CameraLocation.Rear;
