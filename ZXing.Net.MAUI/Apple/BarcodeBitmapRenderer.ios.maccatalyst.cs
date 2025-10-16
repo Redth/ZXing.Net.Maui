@@ -36,8 +36,8 @@ namespace ZXing.Net.Maui
 
 	internal class BarcodeBitmapRenderer : IBarcodeRenderer<UIImage>
 	{
-		public CGColor ForegroundColor { get; set; } = new CGColor(1.0f, 1.0f, 1.0f);
-		public CGColor BackgroundColor { get; set; } = new CGColor(0f, 0f, 0f);
+		public CGColor ForegroundColor { get; set; } = new CGColor(0f, 0f, 0f);
+		public CGColor BackgroundColor { get; set; } = new CGColor(1.0f, 1.0f, 1.0f);
 
 		public UIImage Render(BitMatrix matrix, ZXing.BarcodeFormat format, string content)
 			=> Render(matrix, format, content, new EncodingOptions());
@@ -54,14 +54,11 @@ namespace ZXing.Net.Maui
 			
 			renderer.CreateImage(context =>
 			{
-				var black = new CGColor(0f, 0f, 0f);
-				var white = new CGColor(1.0f, 1.0f, 1.0f);
-				
 				for (var x = 0; x < matrix.Width; x++)
 				{
 					for (var y = 0; y < matrix.Height; y++)
 					{
-						context.CGContext.SetFillColor(matrix[x, y] ? black : white);
+						context.CGContext.SetFillColor(matrix[x, y] ? ForegroundColor : BackgroundColor);
 						context.CGContext.FillRect(new CGRect(x, y, 1, 1));
 					}
 				}
