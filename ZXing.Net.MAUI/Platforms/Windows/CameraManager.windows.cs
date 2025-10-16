@@ -34,12 +34,6 @@
 #define FORCE_FRAMES_AT_PREVIEW_RESOLUTION
 
 using System;
-using Microsoft.Maui;
-using Microsoft.Maui.Handlers;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Maui.Controls.PlatformConfiguration;
-using static Microsoft.Maui.ApplicationModel.Permissions;
-using Microsoft.UI.Xaml.Controls;
 using System.Diagnostics;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
@@ -77,14 +71,17 @@ namespace ZXing.Net.Maui
 		//Active camera properties
 		string _currentMediaFrameSourceGroupId;
 		string _currentMediaFrameSourceInfoId;
+		string _lastUnloadedMediaFrameSourceGroupId = null;
 		private SoftwareBitmap _backBuffer;
-		private bool _taskRunning = false;
+		private volatile bool _taskRunning = false;
+		private volatile bool _colorFrameReaderHandlerRunning = false;
+		private volatile bool _colorFrameReaderHandlerAvailable = false;
 		private readonly DispatcherQueue _dispatcherQueueUI = DispatcherQueue.GetForCurrentThread();
 
 		//MediaCapture
 		private MediaCapture _mediaCapture;
 		private MediaFrameReader _mediaFrameReader;
-		private static readonly SemaphoreSlim _mediaCaptureLifeLock = new(1);
+		private static readonly SemaphoreSlim MediaCaptureLifeLock = new(1);
 
 		public NativePlatformCameraPreviewView CreateNativeView()
 		{
@@ -163,6 +160,7 @@ namespace ZXing.Net.Maui
 				//See https://learn.microsoft.com/en-us/dotnet/maui/user-interface/handlers/create#native-view-cleanup
 				//for an explanation of DisconnectHandler() behaviour.
 				_cameraPreview.Unloaded += CameraPreview_Unloaded;
+				_cameraPreview.Loaded += CameraPreview_Loaded;
 			}
 			return _cameraPreview;
 		}
@@ -196,7 +194,7 @@ namespace ZXing.Net.Maui
 
 		private static async Task ExecuteLockedAsync(Func<Task> handler)
 		{
-			await _mediaCaptureLifeLock.WaitAsync();
+			await MediaCaptureLifeLock.WaitAsync();
 
 			try
 			{
@@ -204,7 +202,7 @@ namespace ZXing.Net.Maui
 			}
 			finally
 			{
-				_mediaCaptureLifeLock.Release();
+				MediaCaptureLifeLock.Release();
 			}
 		}
 		#endregion
@@ -214,6 +212,9 @@ namespace ZXing.Net.Maui
 		{
 			await ExecuteLockedAsync(async () =>
 			{
+				//Connecting: forget any previously unloaded camera.
+				_lastUnloadedMediaFrameSourceGroupId = null;
+
 				await InitCameraUnlockedAsync();
 
 #if ENABLE_DEVICE_WATCHER
@@ -226,6 +227,9 @@ namespace ZXing.Net.Maui
 		{
 			await ExecuteLockedAsync(async () =>
 			{
+				//Disconnecting: forget any previously unloaded camera.
+				_lastUnloadedMediaFrameSourceGroupId = null;
+
 #if ENABLE_DEVICE_WATCHER
 				UnregisterWatcher(this);
 #endif
@@ -239,6 +243,12 @@ namespace ZXing.Net.Maui
 		{
 			await ExecuteLockedAsync(async () =>
 			{
+				if (!string.IsNullOrEmpty(_lastUnloadedMediaFrameSourceGroupId) && _lastUnloadedMediaFrameSourceGroupId.Equals(sourceGroupId))
+				{
+					//This cameraManager will be initialized in CameraPreview_Loaded handler.
+					return;
+				}
+
 				await InitCameraUnlockedAsync(sourceGroupId);
 			});
 		}
@@ -246,10 +256,7 @@ namespace ZXing.Net.Maui
 		//sourceGroupId is sent by the DeviceWatcher.
 		private async Task CleanupCameraAsync(string sourceGroupId = null)
 		{
-			await ExecuteLockedAsync(async () =>
-			{
-				await UninitCameraUnlockedAsync(sourceGroupId);
-			});
+			await ExecuteLockedAsync(async () => await UninitCameraUnlockedAsync(sourceGroupId));
 		}
 
 		//Initialize or update the camera, according to sourceGroupId parameter and CameraLocation property.
@@ -354,6 +361,7 @@ namespace ZXing.Net.Maui
 #else
 				_mediaFrameReader = await _mediaCapture.CreateFrameReaderAsync(selectedMediaFrameSource, MediaEncodingSubtypes.Bgra8);
 #endif
+				_colorFrameReaderHandlerAvailable = true;
 				_mediaFrameReader.FrameArrived += ColorFrameReader_FrameArrived;
 				await _mediaFrameReader.StartAsync();
 
@@ -375,6 +383,7 @@ namespace ZXing.Net.Maui
 			{
 				if (_mediaFrameReader != null)
 				{
+					_colorFrameReaderHandlerAvailable = false;
 					await _mediaFrameReader.StopAsync();
 					_mediaFrameReader.FrameArrived -= ColorFrameReader_FrameArrived;
 					_mediaFrameReader.Dispose();
@@ -388,13 +397,32 @@ namespace ZXing.Net.Maui
 				}
 				_currentMediaFrameSourceInfoId = null;
 				_currentMediaFrameSourceGroupId = null;
-				HidePreviewBitmap();
+				//Wait for and flush any pending 'ColorFrameReader_FrameArrived' event.
+				while (_colorFrameReaderHandlerRunning || _taskRunning)
+				{
+					await Task.Delay(1);
+				}
+				//Detach any valid SoftwareBitmap from imageSource, to avoid random and unexpected win32 exceptions
+				//(such as 0xC000027B) when recreating the camera manager, after unloading and reloading the _cameraPreview control.
+				//The crash may happen in multipage applications, such as those based upon Shell layout.
+				_backBuffer?.Dispose();
+				_backBuffer = null;
+				// When closing the application, this async handler may be called with invalid Application handle and
+				// _imageElement can throw 'System.Runtime.InteropServices.COMException' in WinRT.Runtime.dll.
+				if (Application.Current != null)
+				{
+					{
+						var imageSource = _imageElement?.Source as SoftwareBitmapSource;
+						await imageSource?.SetBitmapAsync(null);
+					}
+					HidePreviewBitmap();
+				}
 			}
 		}
 
 		//Returns the desired camera.
 		//sourceGroupId is sent by the DeviceWatcher.
-		private async static Task<MediaFrameSourceInfo> FindCameraAsync(string sourceGroupId, CameraLocation cameraLocation)
+		private static async Task<MediaFrameSourceInfo> FindCameraAsync(string sourceGroupId, CameraLocation cameraLocation)
 		{
 			var preferredPanelLocation = (cameraLocation == CameraLocation.Front) ?
 				Windows.Devices.Enumeration.Panel.Front :
@@ -405,31 +433,23 @@ namespace ZXing.Net.Maui
 			var selectionConditions = new List<Func<MediaFrameSourceInfo, bool>>()
 				{
 					(sourceInfo) => //Color, VideoPreview, PreferredPanelLocation
-					{
-						 return sourceInfo.SourceGroup != null
+							sourceInfo.SourceGroup != null
 							&& sourceInfo.SourceKind == MediaFrameSourceKind.Color
 							&& sourceInfo.MediaStreamType == MediaStreamType.VideoPreview
-							&& sourceInfo.DeviceInformation?.EnclosureLocation?.Panel == preferredPanelLocation;
-					},
+							&& sourceInfo.DeviceInformation?.EnclosureLocation?.Panel == preferredPanelLocation,
 					(sourceInfo) => //Color, VideoRecord, PreferredPanelLocation
-					{
-						 return sourceInfo.SourceGroup != null
+							sourceInfo.SourceGroup != null
 							&& sourceInfo.SourceKind == MediaFrameSourceKind.Color
 							&& sourceInfo.MediaStreamType == MediaStreamType.VideoRecord
-							&& sourceInfo.DeviceInformation?.EnclosureLocation?.Panel == preferredPanelLocation;
-					},
+							&& sourceInfo.DeviceInformation?.EnclosureLocation?.Panel == preferredPanelLocation,
 					(sourceInfo) => //Color, VideoPreview
-					{
-						 return sourceInfo.SourceGroup != null
+							sourceInfo.SourceGroup != null
 							&& sourceInfo.SourceKind == MediaFrameSourceKind.Color
-							&& sourceInfo.MediaStreamType == MediaStreamType.VideoPreview;
-					},
+							&& sourceInfo.MediaStreamType == MediaStreamType.VideoPreview,
 					(sourceInfo) => //Color, VideoRecord
-					{
-						 return sourceInfo.SourceGroup != null
+							sourceInfo.SourceGroup != null
 							&& sourceInfo.SourceKind == MediaFrameSourceKind.Color
-							&& sourceInfo.MediaStreamType == MediaStreamType.VideoRecord;
-					},
+							&& sourceInfo.MediaStreamType == MediaStreamType.VideoRecord,
 				};
 
 			try
@@ -480,7 +500,7 @@ namespace ZXing.Net.Maui
 
 		private async Task UpdateTorchAsync(bool on)
 		{
-			await _mediaCaptureLifeLock.WaitAsync();
+			await MediaCaptureLifeLock.WaitAsync();
 
 			try
 			{
@@ -500,13 +520,13 @@ namespace ZXing.Net.Maui
 			}
 			finally
 			{
-				_mediaCaptureLifeLock.Release();
+				MediaCaptureLifeLock.Release();
 			}
 		}
 
 		private async Task FocusAsync(Microsoft.Maui.Graphics.Point point)
 		{
-			await _mediaCaptureLifeLock.WaitAsync();
+			await MediaCaptureLifeLock.WaitAsync();
 
 			try
 			{
@@ -528,7 +548,7 @@ namespace ZXing.Net.Maui
 				};
 
 				await regionsOfInterestControl.ClearRegionsAsync();
-				await regionsOfInterestControl.SetRegionsAsync(new[] { roi });
+				await regionsOfInterestControl.SetRegionsAsync([roi]);
 
 				var focusControl = _mediaCapture?.VideoDeviceController?.FocusControl;
 				if (focusControl?.Supported ?? false)
@@ -560,13 +580,13 @@ namespace ZXing.Net.Maui
 			}
 			finally
 			{
-				_mediaCaptureLifeLock.Release();
+				MediaCaptureLifeLock.Release();
 			}
 		}
 
 		private async Task AutoFocusAsync()
 		{
-			await _mediaCaptureLifeLock.WaitAsync();
+			await MediaCaptureLifeLock.WaitAsync();
 
 			try
 			{
@@ -603,12 +623,12 @@ namespace ZXing.Net.Maui
 			}
 			finally
 			{
-				_mediaCaptureLifeLock.Release();
+				MediaCaptureLifeLock.Release();
 			}
 		}
 #endregion
 
-#region Preview bitmap visibility
+		#region Preview bitmap visibility
 		private void HidePreviewBitmap()
 		{
 #if ENABLE_CAMERA_PLACEHOLDER
@@ -624,14 +644,31 @@ namespace ZXing.Net.Maui
 #endif
 			_imageElement.Visibility = Microsoft.UI.Xaml.Visibility.Visible;
 		}
-#endregion
+		#endregion
 
-#region Event handlers
-		//Hack to call Disconnect() when closing the CameraManager owner, because,
-		//currently, DisconnectHandler() is not automatically called by Maui framework.
+		#region Event handlers
+		//Cleanup all camera resources when unloading the _cameraPreview element,
+		//otherwise the camera stream continuously generates frames also when this camera
+		//is temporarily hidden, for example when switching pages in Shell-based applications.
+		//Note: this handler is needed since DisconnectHandler() is not automatically called by
+		//Maui framework when closing the page owning this camera.
+		//See https://learn.microsoft.com/en-us/dotnet/maui/user-interface/handlers/create#native-view-cleanup
 		private void CameraPreview_Unloaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
 		{
-			Disconnect();
+			//Use CleanupCameraAsync instead of Disconnect to keep the DeviceWatcher alive. Only DisconnectHandler()
+			//will call Disconnect() to also detach the DeviceWatcher.
+			_lastUnloadedMediaFrameSourceGroupId = _currentMediaFrameSourceGroupId;
+			TryEnqueueUI(async () => await CleanupCameraAsync());
+		}
+
+		private void CameraPreview_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+		{
+			if (!string.IsNullOrEmpty(_lastUnloadedMediaFrameSourceGroupId))
+			{
+				string sourceGroupId = _lastUnloadedMediaFrameSourceGroupId;
+				_lastUnloadedMediaFrameSourceGroupId = null;
+				TryEnqueueUI(async () => await UpdateCameraAsync(sourceGroupId));
+			}
 		}
 
 		//Reset the camera in case of errors
@@ -645,99 +682,115 @@ namespace ZXing.Net.Maui
 		//Display the captured frame and send it to the registered FrameReady owner.
 		private void ColorFrameReader_FrameArrived(MediaFrameReader sender, MediaFrameArrivedEventArgs args)
 		{
-			var mediaFrameReference = sender.TryAcquireLatestFrame();
-			var videoMediaFrame = mediaFrameReference?.VideoMediaFrame;
-			var softwareBitmap = videoMediaFrame?.SoftwareBitmap;
-
-			if (softwareBitmap != null)
+			if (!_colorFrameReaderHandlerAvailable)
 			{
-				//Convert to Bgra8 Premultiplied softwareBitmap.
-				if (softwareBitmap.BitmapPixelFormat != Windows.Graphics.Imaging.BitmapPixelFormat.Bgra8 ||
-					softwareBitmap.BitmapAlphaMode != Windows.Graphics.Imaging.BitmapAlphaMode.Premultiplied)
-				{
-					softwareBitmap = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-				}
-
-				//Send bitmap to BarCodeReaderView/CameraView
-				FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(
-					new Readers.PixelBufferHolder
-					{
-						Data = softwareBitmap,
-						Size = new Microsoft.Maui.Graphics.Size(softwareBitmap.PixelWidth, softwareBitmap.PixelHeight)
-					}));
-
-				// Swap the processed frame to _backBuffer and dispose of the unused image.
-				softwareBitmap = Interlocked.Exchange(ref _backBuffer, softwareBitmap);
-				softwareBitmap?.Dispose();
-
-				// Changes to XAML ImageElement must happen on UI thread through Dispatcher
-				TryEnqueueUI(
-					async () =>
-					{
-						// Don't let two copies of this task run at the same time.
-						if (_taskRunning)
-						{
-							return;
-						}
-						_taskRunning = true;
-
-						// Keep draining frames from the backbuffer until the backbuffer is empty.
-						SoftwareBitmap latestBitmap;
-						while ((latestBitmap = Interlocked.Exchange(ref _backBuffer, null)) != null)
-						{
-							var imageSource = (SoftwareBitmapSource)_imageElement.Source;
-							await imageSource.SetBitmapAsync(latestBitmap);
-							latestBitmap.Dispose();
-						}
-
-						_taskRunning = false;
-					});
+				return;
 			}
 
-			mediaFrameReference?.Dispose();
+			_colorFrameReaderHandlerRunning = true;
+
+			try
+			{
+				var mediaFrameReference = sender.TryAcquireLatestFrame();
+				var videoMediaFrame = mediaFrameReference?.VideoMediaFrame;
+				var softwareBitmap = videoMediaFrame?.SoftwareBitmap;
+
+				if (softwareBitmap != null)
+				{
+					//Convert to Bgra8 Premultiplied softwareBitmap.
+					if (softwareBitmap.BitmapPixelFormat != Windows.Graphics.Imaging.BitmapPixelFormat.Bgra8 ||
+						softwareBitmap.BitmapAlphaMode != Windows.Graphics.Imaging.BitmapAlphaMode.Premultiplied)
+					{
+						softwareBitmap = SoftwareBitmap.Convert(softwareBitmap, BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
+					}
+
+					//Send bitmap to BarCodeReaderView/CameraView
+					FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(
+						new Readers.PixelBufferHolder
+						{
+							Data = softwareBitmap,
+							Size = new Microsoft.Maui.Graphics.Size(softwareBitmap.PixelWidth, softwareBitmap.PixelHeight)
+						}));
+
+					// Swap the processed frame to _backBuffer and dispose of the unused image.
+					softwareBitmap = Interlocked.Exchange(ref _backBuffer, softwareBitmap);
+					softwareBitmap?.Dispose();
+
+					// Changes to XAML ImageElement must happen on UI thread through Dispatcher
+					TryEnqueueUI(
+						async () =>
+						{
+							// Don't let two copies of this task run at the same time.
+							if (_taskRunning || !_colorFrameReaderHandlerAvailable)
+							{
+								return;
+							}
+							_taskRunning = true;
+
+							// Keep draining frames from the backbuffer until the backbuffer is empty.
+							SoftwareBitmap latestBitmap;
+							while (_colorFrameReaderHandlerAvailable && (latestBitmap = Interlocked.Exchange(ref _backBuffer, null)) != null)
+							{
+								var imageSource = (SoftwareBitmapSource)_imageElement.Source;
+								await imageSource.SetBitmapAsync(latestBitmap);
+								latestBitmap.Dispose();
+							}
+
+							_taskRunning = false;
+						});
+				}
+
+				mediaFrameReference?.Dispose();
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex.Message);
+			}
+
+			_colorFrameReaderHandlerRunning = false;
 		}
 #endregion
 
-#region DeviceWatcher
+		#region DeviceWatcher
 
 #if ENABLE_DEVICE_WATCHER
 		//Device Watcher
-		private static DeviceWatcher _watcher;
-		private static readonly List<CameraManager> _activeCameras = new();
-		private static readonly object _watcherLock = new();
+		private static DeviceWatcher s_watcher;
+		private static readonly List<CameraManager> ActiveCameras = [];
+		private static readonly Lock WatcherLock = new();
 
 		private static void RegisterWatcher(CameraManager cameraManager)
 		{
-			lock (_watcherLock)
+			lock (WatcherLock)
 			{
-				if (!_activeCameras.Contains(cameraManager))
+				if (!ActiveCameras.Contains(cameraManager))
 				{
-					_activeCameras.Add(cameraManager);
+					ActiveCameras.Add(cameraManager);
 				}
-				if (_watcher == null)
+				if (s_watcher == null)
 				{
 					var deviceSelector = MediaFrameSourceGroup.GetDeviceSelector();
-					_watcher = DeviceInformation.CreateWatcher(deviceSelector);
-					_watcher.Added += Watcher_Added;
-					_watcher.Removed += Watcher_Removed;
-					_watcher.Updated += Watcher_Updated;
-					_watcher.Start();
+					s_watcher = DeviceInformation.CreateWatcher(deviceSelector);
+					s_watcher.Added += Watcher_Added;
+					s_watcher.Removed += Watcher_Removed;
+					s_watcher.Updated += Watcher_Updated;
+					s_watcher.Start();
 				}
 			}
 		}
 
 		private static void UnregisterWatcher(CameraManager cameraManager)
 		{
-			lock (_watcherLock)
+			lock (WatcherLock)
 			{
-				_activeCameras.Remove(cameraManager);
-				if (_activeCameras.Count == 0 && (_watcher != null))
+				ActiveCameras.Remove(cameraManager);
+				if (ActiveCameras.Count == 0 && (s_watcher != null))
 				{
-					_watcher.Stop();
-					_watcher.Updated -= Watcher_Updated;
-					_watcher.Removed -= Watcher_Removed;
-					_watcher.Added -= Watcher_Added;
-					_watcher = null;
+					s_watcher.Stop();
+					s_watcher.Updated -= Watcher_Updated;
+					s_watcher.Removed -= Watcher_Removed;
+					s_watcher.Added -= Watcher_Added;
+					s_watcher = null;
 				}
 			}
 		}
@@ -747,11 +800,11 @@ namespace ZXing.Net.Maui
 		/// </summary>
 		private static void Watcher_Updated(DeviceWatcher sender, DeviceInformationUpdate args)
 		{
-			lock (_watcherLock)
+			lock (WatcherLock)
 			{
-				if (_watcher != null)
+				if (s_watcher != null)
 				{
-					foreach (var camera in _activeCameras)
+					foreach (var camera in ActiveCameras)
 					{
 						camera.UpdateDevice(args.Id);
 					}
@@ -764,11 +817,11 @@ namespace ZXing.Net.Maui
 		/// </summary>
 		private static void Watcher_Removed(DeviceWatcher sender, DeviceInformationUpdate args)
 		{
-			lock (_watcherLock)
+			lock (WatcherLock)
 			{
-				if (_watcher != null)
+				if (s_watcher != null)
 				{
-					foreach (var camera in _activeCameras)
+					foreach (var camera in ActiveCameras)
 					{
 						camera.RemoveDevice(args.Id);
 					}
@@ -781,11 +834,11 @@ namespace ZXing.Net.Maui
 		/// </summary>
 		private static void Watcher_Added(DeviceWatcher sender, DeviceInformation args)
 		{
-			lock (_watcherLock)
+			lock (WatcherLock)
 			{
-				if (_watcher != null)
+				if (s_watcher != null)
 				{
-					foreach (var camera in _activeCameras)
+					foreach (var camera in ActiveCameras)
 					{
 						camera.AddDevice(args.Id);
 					}
