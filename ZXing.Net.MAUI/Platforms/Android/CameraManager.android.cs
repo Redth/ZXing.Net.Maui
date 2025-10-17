@@ -1,4 +1,7 @@
 ﻿using System.Runtime.Versioning;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 using Android.Graphics;
 
@@ -90,15 +93,35 @@ namespace ZXing.Net.Maui
                 // Unbind use cases before rebinding
                 cameraProvider.UnbindAll();
 
-                var cameraLocation = CameraLocation;
-
-                // Select back camera as a default, or front camera otherwise
-                if (cameraLocation == CameraLocation.Rear && cameraProvider.HasCamera(CameraSelector.DefaultBackCamera))
-                    cameraSelector = CameraSelector.DefaultBackCamera;
-                else if (cameraLocation == CameraLocation.Front && cameraProvider.HasCamera(CameraSelector.DefaultFrontCamera))
-                    cameraSelector = CameraSelector.DefaultFrontCamera;
+                // If a specific camera is selected, use it
+                if (SelectedCamera != null)
+                {
+                    var availableCameraInfos = cameraProvider.AvailableCameraInfos;
+                    foreach (var cameraInfo in availableCameraInfos)
+                    {
+                        if (cameraInfo.CameraSelector != null)
+                        {
+                            var cameraId = cameraInfo.CameraSelector.ToString();
+                            if (cameraId == SelectedCamera.DeviceId)
+                            {
+                                cameraSelector = cameraInfo.CameraSelector;
+                                break;
+                            }
+                        }
+                    }
+                }
                 else
-                    cameraSelector = CameraSelector.DefaultBackCamera;
+                {
+                    var cameraLocation = CameraLocation;
+
+                    // Select back camera as a default, or front camera otherwise
+                    if (cameraLocation == CameraLocation.Rear && cameraProvider.HasCamera(CameraSelector.DefaultBackCamera))
+                        cameraSelector = CameraSelector.DefaultBackCamera;
+                    else if (cameraLocation == CameraLocation.Front && cameraProvider.HasCamera(CameraSelector.DefaultFrontCamera))
+                        cameraSelector = CameraSelector.DefaultFrontCamera;
+                    else
+                        cameraSelector = CameraSelector.DefaultBackCamera;
+                }
 
                 if (cameraSelector == null)
                     throw new System.Exception("Camera not found");
@@ -114,6 +137,35 @@ namespace ZXing.Net.Maui
                     camera = cameraProvider.BindToLifecycle(maLifecycleOwner, cameraSelector, cameraPreview, imageAnalyzer);
                 }
             }
+        }
+
+        public Task<IReadOnlyList<CameraInfo>> GetAvailableCameras()
+        {
+            var cameras = new List<CameraInfo>();
+
+            if (cameraProvider != null)
+            {
+                var availableCameraInfos = cameraProvider.AvailableCameraInfos;
+                var index = 0;
+                foreach (var cameraInfo in availableCameraInfos)
+                {
+                    if (cameraInfo.CameraSelector != null)
+                    {
+                        var lensFacing = cameraInfo.LensFacing;
+                        var location = lensFacing == CameraSelector.LensFacingFront 
+                            ? CameraLocation.Front 
+                            : CameraLocation.Rear;
+                        
+                        var cameraId = cameraInfo.CameraSelector.ToString();
+                        var name = $"Camera {index} ({(location == CameraLocation.Front ? "Front" : "Rear")})";
+                        
+                        cameras.Add(new CameraInfo(cameraId, name, location));
+                        index++;
+                    }
+                }
+            }
+
+            return Task.FromResult<IReadOnlyList<CameraInfo>>(cameras);
         }
 
         public void UpdateTorch(bool on)

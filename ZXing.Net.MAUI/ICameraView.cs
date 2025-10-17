@@ -12,6 +12,8 @@ namespace ZXing.Net.Maui
 	{
 		CameraLocation CameraLocation { get; set; }
 
+		CameraInfo SelectedCamera { get; set; }
+
 		//CameraMode Mode { get; set; }
 
 		void AutoFocus();
