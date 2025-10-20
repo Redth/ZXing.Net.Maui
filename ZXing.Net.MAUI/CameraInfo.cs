@@ -2,9 +2,9 @@ namespace ZXing.Net.Maui
 {
 	public class CameraInfo
 	{
-		public string DeviceId { get; set; }
-		public string Name { get; set; }
-		public CameraLocation Location { get; set; }
+		public string DeviceId { get; private set; }
+		public string Name { get; private set; }
+		public CameraLocation Location { get; private set; }
 
 		public CameraInfo(string deviceId, string name, CameraLocation location)
 		{
