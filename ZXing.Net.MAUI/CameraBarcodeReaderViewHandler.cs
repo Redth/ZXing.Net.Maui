@@ -17,7 +17,8 @@ namespace ZXing.Net.Maui
             [nameof(ICameraBarcodeReaderView.Options)] = MapOptions,
             [nameof(ICameraBarcodeReaderView.IsDetecting)] = MapIsDetecting,
             [nameof(ICameraBarcodeReaderView.IsTorchOn)] = (handler, virtualView) => handler.cameraManager?.UpdateTorch(virtualView.IsTorchOn),
-            [nameof(ICameraBarcodeReaderView.CameraLocation)] = (handler, virtualView) => handler.cameraManager?.UpdateCameraLocation(virtualView.CameraLocation)
+            [nameof(ICameraBarcodeReaderView.CameraLocation)] = (handler, virtualView) => handler.cameraManager?.UpdateCameraLocation(virtualView.CameraLocation),
+            [nameof(ICameraBarcodeReaderView.SelectedCamera)] = (handler, virtualView) => handler.cameraManager?.UpdateSelectedCamera(virtualView.SelectedCamera)
         };
 
         public static CommandMapper<ICameraBarcodeReaderView, CameraBarcodeReaderViewHandler> CameraBarcodeReaderCommandMapper = new()
@@ -120,6 +121,15 @@ namespace ZXing.Net.Maui
 
         public void AutoFocus()
             => cameraManager?.AutoFocus();
+
+        public async System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<CameraInfo>> GetAvailableCamerasAsync()
+        {
+            if (cameraManager != null)
+            {
+                return await cameraManager.GetAvailableCameras();
+            }
+            return new System.Collections.Generic.List<CameraInfo>();
+        }
 
         public static void MapFocus(CameraBarcodeReaderViewHandler handler, ICameraBarcodeReaderView cameraBarcodeReaderView, object? parameter)
         {

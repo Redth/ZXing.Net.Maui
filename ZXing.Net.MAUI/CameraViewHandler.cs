@@ -13,7 +13,8 @@ namespace ZXing.Net.Maui
 		public static PropertyMapper<ICameraView, CameraViewHandler> CameraViewMapper = new()
 		{
 			[nameof(ICameraView.IsTorchOn)] = (handler, virtualView) => handler.cameraManager?.UpdateTorch(virtualView.IsTorchOn),
-			[nameof(ICameraView.CameraLocation)] = (handler, virtualView) => handler.cameraManager?.UpdateCameraLocation(virtualView.CameraLocation)
+			[nameof(ICameraView.CameraLocation)] = (handler, virtualView) => handler.cameraManager?.UpdateCameraLocation(virtualView.CameraLocation),
+			[nameof(ICameraView.SelectedCamera)] = (handler, virtualView) => handler.cameraManager?.UpdateSelectedCamera(virtualView.SelectedCamera)
 		};
 
 		public static CommandMapper<ICameraView, CameraViewHandler> CameraCommandMapper = new()
@@ -85,6 +86,16 @@ namespace ZXing.Net.Maui
 
 		public void AutoFocus()
 			=> cameraManager?.AutoFocus();
+
+		// TODO: duplicated in CameraBarcodeReaderViewHandler, we should fix that
+		public async System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<CameraInfo>> GetAvailableCamerasAsync()
+		{
+			if (cameraManager != null)
+			{
+				return await cameraManager.GetAvailableCameras();
+			}
+			return new System.Collections.Generic.List<CameraInfo>();
+		}
 
 		public static void MapFocus(CameraViewHandler handler, ICameraView cameraBarcodeReaderView, object? parameter)
 		{

@@ -183,6 +183,8 @@ namespace ZXing.Net.Maui
 
 		public void AutoFocus() => TryEnqueueUI(async () => await AutoFocusAsync());
 
+		public async Task<IReadOnlyList<CameraInfo>> GetAvailableCameras() => await GetAvailableCamerasAsync();
+
 		public void Dispose() { }
 		#endregion
 
@@ -278,7 +280,17 @@ namespace ZXing.Net.Maui
 				}
 
 				//Look for the specified camera.
-				var camera = await FindCameraAsync(sourceGroupId, CameraLocation);
+				MediaFrameSourceInfo camera;
+				if (SelectedCamera != null)
+				{
+					// Find camera by device ID
+					camera = await FindCameraByDeviceIdAsync(SelectedCamera.DeviceId);
+				}
+				else
+				{
+					camera = await FindCameraAsync(sourceGroupId, CameraLocation);
+				}
+
 				if (camera == null)
 				{
 					//Got an error or the camera is not connected; release any allocated resource and return.
@@ -496,6 +508,73 @@ namespace ZXing.Net.Maui
 			}
 
 			return null;
+		}
+
+		//Returns the camera with the specified device ID.
+		private async static Task<MediaFrameSourceInfo> FindCameraByDeviceIdAsync(string deviceId)
+		{
+			try
+			{
+				var mediaFrameSourceGroups = await MediaFrameSourceGroup.FindAllAsync();
+				foreach (var group in mediaFrameSourceGroups)
+				{
+					foreach (var sourceInfo in group.SourceInfos)
+					{
+						if (sourceInfo.SourceGroup != null
+							&& sourceInfo.SourceKind == MediaFrameSourceKind.Color
+							&& sourceInfo.DeviceInformation?.Id == deviceId)
+						{
+							return sourceInfo;
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
+			}
+
+			return null;
+		}
+
+		//Returns all available cameras.
+		private async static Task<IReadOnlyList<CameraInfo>> GetAvailableCamerasAsync()
+		{
+			var cameras = new List<CameraInfo>();
+
+			try
+			{
+				var mediaFrameSourceGroups = await MediaFrameSourceGroup.FindAllAsync();
+				foreach (var group in mediaFrameSourceGroups)
+				{
+					foreach (var sourceInfo in group.SourceInfos)
+					{
+						if (sourceInfo.SourceGroup != null
+							&& sourceInfo.SourceKind == MediaFrameSourceKind.Color
+							&& sourceInfo.DeviceInformation != null)
+						{
+							var deviceInfo = sourceInfo.DeviceInformation;
+							var location = deviceInfo.EnclosureLocation?.Panel == Windows.Devices.Enumeration.Panel.Front
+								? CameraLocation.Front
+								: CameraLocation.Rear;
+
+							var name = deviceInfo.Name ?? $"Camera ({(location == CameraLocation.Front ? "Front" : "Rear")})";
+
+							// Avoid duplicates by checking if we already have this device
+							if (!cameras.Any(c => c.DeviceId == deviceInfo.Id))
+							{
+								cameras.Add(new CameraInfo(deviceInfo.Id, name, location));
+							}
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
+			}
+
+			return cameras;
 		}
 
 		private async Task UpdateTorchAsync(bool on)

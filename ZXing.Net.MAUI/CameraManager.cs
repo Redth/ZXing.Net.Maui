@@ -1,6 +1,7 @@
 ﻿using Microsoft.Maui;
 using Microsoft.Maui.ApplicationModel;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ZXing.Net.Maui
@@ -20,10 +21,23 @@ namespace ZXing.Net.Maui
 #pragma warning restore CS0067
 
 		public CameraLocation CameraLocation { get; private set; }
+		public CameraInfo SelectedCamera { get; private set; }
 
 		public void UpdateCameraLocation(CameraLocation cameraLocation)
 		{
 			CameraLocation = cameraLocation;
+			SelectedCamera = null;
+
+			UpdateCamera();
+		}
+
+		public void UpdateSelectedCamera(CameraInfo cameraInfo)
+		{
+			SelectedCamera = cameraInfo;
+			if (cameraInfo != null)
+			{
+				CameraLocation = cameraInfo.Location;
+			}
 
 			UpdateCamera();
 		}

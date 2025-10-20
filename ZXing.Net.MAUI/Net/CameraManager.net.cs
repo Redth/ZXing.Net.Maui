@@ -37,6 +37,12 @@ namespace ZXing.Net.Maui
         public void Dispose()
             => LogUnsupported();
 
+        public Task<IReadOnlyList<CameraInfo>> GetAvailableCameras()
+        {
+            LogUnsupported();
+            return Task.FromResult<IReadOnlyList<CameraInfo>>(new List<CameraInfo>());
+        }
+
         void LogUnsupported()
             => Debug.WriteLine("Camera preview is not supported on this platform.");
     }

@@ -7,6 +7,7 @@ using Foundation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using UIKit;
 using MSize = Microsoft.Maui.Graphics.Size;
 
@@ -106,24 +107,67 @@ namespace ZXing.Net.Maui
 					captureDevice = null;
 				}
 
-				var discoverySession = AVCaptureDeviceDiscoverySession.Create(CaptureDevices(), AVMediaTypes.Video, AVCaptureDevicePosition.Unspecified);
-				foreach (var device in discoverySession.Devices)
+				// If a specific camera is selected, use it
+				if (SelectedCamera != null)
 				{
-					if (CameraLocation == CameraLocation.Front &&
-						device.Position == AVCaptureDevicePosition.Front)
+					captureDevice = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
+					var discoverySession = AVCaptureDeviceDiscoverySession.Create(CaptureDevices(), AVMediaTypes.Video, AVCaptureDevicePosition.Unspecified);
+					foreach (var device in discoverySession.Devices)
 					{
-						captureDevice = device;
-						break;
-					}
-					else if (CameraLocation == CameraLocation.Rear && device.Position == AVCaptureDevicePosition.Back)
-					{
-						captureDevice = device;
-						break;
+						if (device.UniqueID == SelectedCamera.DeviceId)
+						{
+							captureDevice = device;
+							break;
+						}
 					}
 				}
+				else
+				{
+					var discoverySession = AVCaptureDeviceDiscoverySession.Create(CaptureDevices(), AVMediaTypes.Video, AVCaptureDevicePosition.Unspecified);
+					
+					// Prioritize cameras suitable for barcode scanning
+					AVCaptureDevice selectedDevice = null;
+					AVCaptureDevice fallbackDevice = null;
+					
+					foreach (var device in discoverySession.Devices)
+					{
+						// Skip depth-only cameras (TrueDepth, LiDAR) as they're not suitable for barcode scanning
+						if (device.DeviceType == AVCaptureDeviceType.BuiltInTrueDepthCamera ||
+							device.DeviceType == AVCaptureDeviceType.BuiltInLiDarDepthCamera)
+							continue;
+						
+						var isCorrectPosition = (CameraLocation == CameraLocation.Front && device.Position == AVCaptureDevicePosition.Front) ||
+												(CameraLocation == CameraLocation.Rear && device.Position == AVCaptureDevicePosition.Back);
+						
+						if (isCorrectPosition)
+						{
+							// Prefer multi-camera systems (Dual, Triple, DualWide) - these are the main cameras on modern iPhones
+							if (device.DeviceType == AVCaptureDeviceType.BuiltInDualCamera ||
+								device.DeviceType == AVCaptureDeviceType.BuiltInTripleCamera ||
+								device.DeviceType == AVCaptureDeviceType.BuiltInDualWideCamera)
+							{
+								selectedDevice = device;
+								break; // Multi-camera systems are ideal for barcode scanning
+							}
+							// Wide-angle is a good standard camera
+							else if (device.DeviceType == AVCaptureDeviceType.BuiltInWideAngleCamera && selectedDevice == null)
+							{
+								selectedDevice = device;
+							}
+							// Avoid ultra-wide and telephoto, but keep as last resort fallback
+							else if (fallbackDevice == null)
+							{
+								fallbackDevice = device;
+							}
+						}
+					}
+					
+					// Use selected device, or fallback if nothing better was found
+					captureDevice = selectedDevice ?? fallbackDevice;
 
-				if (captureDevice == null)
-					captureDevice = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
+					if (captureDevice == null)
+						captureDevice = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
+				}
 
 				if (captureDevice is null)
 					return;
@@ -134,6 +178,25 @@ namespace ZXing.Net.Maui
 
 				captureSession.StartRunning();
 			}
+		}
+
+		public Task<IReadOnlyList<CameraInfo>> GetAvailableCameras()
+		{
+			var cameras = new List<CameraInfo>();
+
+			var discoverySession = AVCaptureDeviceDiscoverySession.Create(CaptureDevices(), AVMediaTypes.Video, AVCaptureDevicePosition.Unspecified);
+			foreach (var device in discoverySession.Devices)
+			{
+				var location = device.Position == AVCaptureDevicePosition.Front 
+					? CameraLocation.Front 
+					: CameraLocation.Rear;
+				
+				var name = device.LocalizedName ?? $"Camera ({(location == CameraLocation.Front ? "Front" : "Rear")})";
+				
+				cameras.Add(new CameraInfo(device.UniqueID, name, location));
+			}
+
+			return Task.FromResult<IReadOnlyList<CameraInfo>>(cameras);
 		}
 
 

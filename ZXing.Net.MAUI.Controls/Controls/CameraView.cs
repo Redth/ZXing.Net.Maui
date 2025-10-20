@@ -1,6 +1,8 @@
 ﻿using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace ZXing.Net.Maui.Controls
 {
@@ -29,11 +31,30 @@ namespace ZXing.Net.Maui.Controls
 			set => SetValue(CameraLocationProperty, value);
 		}
 
+		public static readonly BindableProperty SelectedCameraProperty =
+			BindableProperty.Create(nameof(SelectedCamera), typeof(CameraInfo), typeof(CameraView), defaultValue: null);
+
+		public CameraInfo SelectedCamera
+		{
+			get => (CameraInfo)GetValue(SelectedCameraProperty);
+			set => SetValue(SelectedCameraProperty, value);
+		}
+
 		public void AutoFocus()
 			=> StrongHandler?.Invoke(nameof(AutoFocus), null);
 
 		public void Focus(Point point)
 			=> StrongHandler?.Invoke(nameof(Focus), point);
+
+		public async Task<IReadOnlyList<CameraInfo>> GetAvailableCameras()
+		{
+			var handler = StrongHandler;
+			if (handler != null)
+			{
+				return await handler.GetAvailableCamerasAsync();
+			}
+			return new List<CameraInfo>();
+		}
 
 		CameraViewHandler StrongHandler
 			=> Handler as CameraViewHandler;
