@@ -8,13 +8,15 @@ namespace ZXing.Net.Maui
 {
 	internal partial class CameraManager : IDisposable
 	{
-		public CameraManager(IMauiContext context, CameraLocation cameraLocation)
+		public CameraManager(IMauiContext context, CameraLocation cameraLocation, BarcodeReaderOptions options = null)
 		{
 			Context = context;
 			CameraLocation = cameraLocation;
+			Options = options ?? new BarcodeReaderOptions();
 		}
 
 		protected readonly IMauiContext Context;
+		protected BarcodeReaderOptions Options { get; private set; }
 
 #pragma warning disable CS0067
 		public event EventHandler<CameraFrameBufferEventArgs> FrameReady;
@@ -39,6 +41,12 @@ namespace ZXing.Net.Maui
 				CameraLocation = cameraInfo.Location;
 			}
 
+			UpdateCamera();
+		}
+
+		public void UpdateOptions(BarcodeReaderOptions options)
+		{
+			Options = options ?? new BarcodeReaderOptions();
 			UpdateCamera();
 		}
 
