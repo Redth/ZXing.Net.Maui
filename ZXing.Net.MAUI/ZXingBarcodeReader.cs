@@ -22,11 +22,7 @@
 				zxingReader.AutoRotate = options.AutoRotate;
 				zxingReader.Options.TryInverted = options.TryInverted;
 				zxingReader.Options.UseCode39ExtendedMode = options.UseCode39ExtendedMode;
-
-				if (!string.IsNullOrEmpty(options.CharacterSet))
-				{
-					zxingReader.Options.CharacterSet = options.CharacterSet;
-				}
+				zxingReader.Options.CharacterSet = options.CharacterSet;
 			}
 		}
 

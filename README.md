@@ -77,12 +77,12 @@ cameraBarcodeReaderView.Options = new BarcodeReaderOptions
 };
 ```
 
-For QR codes with international characters (e.g., £, €, ¥, or non-Latin scripts), specify the character encoding:
+QR codes with international characters (e.g., £, €, ¥, or non-Latin scripts) are supported by default with UTF-8 encoding. You can override this if needed:
 ```csharp
 cameraBarcodeReaderView.Options = new BarcodeReaderOptions
 {
   Formats = BarcodeFormats.TwoDimensional,
-  CharacterSet = "UTF-8"
+  CharacterSet = "ISO-8859-1"  // Override default UTF-8 if needed
 };
 ```
 

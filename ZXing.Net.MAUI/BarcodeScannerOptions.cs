@@ -15,7 +15,7 @@
 
 		public bool UseCode39ExtendedMode { get; init; }
 
-		public string CharacterSet { get; init; }
+		public string CharacterSet { get; init; } = "UTF-8";
 
     }
 }
