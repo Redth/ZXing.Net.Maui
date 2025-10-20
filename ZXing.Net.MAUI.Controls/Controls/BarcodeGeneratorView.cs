@@ -66,7 +66,7 @@ namespace ZXing.Net.Maui.Controls
 		/// <returns>The generated barcode image, or null if the value is empty</returns>
 		public async Task<NativePlatformImage?> GenerateBarcodeAsync()
 		{
-			// Use WidthRequest/HeightRequest or default to 300x300 if not set
+			// Use WidthRequest/HeightRequest or default to 300x300 if not set (WidthRequest defaults to -1)
 			var width = WidthRequest > 0 ? (int)WidthRequest : 300;
 			var height = HeightRequest > 0 ? (int)HeightRequest : 300;
 
