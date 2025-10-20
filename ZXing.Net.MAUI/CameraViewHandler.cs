@@ -87,6 +87,7 @@ namespace ZXing.Net.Maui
 		public void AutoFocus()
 			=> cameraManager?.AutoFocus();
 
+		// TODO: duplicated in CameraBarcodeReaderViewHandler, we should fix that
 		public async System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<CameraInfo>> GetAvailableCamerasAsync()
 		{
 			if (cameraManager != null)
