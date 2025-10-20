@@ -77,6 +77,15 @@ cameraBarcodeReaderView.Options = new BarcodeReaderOptions
 };
 ```
 
+For QR codes with international characters (e.g., £, €, ¥, or non-Latin scripts), specify the character encoding:
+```csharp
+cameraBarcodeReaderView.Options = new BarcodeReaderOptions
+{
+  Formats = BarcodeFormats.TwoDimensional,
+  CharacterSet = "UTF-8"
+};
+```
+
 Toggle Torch
 ```csharp
 cameraBarcodeReaderView.IsTorchOn = !cameraBarcodeReaderView.IsTorchOn;
