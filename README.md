@@ -292,5 +292,34 @@ public async Task GenerateAndSaveBarcodeAsync()
 }
 ```
 
+### Saving from BarcodeGeneratorView
+
+You can also generate and save a barcode image directly from a `BarcodeGeneratorView` control:
+
+```csharp
+// In your XAML
+<zxing:BarcodeGeneratorView 
+    x:Name="barcodeView"
+    HeightRequest="300"
+    WidthRequest="300"
+    Value="https://dotnet.microsoft.com"
+    Format="QrCode" />
+
+<Button Text="Save Barcode" Clicked="OnSaveClicked" />
+
+// In your code-behind
+private async void OnSaveClicked(object sender, EventArgs e)
+{
+    var barcode = await barcodeView.GenerateBarcodeAsync();
+    
+    if (barcode != null)
+    {
+        var filePath = Path.Combine(FileSystem.AppDataDirectory, "barcode.png");
+        await barcode.SaveAsync(filePath);
+        await DisplayAlert("Success", $"Barcode saved to {filePath}", "OK");
+    }
+}
+```
+
 
 

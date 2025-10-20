@@ -1,5 +1,6 @@
 ﻿using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
+using System.Threading.Tasks;
 
 namespace ZXing.Net.Maui.Controls
 {
@@ -57,6 +58,26 @@ namespace ZXing.Net.Maui.Controls
 		{
 			get => (string)GetValue(CharacterSetProperty);
 			set => SetValue(CharacterSetProperty, value);
+		}
+
+		/// <summary>
+		/// Generates a barcode image from the current view settings
+		/// </summary>
+		/// <returns>The generated barcode image, or null if the value is empty</returns>
+		public async Task<NativePlatformImage?> GenerateBarcodeAsync()
+		{
+			var generator = new BarcodeGenerator
+			{
+				Format = Format,
+				ForegroundColor = ForegroundColor,
+				BackgroundColor = BackgroundColor,
+				Width = (int)Width,
+				Height = (int)Height,
+				Margin = BarcodeMargin,
+				CharacterSet = CharacterSet
+			};
+
+			return await generator.GenerateAsync(Value);
 		}
 	}
 }
