@@ -15,5 +15,7 @@
 
 		public bool UseCode39ExtendedMode { get; init; }
 
+		public string CharacterSet { get; init; }
+
     }
 }
