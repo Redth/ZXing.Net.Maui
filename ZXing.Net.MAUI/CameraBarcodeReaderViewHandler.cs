@@ -124,6 +124,8 @@ namespace ZXing.Net.Maui
 
         public static async void MapVisibility(CameraBarcodeReaderViewHandler handler, ICameraBarcodeReaderView cameraBarcodeReaderView)
         {
+            // Note: async void is required here because PropertyMapper requires void return type
+            // Exception handling is added to prevent unhandled exceptions
             try
             {
                 // When visibility changes, we need to update the camera state
@@ -145,8 +147,8 @@ namespace ZXing.Net.Maui
             }
             catch (Exception ex)
             {
-                // Log or handle the exception as needed
-                System.Diagnostics.Debug.WriteLine($"Error updating camera visibility: {ex}");
+                // Log the exception - this prevents crashes from unhandled async void exceptions
+                System.Diagnostics.Debug.WriteLine($"Error in MapVisibility while updating camera state: {ex.Message}");
             }
         }
 
