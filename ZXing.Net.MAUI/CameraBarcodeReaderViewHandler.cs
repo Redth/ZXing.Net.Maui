@@ -124,21 +124,29 @@ namespace ZXing.Net.Maui
 
         public static async void MapVisibility(CameraBarcodeReaderViewHandler handler, ICameraBarcodeReaderView cameraBarcodeReaderView)
         {
-            // When visibility changes, we need to update the camera state
-            if (cameraBarcodeReaderView is IView view)
+            try
             {
-                if (view.Visibility == Visibility.Visible && handler._isConnected)
+                // When visibility changes, we need to update the camera state
+                if (cameraBarcodeReaderView is IView view)
                 {
-                    // View became visible and camera is connected - rebind camera
-                    // This ensures the camera preview works even if the view started invisible
-                    if (handler.cameraManager != null)
+                    if (view.Visibility == Visibility.Visible && handler._isConnected)
                     {
-                        if (await CameraManager.CheckPermissions())
+                        // View became visible and camera is connected - rebind camera
+                        // This ensures the camera preview works even if the view started invisible
+                        if (handler.cameraManager != null)
                         {
-                            handler.cameraManager.UpdateCamera();
+                            if (await CameraManager.CheckPermissions())
+                            {
+                                handler.cameraManager.UpdateCamera();
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                // Log or handle the exception as needed
+                System.Diagnostics.Debug.WriteLine($"Error updating camera visibility: {ex}");
             }
         }
 
