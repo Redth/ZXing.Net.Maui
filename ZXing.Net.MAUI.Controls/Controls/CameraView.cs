@@ -2,10 +2,15 @@
 using Microsoft.Maui.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace ZXing.Net.Maui.Controls
 {
+	/// <summary>
+	/// A MAUI view for camera preview functionality.
+	/// This class is trimmer-safe through the bindable property system.
+	/// </summary>
 	public partial class CameraView : View, ICameraView
 	{
 		public event EventHandler<CameraFrameBufferEventArgs> FrameReady;

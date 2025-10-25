@@ -2,10 +2,15 @@
 using Microsoft.Maui.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace ZXing.Net.Maui.Controls
 {
+	/// <summary>
+	/// A MAUI view for camera-based barcode scanning.
+	/// This class is trimmer-safe through the bindable property system.
+	/// </summary>
 	public partial class CameraBarcodeReaderView : View, ICameraBarcodeReaderView
 	{
 		public event EventHandler<BarcodeDetectionEventArgs> BarcodesDetected;

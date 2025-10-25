@@ -18,6 +18,9 @@
 		<DebugType>portable</DebugType>
 		<OutputType>Library</OutputType>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<!-- Enable trimming support and indicate library is trim-safe -->
+		<IsTrimmable>true</IsTrimmable>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="ZXing.Net" Version="0.16.10" />
