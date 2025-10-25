@@ -162,7 +162,7 @@ The `CharacterSet` property defaults to "UTF-8" if not specified. Other common v
 
 If your app crashes when opening the scanner in release builds but works fine in debug builds, this is likely due to aggressive code trimming by the .NET linker.
 
-**This library is now trimmer-safe** (as of version X.X.X) and includes the necessary `[DynamicDependency]` attributes to preserve required code during trimming.
+**This library is now trimmer-safe** and includes the necessary `[DynamicDependency]` attributes to preserve required code during trimming.
 
 If you're still experiencing issues:
 
