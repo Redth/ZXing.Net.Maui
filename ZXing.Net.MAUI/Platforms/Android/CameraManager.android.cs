@@ -88,6 +88,7 @@ namespace ZXing.Net.Maui
 
         public void UpdateCamera()
         {
+            // Only update camera if provider is initialized (i.e., Connect() was called and permissions were granted)
             if (_cameraProvider != null)
             {
                 // Unbind use cases before rebinding
@@ -170,6 +171,7 @@ namespace ZXing.Net.Maui
 
         public void UpdateTorch(bool on)
         {
+            // Only update torch if camera is initialized (i.e., Connect() was called and permissions were granted)
             _camera?.CameraControl?.EnableTorch(on);
         }
 

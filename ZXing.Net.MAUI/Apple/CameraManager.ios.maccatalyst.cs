@@ -87,6 +87,7 @@ namespace ZXing.Net.Maui
 
 		public void UpdateCamera()
 		{
+			// Only update camera if capture session is initialized (i.e., Connect() was called and permissions were granted)
 			if (captureSession != null)
 			{
 				if (captureSession.Running)
