@@ -6,14 +6,8 @@ namespace ZXing.Net.Maui.Controls
 {
 	/// <summary>
 	/// A MAUI view for generating barcode images.
-	/// This class is trimmer-safe with appropriate DynamicDependency attributes.
+	/// This class is trimmer-safe through the bindable property system.
 	/// </summary>
-	[DynamicDependency(nameof(Format))]
-	[DynamicDependency(nameof(Value))]
-	[DynamicDependency(nameof(ForegroundColor))]
-	[DynamicDependency(nameof(BackgroundColor))]
-	[DynamicDependency(nameof(BarcodeMargin))]
-	[DynamicDependency(nameof(CharacterSet))]
 	public partial class BarcodeGeneratorView : View, IBarcodeGeneratorView
 	{
 		public static readonly BindableProperty FormatProperty =

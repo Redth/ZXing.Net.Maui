@@ -9,11 +9,8 @@ namespace ZXing.Net.Maui.Controls
 {
 	/// <summary>
 	/// A MAUI view for camera preview functionality.
-	/// This class is trimmer-safe with appropriate DynamicDependency attributes.
+	/// This class is trimmer-safe through the bindable property system.
 	/// </summary>
-	[DynamicDependency(nameof(IsTorchOn))]
-	[DynamicDependency(nameof(CameraLocation))]
-	[DynamicDependency(nameof(SelectedCamera))]
 	public partial class CameraView : View, ICameraView
 	{
 		public event EventHandler<CameraFrameBufferEventArgs> FrameReady;

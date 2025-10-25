@@ -9,13 +9,8 @@ namespace ZXing.Net.Maui.Controls
 {
 	/// <summary>
 	/// A MAUI view for camera-based barcode scanning.
-	/// This class is trimmer-safe with appropriate DynamicDependency attributes.
+	/// This class is trimmer-safe through the bindable property system.
 	/// </summary>
-	[DynamicDependency(nameof(Options))]
-	[DynamicDependency(nameof(IsDetecting))]
-	[DynamicDependency(nameof(IsTorchOn))]
-	[DynamicDependency(nameof(CameraLocation))]
-	[DynamicDependency(nameof(SelectedCamera))]
 	public partial class CameraBarcodeReaderView : View, ICameraBarcodeReaderView
 	{
 		public event EventHandler<BarcodeDetectionEventArgs> BarcodesDetected;

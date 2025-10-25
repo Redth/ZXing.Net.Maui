@@ -14,9 +14,6 @@ namespace ZXing.Net.Maui
 	/// Handler for BarcodeGeneratorView that generates barcode images.
 	/// This handler is trimmer-safe with appropriate DynamicDependency attributes.
 	/// </summary>
-	[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(BarcodeGeneratorViewHandler))]
-	[DynamicDependency(nameof(BarcodeGeneratorViewMapper))]
-	[DynamicDependency(nameof(MapUpdateBarcode))]
 	public partial class BarcodeGeneratorViewHandler : ViewHandler<IBarcodeGeneratorView, NativePlatformImageView>
 	{
 		Size desiredSize;
@@ -32,11 +29,17 @@ namespace ZXing.Net.Maui
 			[nameof(IBarcodeGeneratorView.CharacterSet)] = MapUpdateBarcode,
 		};
 
+		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(BarcodeGeneratorViewHandler))]
+		[DynamicDependency(nameof(BarcodeGeneratorViewMapper))]
+		[DynamicDependency(nameof(MapUpdateBarcode))]
 		public BarcodeGeneratorViewHandler() : base(BarcodeGeneratorViewMapper)
 		{
 			writer = new BarcodeWriter();
 		}
 
+		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(BarcodeGeneratorViewHandler))]
+		[DynamicDependency(nameof(BarcodeGeneratorViewMapper))]
+		[DynamicDependency(nameof(MapUpdateBarcode))]
 		public BarcodeGeneratorViewHandler(PropertyMapper? mapper = null) : base(mapper ?? BarcodeGeneratorViewMapper)
 		{
 			writer = new BarcodeWriter();
