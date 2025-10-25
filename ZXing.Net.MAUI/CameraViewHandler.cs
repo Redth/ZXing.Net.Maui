@@ -2,12 +2,22 @@
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Versioning;
 
 #nullable enable
 
 namespace ZXing.Net.Maui
 {
+	/// <summary>
+	/// Handler for CameraView that manages camera preview functionality.
+	/// This handler is trimmer-safe with appropriate DynamicDependency attributes.
+	/// </summary>
+	[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraViewHandler))]
+	[DynamicDependency(nameof(CameraViewMapper))]
+	[DynamicDependency(nameof(CameraCommandMapper))]
+	[DynamicDependency(nameof(MapFocus))]
+	[DynamicDependency(nameof(MapAutoFocus))]
 	public partial class CameraViewHandler : ViewHandler<ICameraView, NativePlatformCameraPreviewView>
 	{
 		public static PropertyMapper<ICameraView, CameraViewHandler> CameraViewMapper = new()

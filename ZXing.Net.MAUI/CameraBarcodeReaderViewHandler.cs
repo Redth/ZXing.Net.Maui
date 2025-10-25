@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Versioning;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,17 @@ using Microsoft.Maui.Handlers;
 
 namespace ZXing.Net.Maui
 {
+    /// <summary>
+    /// Handler for CameraBarcodeReaderView that manages camera preview and barcode detection.
+    /// This handler is trimmer-safe with appropriate DynamicDependency attributes.
+    /// </summary>
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraBarcodeReaderViewHandler))]
+    [DynamicDependency(nameof(CameraBarcodeReaderViewMapper))]
+    [DynamicDependency(nameof(CameraBarcodeReaderCommandMapper))]
+    [DynamicDependency(nameof(MapOptions))]
+    [DynamicDependency(nameof(MapIsDetecting))]
+    [DynamicDependency(nameof(MapFocus))]
+    [DynamicDependency(nameof(MapAutoFocus))]
     public partial class CameraBarcodeReaderViewHandler : ViewHandler<ICameraBarcodeReaderView, NativePlatformCameraPreviewView>
     {
         public static PropertyMapper<ICameraBarcodeReaderView, CameraBarcodeReaderViewHandler> CameraBarcodeReaderViewMapper = new()
