@@ -24,6 +24,8 @@
 		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.4.1.1" />
 		<PackageReference Include="Xamarin.AndroidX.Camera.Lifecycle" Version="1.4.1.1" />
 		<PackageReference Include="Xamarin.AndroidX.Camera.View" Version="1.4.1.1" />
+		<!-- Exclude Tracing.Ktx to prevent conflict with Tracing (they contain the same classes) -->
+		<PackageReference Include="Xamarin.AndroidX.Tracing.Tracing.Ktx" Version="1.2.0.9" ExcludeAssets="All" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="ZXing.Net" Version="0.16.10" />
