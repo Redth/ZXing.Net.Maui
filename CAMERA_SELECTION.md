@@ -161,9 +161,11 @@ public class MainViewModel : INotifyPropertyChanged
 ## Platform-Specific Notes
 
 ### Android
-- Uses AndroidX Camera2 API to enumerate cameras
-- Camera names are generated based on position (Front/Rear) and index
+- Uses AndroidX CameraX API with Camera2 interop to enumerate cameras
+- Camera IDs are stable physical camera identifiers from Android's Camera2 API
+- Camera names are generated based on position (e.g., "Front Camera", "Rear Camera 1", "Rear Camera 2")
 - All available cameras are returned, including external cameras
+- Properly handles devices with multiple cameras of the same facing direction
 
 ### iOS/MacCatalyst
 - Uses AVFoundation framework to enumerate cameras
