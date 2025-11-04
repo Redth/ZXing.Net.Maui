@@ -10,6 +10,7 @@ using AndroidX.Camera.Core.ResolutionSelector;
 using AndroidX.Camera.Lifecycle;
 using AndroidX.Camera.View;
 using AndroidX.Core.Content;
+using AndroidX.Camera.Camera2.Interop;
 
 using Java.Util.Concurrent;
 
@@ -101,11 +102,22 @@ namespace ZXing.Net.Maui
                     {
                         if (cameraInfo.CameraSelector is not null)
                         {
-                            var cameraId = cameraInfo.CameraSelector.ToString();
-                            if (cameraId == SelectedCamera.DeviceId)
+                            // Use Camera2 interop to get the stable camera ID
+                            try
                             {
-                                _cameraSelector = cameraInfo.CameraSelector;
-                                break;
+                                var camera2Info = Camera2CameraInfo.From(cameraInfo);
+                                var physicalCameraId = camera2Info?.CameraId;
+                                
+                                if (physicalCameraId == SelectedCamera.DeviceId)
+                                {
+                                    _cameraSelector = cameraInfo.CameraSelector;
+                                    break;
+                                }
+                            }
+                            catch
+                            {
+                                // Fallback: if Camera2 interop fails, continue to next camera
+                                continue;
                             }
                         }
                     }
@@ -146,21 +158,47 @@ namespace ZXing.Net.Maui
             if (_cameraProvider != null)
             {
                 var availableCameraInfos = _cameraProvider.AvailableCameraInfos;
-                var index = 0;
+                var camerasByFacing = new Dictionary<int, int>(); // Track count per lens facing
+                
                 foreach (var cameraInfo in availableCameraInfos)
                 {
                     if (cameraInfo.CameraSelector is not null)
                     {
-                        var lensFacing = cameraInfo.LensFacing;
-                        var location = lensFacing == CameraSelector.LensFacingFront 
-                            ? CameraLocation.Front 
-                            : CameraLocation.Rear;
-                        
-                        var cameraId = cameraInfo.CameraSelector.ToString();
-                        var name = $"Camera {index} ({(location == CameraLocation.Front ? "Front" : "Rear")})";
-                        
-                        cameras.Add(new CameraInfo(cameraId, name, location));
-                        index++;
+                        try
+                        {
+                            var lensFacing = cameraInfo.LensFacing;
+                            var location = lensFacing == CameraSelector.LensFacingFront 
+                                ? CameraLocation.Front 
+                                : CameraLocation.Rear;
+                            
+                            // Use Camera2 interop to get the stable physical camera ID
+                            var camera2Info = Camera2CameraInfo.From(cameraInfo);
+                            var physicalCameraId = camera2Info?.CameraId;
+                            
+                            // Skip if we can't get a stable ID
+                            if (string.IsNullOrEmpty(physicalCameraId))
+                                continue;
+                            
+                            // Track camera count per facing direction
+                            if (!camerasByFacing.ContainsKey(lensFacing))
+                                camerasByFacing[lensFacing] = 0;
+                            
+                            var facingIndex = camerasByFacing[lensFacing];
+                            camerasByFacing[lensFacing]++;
+                            
+                            // Generate a descriptive name
+                            var facingName = location == CameraLocation.Front ? "Front" : "Rear";
+                            var name = camerasByFacing[lensFacing] > 1 
+                                ? $"{facingName} Camera {facingIndex + 1}"
+                                : $"{facingName} Camera";
+                            
+                            cameras.Add(new CameraInfo(physicalCameraId, name, location));
+                        }
+                        catch
+                        {
+                            // Skip cameras that fail to provide stable IDs
+                            continue;
+                        }
                     }
                 }
             }
