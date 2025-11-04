@@ -181,17 +181,18 @@ namespace ZXing.Net.Maui
                             if (string.IsNullOrEmpty(physicalCameraId))
                                 continue;
                             
-                            // Track camera count per facing direction
-                            if (!camerasByFacing.ContainsKey(lensFacing))
-                                camerasByFacing[lensFacing] = 0;
+                            // Track camera count per facing direction using TryGetValue for better performance
+                            if (!camerasByFacing.TryGetValue(lensFacing, out var cameraCount))
+                                cameraCount = 0;
                             
-                            var facingIndex = camerasByFacing[lensFacing];
-                            camerasByFacing[lensFacing]++;
+                            camerasByFacing[lensFacing] = cameraCount + 1;
                             
                             // Generate a descriptive name
+                            // First camera of a type: "Front Camera" or "Rear Camera"
+                            // Subsequent cameras: "Front Camera 2", "Rear Camera 2", etc.
                             var facingName = location == CameraLocation.Front ? "Front" : "Rear";
-                            var name = camerasByFacing[lensFacing] > 1 
-                                ? $"{facingName} Camera {facingIndex + 1}"
+                            var name = cameraCount > 0 
+                                ? $"{facingName} Camera {cameraCount + 1}"
                                 : $"{facingName} Camera";
                             
                             cameras.Add(new CameraInfo(physicalCameraId, name, location));
