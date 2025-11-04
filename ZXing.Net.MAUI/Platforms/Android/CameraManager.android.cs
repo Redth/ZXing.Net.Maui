@@ -114,9 +114,11 @@ namespace ZXing.Net.Maui
                                     break;
                                 }
                             }
-                            catch
+                            catch (System.Exception ex)
                             {
-                                // Fallback: if Camera2 interop fails, continue to next camera
+                                // Fallback: if Camera2 interop fails for this camera, continue to next camera
+                                // This can happen if the camera doesn't support Camera2 interop or if there's a permission issue
+                                System.Diagnostics.Debug.WriteLine($"Failed to get camera ID from Camera2CameraInfo: {ex.Message}");
                                 continue;
                             }
                         }
@@ -194,9 +196,11 @@ namespace ZXing.Net.Maui
                             
                             cameras.Add(new CameraInfo(physicalCameraId, name, location));
                         }
-                        catch
+                        catch (System.Exception ex)
                         {
-                            // Skip cameras that fail to provide stable IDs
+                            // Skip cameras that fail to provide stable IDs via Camera2 interop
+                            // This can happen if the camera doesn't support Camera2 interop or if there's a permission issue
+                            System.Diagnostics.Debug.WriteLine($"Failed to enumerate camera: {ex.Message}");
                             continue;
                         }
                     }
