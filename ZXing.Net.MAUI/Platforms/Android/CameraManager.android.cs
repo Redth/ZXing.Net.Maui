@@ -1,4 +1,5 @@
-﻿using System.Runtime.Versioning;
+﻿using System;
+using System.Runtime.Versioning;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,6 +13,8 @@ using AndroidX.Camera.View;
 using AndroidX.Core.Content;
 
 using Java.Util.Concurrent;
+
+using Microsoft.Maui.Controls.PlatformConfiguration;
 
 namespace ZXing.Net.Maui
 {
@@ -126,6 +129,19 @@ namespace ZXing.Net.Maui
                 if (_cameraSelector == null)
                     throw new System.Exception("Camera not found");
 
+                PreviewView.ScaleType scaleType = PreviewScaleType switch
+                {
+                    PreviewScaleType.FitCenter => PreviewView.ScaleType.FitCenter,
+                    PreviewScaleType.FillEnd => PreviewView.ScaleType.FillEnd,
+                    PreviewScaleType.FillStart => PreviewView.ScaleType.FillStart,
+                    PreviewScaleType.FitEnd => PreviewView.ScaleType.FitEnd,
+                    PreviewScaleType.FitStart => PreviewView.ScaleType.FitStart,
+                    PreviewScaleType.FillCenter => PreviewView.ScaleType.FillCenter,
+                    _ => throw new ArgumentOutOfRangeException(nameof(PreviewScaleType), PreviewScaleType,
+                        "Invalid value of PreviewScaleType")
+                };
+
+                _previewView.SetScaleType(scaleType);
                 // The Context here SHOULD be something that's a lifecycle owner
                 if (Context.Context is AndroidX.Lifecycle.ILifecycleOwner lifecycleOwner)
                 {

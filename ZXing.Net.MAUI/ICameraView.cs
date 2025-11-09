@@ -14,9 +14,11 @@ namespace ZXing.Net.Maui
 
 		CameraInfo SelectedCamera { get; set; }
 
-		//CameraMode Mode { get; set; }
+        PreviewScaleType PreviewScaleType { get; set; }
 
-		void AutoFocus();
+        //CameraMode Mode { get; set; }
+
+        void AutoFocus();
 
 		void Focus(Point point);
 

@@ -76,7 +76,16 @@ namespace BigIslandBarcode
 			}
 		}
 
-		void TorchButton_Clicked(object sender, EventArgs e)
+        async void SelectScaleType_Clicked(object sender, EventArgs e)
+        {
+            var selectedScaleType = await DisplayActionSheet("Select Scale Type", "Cancel", null, Enum.GetNames(typeof(PreviewScaleType)));
+            if (selectedScaleType != null && selectedScaleType != "Cancel")
+            {
+                barcodeView.PreviewScaleType = (PreviewScaleType)Enum.Parse(typeof(PreviewScaleType), selectedScaleType);
+            }
+        }
+
+        void TorchButton_Clicked(object sender, EventArgs e)
 		{
 			barcodeView.IsTorchOn = !barcodeView.IsTorchOn;
 		}
