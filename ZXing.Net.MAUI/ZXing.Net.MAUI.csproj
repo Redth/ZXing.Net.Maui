@@ -24,6 +24,8 @@
 		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.4.2.3" />
 		<PackageReference Include="Xamarin.AndroidX.Camera.Lifecycle" Version="1.4.2.3" />
 		<PackageReference Include="Xamarin.AndroidX.Camera.View" Version="1.4.2.3" />
+		<!-- Explicit SavedState package references to resolve duplicate type conflicts -->
+		<PackageReference Include="Xamarin.AndroidX.SavedState" Version="1.2.1.15" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="ZXing.Net" Version="0.16.10" />
