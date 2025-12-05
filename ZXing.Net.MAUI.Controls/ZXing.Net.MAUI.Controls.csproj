@@ -18,9 +18,6 @@
 		<DebugType>portable</DebugType>
 		<OutputType>Library</OutputType>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-
-        <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">23.0</SupportedOSPlatformVersion>
-
     </PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="ZXing.Net" Version="0.16.11" />
