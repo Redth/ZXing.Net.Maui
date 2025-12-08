@@ -93,6 +93,8 @@ namespace ZXing.Net.Maui
                 // Unbind use cases before rebinding
                 _cameraProvider.UnbindAll();
 
+                CameraSelector selectedCameraSelector = null;
+
                 // If a specific camera is selected, use it
                 if (SelectedCamera is not null)
                 {
@@ -111,7 +113,7 @@ namespace ZXing.Net.Maui
                             {
                                 if (facingIndex == targetIndex)
                                 {
-                                    _cameraSelector = cameraInfo.CameraSelector;
+                                    selectedCameraSelector = cameraInfo.CameraSelector;
                                     break;
                                 }
                                 facingIndex++;
@@ -125,15 +127,17 @@ namespace ZXing.Net.Maui
 
                     // Select back camera as a default, or front camera otherwise
                     if (cameraLocation == CameraLocation.Rear && _cameraProvider.HasCamera(CameraSelector.DefaultBackCamera))
-                        _cameraSelector = CameraSelector.DefaultBackCamera;
+                        selectedCameraSelector = CameraSelector.DefaultBackCamera;
                     else if (cameraLocation == CameraLocation.Front && _cameraProvider.HasCamera(CameraSelector.DefaultFrontCamera))
-                        _cameraSelector = CameraSelector.DefaultFrontCamera;
+                        selectedCameraSelector = CameraSelector.DefaultFrontCamera;
                     else
-                        _cameraSelector = CameraSelector.DefaultBackCamera;
+                        selectedCameraSelector = CameraSelector.DefaultBackCamera;
                 }
 
-                if (_cameraSelector == null)
+                if (selectedCameraSelector == null)
                     throw new System.Exception("Camera not found");
+
+                _cameraSelector = selectedCameraSelector;
 
                 // The Context here SHOULD be something that's a lifecycle owner
                 if (Context.Context is AndroidX.Lifecycle.ILifecycleOwner lifecycleOwner)
