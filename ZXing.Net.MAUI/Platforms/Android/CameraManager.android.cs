@@ -14,8 +14,6 @@ using AndroidX.Core.Content;
 
 using Java.Util.Concurrent;
 
-using Microsoft.Maui.Controls.PlatformConfiguration;
-
 namespace ZXing.Net.Maui
 {
     internal partial class CameraManager
@@ -138,7 +136,7 @@ namespace ZXing.Net.Maui
                     PreviewScaleType.FitStart => PreviewView.ScaleType.FitStart,
                     PreviewScaleType.FillCenter => PreviewView.ScaleType.FillCenter,
                     _ => throw new ArgumentOutOfRangeException(nameof(PreviewScaleType), PreviewScaleType,
-                        "Invalid value of PreviewScaleType")
+                        $"Invalid PreviewScaleType value: {PreviewScaleType}")
                 };
 
                 _previewView.SetScaleType(scaleType);

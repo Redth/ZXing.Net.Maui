@@ -49,7 +49,6 @@ namespace ZXing.Net.Maui.Controls
             set => SetValue(PreviewScaleTypeProperty, value);
         }
 
-
         public void AutoFocus()
 			=> StrongHandler?.Invoke(nameof(AutoFocus), null);
 

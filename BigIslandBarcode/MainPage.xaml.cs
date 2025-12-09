@@ -78,10 +78,13 @@ namespace BigIslandBarcode
 
         async void SelectScaleType_Clicked(object sender, EventArgs e)
         {
-            var selectedScaleType = await DisplayActionSheet("Select Scale Type", "Cancel", null, Enum.GetNames(typeof(PreviewScaleType)));
-            if (selectedScaleType != null && selectedScaleType != "Cancel")
+            var selectedScaleType = await ShowPickerDialogAsync("Select Scale Type", Enum.GetNames(typeof(PreviewScaleType)));
+            if (selectedScaleType != null)
             {
-                barcodeView.PreviewScaleType = (PreviewScaleType)Enum.Parse(typeof(PreviewScaleType), selectedScaleType);
+                if (Enum.TryParse<PreviewScaleType>(selectedScaleType, out var scaleType))
+                {
+                    barcodeView.PreviewScaleType = scaleType;
+                }
             }
         }
 
