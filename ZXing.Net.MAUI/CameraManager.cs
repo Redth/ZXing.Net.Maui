@@ -23,6 +23,12 @@ namespace ZXing.Net.Maui
 		public CameraLocation CameraLocation { get; private set; }
 		public CameraInfo SelectedCamera { get; private set; }
 
+		/// <summary>
+		/// Gets a value indicating whether barcode scanning is supported on this device.
+		/// This checks if the device has a camera available.
+		/// </summary>
+		public static partial bool IsSupported { get; }
+
 		public void UpdateCameraLocation(CameraLocation cameraLocation)
 		{
 			CameraLocation = cameraLocation;

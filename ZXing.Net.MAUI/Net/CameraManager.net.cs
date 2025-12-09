@@ -11,6 +11,11 @@ namespace ZXing.Net.Maui
 {
     internal partial class CameraManager
     {
+        /// <summary>
+        /// Gets a value indicating whether barcode scanning is supported on this device.
+        /// </summary>
+        public static partial bool IsSupported => false;
+
         public NativePlatformCameraPreviewView CreateNativeView()
         {
             return new NativePlatformCameraPreviewView();

@@ -15,6 +15,28 @@ namespace ZXing.Net.Maui
 {
 	internal partial class CameraManager
 	{
+		/// <summary>
+		/// Gets a value indicating whether barcode scanning is supported on this device.
+		/// </summary>
+		public static partial bool IsSupported
+		{
+			get
+			{
+				try
+				{
+					var discoverySession = AVCaptureDeviceDiscoverySession.Create(
+						CaptureDevices(),
+						AVMediaTypes.Video,
+						AVCaptureDevicePosition.Unspecified);
+					return discoverySession?.Devices?.Length > 0;
+				}
+				catch
+				{
+					return false;
+				}
+			}
+		}
+
 		AVCaptureSession captureSession;
 		AVCaptureDevice captureDevice;
 		AVCaptureInput captureInput = null;
