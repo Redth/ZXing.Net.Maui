@@ -28,7 +28,7 @@ namespace ZXing.Net.Maui
 						CaptureDevices(),
 						AVMediaTypes.Video,
 						AVCaptureDevicePosition.Unspecified);
-					return discoverySession?.Devices?.Length > 0;
+					return (discoverySession?.Devices?.Length ?? 0) > 0;
 				}
 				catch
 				{
