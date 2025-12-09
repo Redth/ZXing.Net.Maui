@@ -7,7 +7,7 @@
 	<Grid RowDefinitions="1*,3*,1*">
 
 		<zxing:CameraBarcodeReaderView
-			Grid.Row="0" Grid.RowSpan="3"
+            Grid.Row="1" 
 			x:Name="barcodeView"
 			BarcodesDetected="BarcodesDetected"
 			 />
@@ -19,18 +19,20 @@
 		</Grid>
 
 		<Grid
-			Grid.Row="3"
+            Grid.Row="2"
 			BackgroundColor="#aa000000"
 			Padding="20"
-			ColumnDefinitions="Auto,Auto,*,Auto">
+			ColumnDefinitions="Auto,Auto,Auto,*,Auto">
 
 			<Button Text="🔄️" Grid.Column="0" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="SwitchCameraButton_Clicked" />
 
 			<Button Text="📷" Grid.Column="1" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="SelectCameraButton_Clicked" />
 
-			<zxing:BarcodeGeneratorView
+            <Button Text="🔍" Grid.Column="2" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="SelectScaleType_Clicked" />
+
+            <zxing:BarcodeGeneratorView
 				x:Name="barcodeGenerator"
-				Grid.Column="2"
+				Grid.Column="3"
 				HorizontalOptions="Center"
 				VerticalOptions="Center"
 				HeightRequest="100"
@@ -41,7 +43,7 @@
 				CharacterSet="UTF-8"
 				BarcodeMargin="1" />
 
-			<Button Text="💡" Grid.Column="3" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="TorchButton_Clicked" />
+			<Button Text="💡" Grid.Column="4" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="TorchButton_Clicked" />
 		</Grid>
 
 	</Grid>

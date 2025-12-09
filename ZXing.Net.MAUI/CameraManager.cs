@@ -23,7 +23,9 @@ namespace ZXing.Net.Maui
 		public CameraLocation CameraLocation { get; private set; }
 		public CameraInfo SelectedCamera { get; private set; }
 
-		public void UpdateCameraLocation(CameraLocation cameraLocation)
+        public PreviewScaleType PreviewScaleType { get; set; }
+
+        public void UpdateCameraLocation(CameraLocation cameraLocation)
 		{
 			CameraLocation = cameraLocation;
 			SelectedCamera = null;
@@ -42,7 +44,13 @@ namespace ZXing.Net.Maui
 			UpdateCamera();
 		}
 
-		public static async Task<bool> CheckPermissions()
+        public void UpdatePreviewScaleType(PreviewScaleType scaleType)
+        {
+            PreviewScaleType = scaleType;
+            UpdateCamera();
+        }
+
+        public static async Task<bool> CheckPermissions()
 			=> (await Permissions.RequestAsync<Permissions.Camera>()) == PermissionStatus.Granted;
 	}
 }

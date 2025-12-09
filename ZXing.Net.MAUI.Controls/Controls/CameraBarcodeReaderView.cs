@@ -62,7 +62,16 @@ namespace ZXing.Net.Maui.Controls
 			set => SetValue(SelectedCameraProperty, value);
 		}
 
-		public void AutoFocus()
+        public static readonly BindableProperty PreviewScaleTypeProperty =
+            BindableProperty.Create(nameof(PreviewScaleType), typeof(PreviewScaleType), typeof(CameraBarcodeReaderView), defaultValue: PreviewScaleType.FillCenter);
+
+        public PreviewScaleType PreviewScaleType
+        {
+            get => (PreviewScaleType)GetValue(PreviewScaleTypeProperty);
+            set => SetValue(PreviewScaleTypeProperty, value);
+        }
+
+        public void AutoFocus()
 			=> StrongHandler?.Invoke(nameof(AutoFocus), null);
 
 		public void Focus(Point point)
