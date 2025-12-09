@@ -13,6 +13,7 @@ namespace ZXing.Net.Maui
     {
         /// <summary>
         /// Gets a value indicating whether barcode scanning is supported on this device.
+        /// Returns false for the .NET fallback as camera preview is not supported on this platform.
         /// </summary>
         public static partial bool IsSupported => false;
 

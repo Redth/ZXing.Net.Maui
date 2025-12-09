@@ -64,8 +64,8 @@ namespace ZXing.Net.Maui
 			{
 				try
 				{
-					// Use Task.Run to avoid potential deadlocks when called from UI context
-					var groups = Task.Run(async () => await MediaFrameSourceGroup.FindAllAsync()).ConfigureAwait(false).GetAwaiter().GetResult();
+					// Use ConfigureAwait(false) to avoid potential deadlocks when called from UI context
+					var groups = MediaFrameSourceGroup.FindAllAsync().AsTask().ConfigureAwait(false).GetAwaiter().GetResult();
 					foreach (var group in groups)
 					{
 						foreach (var sourceInfo in group.SourceInfos)
