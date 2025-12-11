@@ -55,6 +55,36 @@ namespace ZXing.Net.Maui
 {
 	internal partial class CameraManager
 	{
+		/// <summary>
+		/// Gets a value indicating whether barcode scanning is supported on this device.
+		/// </summary>
+		public static partial bool IsSupported
+		{
+			get
+			{
+				try
+				{
+					// Use ConfigureAwait(false) to avoid potential deadlocks when called from UI context
+					var groups = MediaFrameSourceGroup.FindAllAsync().AsTask().ConfigureAwait(false).GetAwaiter().GetResult();
+					foreach (var group in groups)
+					{
+						foreach (var sourceInfo in group.SourceInfos)
+						{
+							if (sourceInfo.SourceKind == MediaFrameSourceKind.Color)
+							{
+								return true;
+							}
+						}
+					}
+					return false;
+				}
+				catch
+				{
+					return false;
+				}
+			}
+		}
+
 		private const uint PreviewWidth = 640;
 		private const uint PreviewHeight = 480;
 

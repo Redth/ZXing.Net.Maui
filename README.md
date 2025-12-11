@@ -32,6 +32,23 @@ The successor to ZXing.Net.Mobile: barcode scanning and generation for .NET MAUI
 
 Now we just need to add the right permissions to our app metadata. Find below how to do that for each platform.
 
+### Check Device Support
+
+Before using barcode scanning, you can check if the device supports it (i.e., has a camera available):
+
+```csharp
+if (ZXing.Net.Maui.BarcodeScanning.IsSupported)
+{
+  // Device has a camera, safe to use barcode scanning
+}
+else
+{
+  // No camera available, show alternative UI or message
+}
+```
+
+This is useful for handling devices without cameras gracefully, avoiding runtime exceptions.
+
 #### Android
 
 For Android go to your `AndroidManifest.xml` file (under the Platforms\Android folder) and add the following permissions inside of the `manifest` node:

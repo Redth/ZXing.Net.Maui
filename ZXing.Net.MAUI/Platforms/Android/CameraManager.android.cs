@@ -17,6 +17,27 @@ namespace ZXing.Net.Maui
 {
     internal partial class CameraManager
     {
+        /// <summary>
+        /// Gets a value indicating whether barcode scanning is supported on this device.
+        /// </summary>
+        public static partial bool IsSupported
+        {
+            get
+            {
+                try
+                {
+                    var context = Android.App.Application.Context;
+                    var cameraManager = (Android.Hardware.Camera2.CameraManager)context.GetSystemService(Android.Content.Context.CameraService);
+                    var cameraIds = cameraManager?.GetCameraIdList();
+                    return cameraIds != null && cameraIds.Length > 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
         private ResolutionSelector _resolutionSelector;
         private Preview _cameraPreview;
         private ImageAnalysis _imageAnalyzer;
