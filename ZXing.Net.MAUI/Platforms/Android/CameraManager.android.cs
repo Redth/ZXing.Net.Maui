@@ -93,7 +93,7 @@ namespace ZXing.Net.Maui
                 // Unbind use cases before rebinding
                 _cameraProvider.UnbindAll();
 
-                CameraSelector selectedCameraSelector = null;
+                CameraSelector? selectedCameraSelector = null;
 
                 // If a specific camera is selected, use it
                 if (SelectedCamera is not null)
