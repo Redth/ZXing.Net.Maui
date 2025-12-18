@@ -37,6 +37,7 @@ namespace ZXing.Net.Maui
 		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraViewHandler))]
 		[DynamicDependency(nameof(CameraViewMapper))]
 		[DynamicDependency(nameof(CameraCommandMapper))]
+		[DynamicDependency(nameof(MapVisibility))]
 		[DynamicDependency(nameof(MapFocus))]
 		[DynamicDependency(nameof(MapAutoFocus))]
 		public CameraViewHandler() : base(CameraViewMapper)
@@ -46,6 +47,7 @@ namespace ZXing.Net.Maui
 		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraViewHandler))]
 		[DynamicDependency(nameof(CameraViewMapper))]
 		[DynamicDependency(nameof(CameraCommandMapper))]
+		[DynamicDependency(nameof(MapVisibility))]
 		[DynamicDependency(nameof(MapFocus))]
 		[DynamicDependency(nameof(MapAutoFocus))]
 		public CameraViewHandler(PropertyMapper? mapper = null) : base(mapper ?? CameraViewMapper)

@@ -38,6 +38,7 @@ namespace ZXing.Net.Maui
         [DynamicDependency(nameof(CameraBarcodeReaderCommandMapper))]
         [DynamicDependency(nameof(MapOptions))]
         [DynamicDependency(nameof(MapIsDetecting))]
+        [DynamicDependency(nameof(MapVisibility))]
         [DynamicDependency(nameof(MapFocus))]
         [DynamicDependency(nameof(MapAutoFocus))]
         public CameraBarcodeReaderViewHandler() : base(CameraBarcodeReaderViewMapper, CameraBarcodeReaderCommandMapper)
@@ -49,6 +50,7 @@ namespace ZXing.Net.Maui
         [DynamicDependency(nameof(CameraBarcodeReaderCommandMapper))]
         [DynamicDependency(nameof(MapOptions))]
         [DynamicDependency(nameof(MapIsDetecting))]
+        [DynamicDependency(nameof(MapVisibility))]
         [DynamicDependency(nameof(MapFocus))]
         [DynamicDependency(nameof(MapAutoFocus))]
         public CameraBarcodeReaderViewHandler(PropertyMapper? propertyMapper = null, CommandMapper? commandMapper = null)
