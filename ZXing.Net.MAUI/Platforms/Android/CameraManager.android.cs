@@ -17,6 +17,27 @@ namespace ZXing.Net.Maui
 {
     internal partial class CameraManager
     {
+        /// <summary>
+        /// Gets a value indicating whether barcode scanning is supported on this device.
+        /// </summary>
+        public static partial bool IsSupported
+        {
+            get
+            {
+                try
+                {
+                    var context = Android.App.Application.Context;
+                    var cameraManager = (Android.Hardware.Camera2.CameraManager)context.GetSystemService(Android.Content.Context.CameraService);
+                    var cameraIds = cameraManager?.GetCameraIdList();
+                    return cameraIds != null && cameraIds.Length > 0;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+        }
+
         private ResolutionSelector _resolutionSelector;
         private Preview _cameraPreview;
         private ImageAnalysis _imageAnalyzer;
@@ -93,19 +114,30 @@ namespace ZXing.Net.Maui
                 // Unbind use cases before rebinding
                 _cameraProvider.UnbindAll();
 
+                CameraSelector? selectedCameraSelector = null;
+
                 // If a specific camera is selected, use it
                 if (SelectedCamera is not null)
                 {
-                    var availableCameraInfos = _cameraProvider.AvailableCameraInfos;
-                    foreach (var cameraInfo in availableCameraInfos)
+                    // Parse the DeviceId to get lens facing and index (format: "front-0", "rear-1", etc.)
+                    var parts = SelectedCamera.DeviceId?.Split('-');
+                    if (parts?.Length == 2 && int.TryParse(parts[1], out var targetIndex))
                     {
-                        if (cameraInfo.CameraSelector is not null)
+                        var targetFacing = parts[0] == "front" ? CameraSelector.LensFacingFront : CameraSelector.LensFacingBack;
+                        
+                        var availableCameraInfos = _cameraProvider.AvailableCameraInfos;
+                        var facingIndex = 0;
+                        
+                        foreach (var cameraInfo in availableCameraInfos)
                         {
-                            var cameraId = cameraInfo.CameraSelector.ToString();
-                            if (cameraId == SelectedCamera.DeviceId)
+                            if (cameraInfo.CameraSelector is not null && cameraInfo.LensFacing == targetFacing)
                             {
-                                _cameraSelector = cameraInfo.CameraSelector;
-                                break;
+                                if (facingIndex == targetIndex)
+                                {
+                                    selectedCameraSelector = cameraInfo.CameraSelector;
+                                    break;
+                                }
+                                facingIndex++;
                             }
                         }
                     }
@@ -116,15 +148,17 @@ namespace ZXing.Net.Maui
 
                     // Select back camera as a default, or front camera otherwise
                     if (cameraLocation == CameraLocation.Rear && _cameraProvider.HasCamera(CameraSelector.DefaultBackCamera))
-                        _cameraSelector = CameraSelector.DefaultBackCamera;
+                        selectedCameraSelector = CameraSelector.DefaultBackCamera;
                     else if (cameraLocation == CameraLocation.Front && _cameraProvider.HasCamera(CameraSelector.DefaultFrontCamera))
-                        _cameraSelector = CameraSelector.DefaultFrontCamera;
+                        selectedCameraSelector = CameraSelector.DefaultFrontCamera;
                     else
-                        _cameraSelector = CameraSelector.DefaultBackCamera;
+                        selectedCameraSelector = CameraSelector.DefaultBackCamera;
                 }
 
-                if (_cameraSelector == null)
+                if (selectedCameraSelector == null)
                     throw new System.Exception("Camera not found");
+
+                _cameraSelector = selectedCameraSelector;
 
                 // The Context here SHOULD be something that's a lifecycle owner
                 if (Context.Context is AndroidX.Lifecycle.ILifecycleOwner lifecycleOwner)
@@ -146,7 +180,9 @@ namespace ZXing.Net.Maui
             if (_cameraProvider != null)
             {
                 var availableCameraInfos = _cameraProvider.AvailableCameraInfos;
-                var index = 0;
+                var frontIndex = 0;
+                var rearIndex = 0;
+                
                 foreach (var cameraInfo in availableCameraInfos)
                 {
                     if (cameraInfo.CameraSelector is not null)
@@ -156,11 +192,25 @@ namespace ZXing.Net.Maui
                             ? CameraLocation.Front 
                             : CameraLocation.Rear;
                         
-                        var cameraId = cameraInfo.CameraSelector.ToString();
-                        var name = $"Camera {index} ({(location == CameraLocation.Front ? "Front" : "Rear")})";
+                        // Create a stable ID based on lens facing and index within that facing
+                        // Format: "front-0", "front-1", "rear-0", "rear-1", "rear-2", etc.
+                        string cameraId;
+                        string name;
+                        
+                        if (location == CameraLocation.Front)
+                        {
+                            cameraId = $"front-{frontIndex}";
+                            name = frontIndex == 0 ? "Front Camera" : $"Front Camera {frontIndex + 1}";
+                            frontIndex++;
+                        }
+                        else
+                        {
+                            cameraId = $"rear-{rearIndex}";
+                            name = rearIndex == 0 ? "Rear Camera" : $"Rear Camera {rearIndex + 1}";
+                            rearIndex++;
+                        }
                         
                         cameras.Add(new CameraInfo(cameraId, name, location));
-                        index++;
                     }
                 }
             }

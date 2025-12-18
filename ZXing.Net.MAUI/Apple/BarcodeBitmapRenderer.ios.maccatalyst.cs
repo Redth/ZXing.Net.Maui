@@ -16,7 +16,7 @@ namespace ZXing.Net.Maui
 {
 	public class BarcodeWriter : BarcodeWriter<UIImage>, IBarcodeWriter
 	{
-		BarcodeBitmapRenderer bitmapRenderer;
+		readonly BarcodeBitmapRenderer bitmapRenderer;
 
 		public BarcodeWriter()
 			=> Renderer = (bitmapRenderer = new BarcodeBitmapRenderer());

@@ -54,7 +54,7 @@ namespace BigIslandBarcode
 			
 			if (cameras.Count == 0)
 			{
-				await DisplayAlert("No Cameras", "No cameras were found on this device.", "OK");
+				await DisplayAlertAsync("No Cameras", "No cameras were found on this device.", "OK");
 				return;
 			}
 
@@ -62,7 +62,7 @@ namespace BigIslandBarcode
 			var cameraNames = cameras.Select(c => c.Name).ToArray();
 			
 			// Show action sheet to select camera
-			var selectedName = await DisplayActionSheet("Select Camera", "Cancel", null, cameraNames);
+			var selectedName = await DisplayActionSheetAsync("Select Camera", "Cancel", null, cameraNames);
 			
 			if (selectedName != null && selectedName != "Cancel")
 			{

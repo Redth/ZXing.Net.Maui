@@ -19,7 +19,8 @@ namespace ZXing.Net.Maui
 		{
 			[nameof(ICameraView.IsTorchOn)] = (handler, virtualView) => handler.cameraManager?.UpdateTorch(virtualView.IsTorchOn),
 			[nameof(ICameraView.CameraLocation)] = (handler, virtualView) => handler.cameraManager?.UpdateCameraLocation(virtualView.CameraLocation),
-			[nameof(ICameraView.SelectedCamera)] = (handler, virtualView) => handler.cameraManager?.UpdateSelectedCamera(virtualView.SelectedCamera)
+			[nameof(ICameraView.SelectedCamera)] = (handler, virtualView) => handler.cameraManager?.UpdateSelectedCamera(virtualView.SelectedCamera),
+			[nameof(IView.Visibility)] = MapVisibility
 		};
 
 		public static CommandMapper<ICameraView, CameraViewHandler> CameraCommandMapper = new()
@@ -31,6 +32,7 @@ namespace ZXing.Net.Maui
 		CameraManager? cameraManager;
 
 		volatile ICameraView? _virtualView;
+		volatile bool _isConnected;
 
 		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraViewHandler))]
 		[DynamicDependency(nameof(CameraViewMapper))]
@@ -67,7 +69,10 @@ namespace ZXing.Net.Maui
 			if (cameraManager != null)
 			{
 				if (await CameraManager.CheckPermissions())
+				{
 					cameraManager.Connect();
+					_isConnected = true;
+				}
 
 				cameraManager.FrameReady += CameraManager_FrameReady;
 			}
@@ -88,6 +93,7 @@ namespace ZXing.Net.Maui
 				cameraManager.Dispose();
 			}
 
+			_isConnected = false;
 			_virtualView = null;
 
 			base.DisconnectHandler(nativeView);
@@ -122,5 +128,35 @@ namespace ZXing.Net.Maui
 
 		public static void MapAutoFocus(CameraViewHandler handler, ICameraView cameraBarcodeReaderView, object? parameters)
 			=> handler.AutoFocus();
+
+		public static async void MapVisibility(CameraViewHandler handler, ICameraView cameraView)
+		{
+			// Note: async void is required here because PropertyMapper requires void return type
+			// Exception handling is added to prevent unhandled exceptions
+			try
+			{
+				// When visibility changes, we need to update the camera state
+				if (cameraView is IView view)
+				{
+					if (view.Visibility == Visibility.Visible && handler._isConnected)
+					{
+						// View became visible and camera is connected - rebind camera
+						// This ensures the camera preview works even if the view started invisible
+						if (handler.cameraManager != null)
+						{
+							if (await CameraManager.CheckPermissions())
+							{
+								handler.cameraManager.UpdateCamera();
+							}
+						}
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				// Log the exception - this prevents crashes from unhandled async void exceptions
+				System.Diagnostics.Debug.WriteLine($"Error in MapVisibility while updating camera state: {ex.Message}");
+			}
+		}
 	}
 }
