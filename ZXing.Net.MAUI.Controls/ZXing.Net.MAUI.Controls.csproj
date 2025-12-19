@@ -21,7 +21,6 @@
 		<!-- Enable trimming support and indicate library is trim-safe and AOT-compatible -->
 		<IsTrimmable>true</IsTrimmable>
 		<IsAotCompatible>true</IsAotCompatible>
-		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="ZXing.Net" Version="0.16.11" />
