@@ -35,20 +35,12 @@ namespace ZXing.Net.Maui.Controls
 {
 	/// <summary>
 	/// Extension methods for configuring barcode reader in MAUI applications.
-	/// These methods are trimmer-safe with appropriate DynamicDependency attributes.
 	/// </summary>
 	public static class CameraViewExtensions
 	{
 		/// <summary>
 		/// Registers barcode reader handlers and services with the MAUI app builder.
-		/// This method preserves required types for trimming scenarios.
 		/// </summary>
-		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraView))]
-		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraViewHandler))]
-		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraBarcodeReaderView))]
-		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraBarcodeReaderViewHandler))]
-		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(BarcodeGeneratorView))]
-		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(BarcodeGeneratorViewHandler))]
 		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(Readers.ZXingBarcodeReader))]
 		public static MauiAppBuilder UseBarcodeReader(this MauiAppBuilder builder)
 		{
@@ -66,14 +58,7 @@ namespace ZXing.Net.Maui.Controls
 
 		/// <summary>
 		/// Registers barcode reader handlers and services with a custom barcode reader implementation.
-		/// This method preserves required types for trimming scenarios.
 		/// </summary>
-		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraView))]
-		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraViewHandler))]
-		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraBarcodeReaderView))]
-		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraBarcodeReaderViewHandler))]
-		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(BarcodeGeneratorView))]
-		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(BarcodeGeneratorViewHandler))]
 		public static MauiAppBuilder UseBarcodeReader<TBarcodeReader>(this MauiAppBuilder builder) where TBarcodeReader : class, Readers.IBarcodeReader
 		{
 			builder.ConfigureMauiHandlers(handlers =>
