@@ -59,7 +59,7 @@ namespace ZXing.Net.Maui.Controls
 		/// <summary>
 		/// Registers barcode reader handlers and services with a custom barcode reader implementation.
 		/// </summary>
-		public static MauiAppBuilder UseBarcodeReader<TBarcodeReader>(this MauiAppBuilder builder) where TBarcodeReader : class, Readers.IBarcodeReader
+		public static MauiAppBuilder UseBarcodeReader<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TBarcodeReader>(this MauiAppBuilder builder) where TBarcodeReader : class, Readers.IBarcodeReader
 		{
 			builder.ConfigureMauiHandlers(handlers =>
 			{
