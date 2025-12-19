@@ -18,8 +18,9 @@
 		<DebugType>portable</DebugType>
 		<OutputType>Library</OutputType>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<!-- Enable trimming support and indicate library is trim-safe -->
+		<!-- Enable trimming support and indicate library is trim-safe and AOT-compatible -->
 		<IsTrimmable>true</IsTrimmable>
+		<IsAotCompatible>true</IsAotCompatible>
 		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
 	</PropertyGroup>
 	<ItemGroup>
