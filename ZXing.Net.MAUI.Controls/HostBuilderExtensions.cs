@@ -25,6 +25,7 @@ using Microsoft.Maui.Hosting;
 using Microsoft.Maui;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,8 +33,15 @@ using ZXing.Net.Maui.Controls;
 
 namespace ZXing.Net.Maui.Controls
 {
+	/// <summary>
+	/// Extension methods for configuring barcode reader in MAUI applications.
+	/// </summary>
 	public static class CameraViewExtensions
 	{
+		/// <summary>
+		/// Registers barcode reader handlers and services with the MAUI app builder.
+		/// </summary>
+		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(Readers.ZXingBarcodeReader))]
 		public static MauiAppBuilder UseBarcodeReader(this MauiAppBuilder builder)
 		{
 			builder.ConfigureMauiHandlers(handlers =>
@@ -48,7 +56,10 @@ namespace ZXing.Net.Maui.Controls
 			return builder;
 		}
 
-		public static MauiAppBuilder UseBarcodeReader<TBarcodeReader>(this MauiAppBuilder builder) where TBarcodeReader : class, Readers.IBarcodeReader
+		/// <summary>
+		/// Registers barcode reader handlers and services with a custom barcode reader implementation.
+		/// </summary>
+		public static MauiAppBuilder UseBarcodeReader<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TBarcodeReader>(this MauiAppBuilder builder) where TBarcodeReader : class, Readers.IBarcodeReader
 		{
 			builder.ConfigureMauiHandlers(handlers =>
 			{

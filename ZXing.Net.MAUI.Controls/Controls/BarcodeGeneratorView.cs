@@ -1,8 +1,13 @@
 ﻿using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace ZXing.Net.Maui.Controls
 {
+	/// <summary>
+	/// A MAUI view for generating barcode images.
+	/// This class is trimmer-safe through the bindable property system.
+	/// </summary>
 	public partial class BarcodeGeneratorView : View, IBarcodeGeneratorView
 	{
 		public static readonly BindableProperty FormatProperty =

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Versioning;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +11,10 @@ using Microsoft.Maui.Handlers;
 
 namespace ZXing.Net.Maui
 {
+    /// <summary>
+    /// Handler for CameraBarcodeReaderView that manages camera preview and barcode detection.
+    /// This handler is trimmer-safe with appropriate DynamicDependency attributes.
+    /// </summary>
     public partial class CameraBarcodeReaderViewHandler : ViewHandler<ICameraBarcodeReaderView, NativePlatformCameraPreviewView>
     {
         public static PropertyMapper<ICameraBarcodeReaderView, CameraBarcodeReaderViewHandler> CameraBarcodeReaderViewMapper = new()
@@ -28,10 +33,26 @@ namespace ZXing.Net.Maui
             [nameof(ICameraBarcodeReaderView.AutoFocus)] = MapAutoFocus,
         };
 
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraBarcodeReaderViewHandler))]
+        [DynamicDependency(nameof(CameraBarcodeReaderViewMapper))]
+        [DynamicDependency(nameof(CameraBarcodeReaderCommandMapper))]
+        [DynamicDependency(nameof(MapOptions))]
+        [DynamicDependency(nameof(MapIsDetecting))]
+        [DynamicDependency(nameof(MapVisibility))]
+        [DynamicDependency(nameof(MapFocus))]
+        [DynamicDependency(nameof(MapAutoFocus))]
         public CameraBarcodeReaderViewHandler() : base(CameraBarcodeReaderViewMapper, CameraBarcodeReaderCommandMapper)
         {
         }
 
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraBarcodeReaderViewHandler))]
+        [DynamicDependency(nameof(CameraBarcodeReaderViewMapper))]
+        [DynamicDependency(nameof(CameraBarcodeReaderCommandMapper))]
+        [DynamicDependency(nameof(MapOptions))]
+        [DynamicDependency(nameof(MapIsDetecting))]
+        [DynamicDependency(nameof(MapVisibility))]
+        [DynamicDependency(nameof(MapFocus))]
+        [DynamicDependency(nameof(MapAutoFocus))]
         public CameraBarcodeReaderViewHandler(PropertyMapper? propertyMapper = null, CommandMapper? commandMapper = null)
             : base(propertyMapper ?? CameraBarcodeReaderViewMapper, commandMapper ?? CameraBarcodeReaderCommandMapper)
         {

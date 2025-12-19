@@ -173,6 +173,30 @@ The `BarcodeGeneratorView` supports UTF-8 character encoding by default, which a
 
 The `CharacterSet` property defaults to "UTF-8" if not specified. Other common values include "ISO-8859-1", "Shift_JIS", etc., depending on your barcode format requirements.
 
+## Troubleshooting
+
+### Release Build Crashes (Trimming/Linker Issues)
+
+If your app crashes when opening the scanner in release builds but works fine in debug builds, this is likely due to aggressive code trimming by the .NET linker.
+
+**This library is now trimmer-safe** and includes the necessary `[DynamicDependency]` attributes to preserve required code during trimming.
+
+If you're still experiencing issues:
+
+1. **Update to the latest version** of ZXing.Net.Maui.Controls which includes trimming safety improvements
+2. **Verify you're calling `UseBarcodeReader()`** in your `MauiProgram.cs` - this properly registers the handlers with trimming support
+3. **If issues persist**, you can exclude the assembly from trimming by adding this to your .csproj:
+
+```xml
+<ItemGroup>
+  <TrimmerRootAssembly Include="ZXing.Net.Maui" />
+  <TrimmerRootAssembly Include="ZXing.Net.Maui.Controls" />
+</ItemGroup>
+```
+
+For more information about .NET MAUI trimming:
+- [Trim a .NET MAUI app](https://learn.microsoft.com/dotnet/maui/deployment/trimming)
+- [Prepare .NET libraries for trimming](https://learn.microsoft.com/dotnet/core/deploying/trimming/prepare-libraries-for-trimming)
 
 
 

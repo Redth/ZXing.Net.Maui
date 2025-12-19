@@ -18,7 +18,10 @@
 		<DebugType>portable</DebugType>
 		<OutputType>Library</OutputType>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-    </PropertyGroup>
+		<!-- Enable trimming support and indicate library is trim-safe and AOT-compatible -->
+		<IsTrimmable>true</IsTrimmable>
+		<IsAotCompatible>true</IsAotCompatible>
+	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="ZXing.Net" Version="0.16.11" />
 	</ItemGroup>
