@@ -80,5 +80,32 @@ namespace BigIslandBarcode
 		{
 			barcodeView.IsTorchOn = !barcodeView.IsTorchOn;
 		}
+
+		async void SaveBarcodeButton_Clicked(object sender, EventArgs e)
+		{
+			try
+			{
+				// Generate barcode from the view
+				var barcode = await barcodeGenerator.GenerateBarcodeAsync();
+				
+				if (barcode != null)
+				{
+					// Save to app data directory (no permissions needed)
+					var filePath = System.IO.Path.Combine(FileSystem.AppDataDirectory, $"barcode_{DateTime.Now:yyyyMMddHHmmss}.png");
+					await barcode.SaveAsync(filePath);
+					
+					await DisplayAlert("Success", $"Barcode saved to:\n{filePath}", "OK");
+					ResultLabel.Text = "Barcode saved!";
+				}
+				else
+				{
+					await DisplayAlert("Error", "Failed to generate barcode", "OK");
+				}
+			}
+			catch (Exception ex)
+			{
+				await DisplayAlert("Error", $"Failed to save barcode: {ex.Message}", "OK");
+			}
+		}
 	}
 }
