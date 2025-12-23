@@ -51,7 +51,7 @@ namespace ZXing.Net.Maui
         protected override NativePlatformCameraPreviewView CreatePlatformView()
         {
             if (cameraManager == null)
-                cameraManager = new(MauiContext, VirtualView?.CameraLocation ?? CameraLocation.Rear);
+                cameraManager = new(MauiContext, VirtualView?.CameraLocation ?? CameraLocation.Rear, VirtualView?.Options);
             var v = cameraManager.CreateNativeView();
             return v;
         }
@@ -115,6 +115,7 @@ namespace ZXing.Net.Maui
             {
                 handler.BarcodeReader.Options = cameraBarcodeReaderView.Options;
             }
+            handler.cameraManager?.UpdateOptions(cameraBarcodeReaderView.Options);
         }
 
         public static void MapIsDetecting(CameraBarcodeReaderViewHandler handler, ICameraBarcodeReaderView cameraBarcodeReaderView)
