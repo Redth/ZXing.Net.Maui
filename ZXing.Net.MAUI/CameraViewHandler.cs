@@ -15,6 +15,7 @@ namespace ZXing.Net.Maui
 			[nameof(ICameraView.IsTorchOn)] = (handler, virtualView) => handler.cameraManager?.UpdateTorch(virtualView.IsTorchOn),
 			[nameof(ICameraView.CameraLocation)] = (handler, virtualView) => handler.cameraManager?.UpdateCameraLocation(virtualView.CameraLocation),
 			[nameof(ICameraView.SelectedCamera)] = (handler, virtualView) => handler.cameraManager?.UpdateSelectedCamera(virtualView.SelectedCamera),
+			[nameof(ICameraView.ZoomFactor)] = (handler, virtualView) => handler.cameraManager?.UpdateZoomFactor(virtualView.ZoomFactor),
 			[nameof(IView.Visibility)] = MapVisibility
 		};
 

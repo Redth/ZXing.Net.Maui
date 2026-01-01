@@ -225,6 +225,8 @@ namespace ZXing.Net.Maui
 
 				if (wasRunning || startIfStopped)
 					captureSession.StartRunning();
+
+				ApplyZoomFactor();
 			}
 		}
 
@@ -359,6 +361,27 @@ namespace ZXing.Net.Maui
 					Console.WriteLine(ex);
 				}
 			}
+		}
+
+		partial void ApplyZoomFactor()
+		{
+			if (captureDevice == null)
+				return;
+
+			var minZoomFactor = 1f;
+			// Cap zoom to the max optical range (higher values can engage digital zoom and degrade clarity).
+			var maxZoomFactor = Math.Min((float)captureDevice.ActiveFormat.VideoMaxZoomFactor, 5.0f);
+			if (maxZoomFactor < minZoomFactor)
+				maxZoomFactor = minZoomFactor;
+
+			var normalizedZoomFactor = ZoomFactor * (maxZoomFactor - minZoomFactor) + minZoomFactor;
+			if (normalizedZoomFactor < minZoomFactor)
+				normalizedZoomFactor = minZoomFactor;
+			else if (normalizedZoomFactor > maxZoomFactor)
+				normalizedZoomFactor = maxZoomFactor;
+
+			CaptureDevicePerformWithLockedConfiguration(() =>
+				captureDevice.VideoZoomFactor = normalizedZoomFactor);
 		}
 
 		public void Focus(Microsoft.Maui.Graphics.Point point)

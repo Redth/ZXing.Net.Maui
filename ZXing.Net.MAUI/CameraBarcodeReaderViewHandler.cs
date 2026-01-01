@@ -20,6 +20,7 @@ namespace ZXing.Net.Maui
             [nameof(ICameraBarcodeReaderView.IsTorchOn)] = (handler, virtualView) => handler.cameraManager?.UpdateTorch(virtualView.IsTorchOn),
             [nameof(ICameraBarcodeReaderView.CameraLocation)] = (handler, virtualView) => handler.cameraManager?.UpdateCameraLocation(virtualView.CameraLocation),
             [nameof(ICameraBarcodeReaderView.SelectedCamera)] = (handler, virtualView) => handler.cameraManager?.UpdateSelectedCamera(virtualView.SelectedCamera),
+            [nameof(ICameraBarcodeReaderView.ZoomFactor)] = (handler, virtualView) => handler.cameraManager?.UpdateZoomFactor(virtualView.ZoomFactor),
             [nameof(IView.Visibility)] = MapVisibility
         };
 

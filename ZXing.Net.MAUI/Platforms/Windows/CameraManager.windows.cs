@@ -209,6 +209,11 @@ namespace ZXing.Net.Maui
 
 		public void UpdateTorch(bool on) => TryEnqueueUI(async () => await UpdateTorchAsync(on));
 
+		partial void ApplyZoomFactor()
+		{
+			TryEnqueueUI(async () => await ApplyZoomFactorAsync());
+		}
+
 		public void Focus(Microsoft.Maui.Graphics.Point point) => TryEnqueueUI(async () => await FocusAsync(point));
 
 		public void AutoFocus() => TryEnqueueUI(async () => await AutoFocusAsync());
@@ -674,6 +679,42 @@ namespace ZXing.Net.Maui
 					if (on != bEnabled)
 					{
 						_mediaCapture.VideoDeviceController.TorchControl.Enabled = on;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
+			}
+			finally
+			{
+				MediaCaptureLifeLock.Release();
+			}
+		}
+
+		private async Task ApplyZoomFactorAsync()
+		{
+			await MediaCaptureLifeLock.WaitAsync();
+
+			try
+			{
+				var zoomControl = _mediaCapture?.VideoDeviceController?.ZoomControl;
+				if (zoomControl?.Supported ?? false)
+				{
+					var minZoom = (float)zoomControl.Min;
+					var maxZoom = (float)zoomControl.Max;
+					if (maxZoom < minZoom)
+						maxZoom = minZoom;
+
+					var normalizedZoom = ZoomFactor * (maxZoom - minZoom) + minZoom;
+					if (normalizedZoom < minZoom)
+						normalizedZoom = minZoom;
+					else if (normalizedZoom > maxZoom)
+						normalizedZoom = maxZoom;
+
+					if (Math.Abs(zoomControl.Value - normalizedZoom) > float.Epsilon)
+					{
+						zoomControl.Value = normalizedZoom;
 					}
 				}
 			}
