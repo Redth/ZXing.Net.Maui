@@ -198,7 +198,7 @@ namespace ZXing.Net.Maui
 
 				captureSession.AddInput(captureInput);
 
-#if TARGET_IOS
+#if IOS
 				// Enable multitasking camera access for iPadOS Windowed Apps mode
 				if (captureSession.MultitaskingCameraAccessSupported)
 				{
