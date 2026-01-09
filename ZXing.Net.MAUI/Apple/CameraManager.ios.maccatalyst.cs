@@ -200,11 +200,15 @@ namespace ZXing.Net.Maui
 
 #if IOS
 				// Enable multitasking camera access for iPadOS Windowed Apps mode
-				if (captureSession.MultitaskingCameraAccessSupported)
+				// MultitaskingCameraAccess API is only available on iOS 16+
+				if (OperatingSystem.IsIOSVersionAtLeast(16))
 				{
-					captureSession.BeginConfiguration();
-					captureSession.MultitaskingCameraAccessEnabled = true;
-					captureSession.CommitConfiguration();
+					if (captureSession.MultitaskingCameraAccessSupported)
+					{
+						captureSession.BeginConfiguration();
+						captureSession.MultitaskingCameraAccessEnabled = true;
+						captureSession.CommitConfiguration();
+					}
 				}
 #endif
 
