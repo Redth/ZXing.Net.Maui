@@ -11,13 +11,15 @@
 			x:Name="barcodeView"
 			BarcodesDetected="BarcodesDetected"
 			 />
-
-		<Grid
+        <Grid Grid.Row="1" VerticalOptions="End" HorizontalOptions="Fill" BackgroundColor="#aa000000">
+            <Slider Minimum="0" Maximum="1" ValueChanged="ZoomFactorChanged" />
+        </Grid>
+        <Grid
 			Grid.Row="0"
 			BackgroundColor="#aa000000">
 			<Label x:Name="ResultLabel" Grid.Row="2" Text="Top text..." HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" />
 		</Grid>
-
+        
 		<Grid
 			Grid.Row="3"
 			BackgroundColor="#aa000000"
@@ -27,8 +29,8 @@
 			<Button Text="🔄️" Grid.Column="0" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="SwitchCameraButton_Clicked" />
 
 			<Button Text="📷" Grid.Column="1" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="SelectCameraButton_Clicked" />
-
-			<zxing:BarcodeGeneratorView
+            
+            <zxing:BarcodeGeneratorView
 				x:Name="barcodeGenerator"
 				Grid.Column="2"
 				HorizontalOptions="Center"
