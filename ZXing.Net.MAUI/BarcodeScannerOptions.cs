@@ -17,5 +17,7 @@
 
 		public string CharacterSet { get; init; } = "UTF-8";
 
+		public bool AssumeGS1 { get; init; }
+
     }
 }

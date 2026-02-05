@@ -23,6 +23,7 @@
 				zxingReader.Options.TryInverted = options.TryInverted;
 				zxingReader.Options.UseCode39ExtendedMode = options.UseCode39ExtendedMode;
 				zxingReader.Options.CharacterSet = options.CharacterSet;
+                zxingReader.Options.AssumeGS1 = options.AssumeGS1;
 			}
 		}
 
