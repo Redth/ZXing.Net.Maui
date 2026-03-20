@@ -172,7 +172,7 @@ protected void BarcodesDetected(object sender, BarcodeDetectionEventArgs e)
 
 ### Character Encoding
 
-The `BarcodeGeneratorView` supports UTF-8 character encoding by default, which allows you to encode international characters including Chinese, Japanese, Arabic, and other non-ASCII characters. You can also specify a different character encoding if needed:
+If you need to encode international characters (e.g., Chinese, Japanese, Arabic, or other non-ASCII characters), you can specify a character encoding using the `CharacterSet` property:
 
 ```xaml
 <zxing:BarcodeGeneratorView
@@ -183,5 +183,5 @@ The `BarcodeGeneratorView` supports UTF-8 character encoding by default, which a
   CharacterSet="UTF-8" />
 ```
 
-The `CharacterSet` property defaults to "UTF-8" if not specified. Other common values include "ISO-8859-1", "Shift_JIS", etc., depending on your barcode format requirements.
+The `CharacterSet` property is not set by default, which lets the barcode encoder use its native encoding. This avoids adding ECI (Extended Channel Interpretation) headers that some barcode scanners may not support. Common values include "UTF-8", "ISO-8859-1", "Shift_JIS", etc., depending on your barcode format requirements.
 
