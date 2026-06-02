@@ -46,6 +46,7 @@ namespace ZXing.Net.Maui
         private ProcessCameraProvider _cameraProvider;
         private ICamera _camera;
         private System.Threading.Timer _autoFocusTimer;
+        private int _autoFocusTimerGeneration;
         private TapFocusTouchListener _tapFocusTouchListener;
 
         private static readonly Android.Util.Size DefaultResolution = new(640, 480);
@@ -297,11 +298,23 @@ namespace ZXing.Net.Maui
 
         public void Focus(Microsoft.Maui.Graphics.Point point)
         {
+            if (!Microsoft.Maui.ApplicationModel.MainThread.IsMainThread)
+            {
+                Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(() => Focus(point));
+                return;
+            }
+
             StartFocusAndMetering((float)point.X, (float)point.Y, disableAutoCancel: true);
         }
 
         public void AutoFocus()
         {
+            if (!Microsoft.Maui.ApplicationModel.MainThread.IsMainThread)
+            {
+                Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(AutoFocus);
+                return;
+            }
+
             if (_previewView == null)
                 return;
 
@@ -343,12 +356,14 @@ namespace ZXing.Net.Maui
         private void StartFocusAndMetering(float x, float y, bool disableAutoCancel)
         {
             var cameraControl = _camera?.CameraControl;
-            if (cameraControl == null || _previewView == null || _previewView.Width <= 0 || _previewView.Height <= 0)
+            var previewView = _previewView;
+
+            if (cameraControl == null || previewView == null || previewView.Width <= 0 || previewView.Height <= 0)
                 return;
 
             cameraControl.CancelFocusAndMetering();
 
-            var meteringPoint = _previewView.MeteringPointFactory.CreatePoint(x, y);
+            var meteringPoint = previewView.MeteringPointFactory.CreatePoint(x, y);
             var actionBuilder = new FocusMeteringAction.Builder(meteringPoint, FocusMeteringAction.FlagAf);
 
             if (disableAutoCancel)
@@ -360,11 +375,21 @@ namespace ZXing.Net.Maui
         private void StartAutoFocusTimer()
         {
             StopAutoFocusTimer();
-            _autoFocusTimer = new System.Threading.Timer(_ => AutoFocus(), null, System.TimeSpan.FromSeconds(5), System.TimeSpan.FromSeconds(5));
+
+            var generation = System.Threading.Interlocked.Increment(ref _autoFocusTimerGeneration);
+            _autoFocusTimer = new System.Threading.Timer(_ =>
+            {
+                Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    if (_autoFocusTimer != null && generation == System.Threading.Volatile.Read(ref _autoFocusTimerGeneration))
+                        AutoFocus();
+                });
+            }, null, System.TimeSpan.FromSeconds(5), System.TimeSpan.FromSeconds(5));
         }
 
         private void StopAutoFocusTimer()
         {
+            System.Threading.Interlocked.Increment(ref _autoFocusTimerGeneration);
             _autoFocusTimer?.Dispose();
             _autoFocusTimer = null;
         }
