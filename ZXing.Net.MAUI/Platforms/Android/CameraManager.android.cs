@@ -47,12 +47,15 @@ namespace ZXing.Net.Maui
         private ICamera _camera;
         private System.Threading.Timer _autoFocusTimer;
         private int _autoFocusTimerGeneration;
+        private bool _isCameraBound;
+        private bool _isDisposed;
         private TapFocusTouchListener _tapFocusTouchListener;
 
         private static readonly Android.Util.Size DefaultResolution = new(640, 480);
 
         public NativePlatformCameraPreviewView CreateNativeView()
         {
+            System.Threading.Volatile.Write(ref _isDisposed, false);
             _previewView = new PreviewView(Context.Context);
             _tapFocusTouchListener = new TapFocusTouchListener(this);
             _previewView.SetOnTouchListener(_tapFocusTouchListener);
@@ -79,6 +82,7 @@ namespace ZXing.Net.Maui
 
         public void Disconnect()
         {
+            System.Threading.Volatile.Write(ref _isCameraBound, false);
             StopAutoFocusTimer();
             _cameraProvider?.UnbindAll();
             _cameraExecutor?.Shutdown();
@@ -88,6 +92,9 @@ namespace ZXing.Net.Maui
         {
             if (_cameraProvider != null)
             {
+                System.Threading.Volatile.Write(ref _isCameraBound, false);
+                StopAutoFocusTimer();
+
                 // Unbind use cases before rebinding
                 _cameraProvider.UnbindAll();
 
@@ -148,8 +155,12 @@ namespace ZXing.Net.Maui
                     _camera = _cameraProvider.BindToLifecycle(maLifecycleOwner, _cameraSelector, _cameraPreview, _imageAnalyzer);
                 }
 
-                AutoFocus();
-                StartAutoFocusTimer();
+                if (_camera != null && !System.Threading.Volatile.Read(ref _isDisposed))
+                {
+                    System.Threading.Volatile.Write(ref _isCameraBound, true);
+                    AutoFocus();
+                    StartAutoFocusTimer();
+                }
             }
         }
 
@@ -298,6 +309,9 @@ namespace ZXing.Net.Maui
 
         public void Focus(Microsoft.Maui.Graphics.Point point)
         {
+            if (System.Threading.Volatile.Read(ref _isDisposed))
+                return;
+
             if (!Microsoft.Maui.ApplicationModel.MainThread.IsMainThread)
             {
                 Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(() => Focus(point));
@@ -309,6 +323,9 @@ namespace ZXing.Net.Maui
 
         public void AutoFocus()
         {
+            if (System.Threading.Volatile.Read(ref _isDisposed))
+                return;
+
             if (!Microsoft.Maui.ApplicationModel.MainThread.IsMainThread)
             {
                 Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(AutoFocus);
@@ -323,6 +340,8 @@ namespace ZXing.Net.Maui
 
         public void Dispose()
         {
+            System.Threading.Volatile.Write(ref _isDisposed, true);
+            System.Threading.Volatile.Write(ref _isCameraBound, false);
             StopAutoFocusTimer();
 
             _imageAnalyzer?.Dispose();
@@ -355,6 +374,9 @@ namespace ZXing.Net.Maui
 
         private void StartFocusAndMetering(float x, float y, bool disableAutoCancel)
         {
+            if (System.Threading.Volatile.Read(ref _isDisposed) || !System.Threading.Volatile.Read(ref _isCameraBound))
+                return;
+
             var cameraControl = _camera?.CameraControl;
             var previewView = _previewView;
 
@@ -381,8 +403,13 @@ namespace ZXing.Net.Maui
             {
                 Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    if (_autoFocusTimer != null && generation == System.Threading.Volatile.Read(ref _autoFocusTimerGeneration))
+                    if (_autoFocusTimer != null
+                        && generation == System.Threading.Volatile.Read(ref _autoFocusTimerGeneration)
+                        && !System.Threading.Volatile.Read(ref _isDisposed)
+                        && System.Threading.Volatile.Read(ref _isCameraBound))
+                    {
                         AutoFocus();
+                    }
                 });
             }, null, System.TimeSpan.FromSeconds(5), System.TimeSpan.FromSeconds(5));
         }
