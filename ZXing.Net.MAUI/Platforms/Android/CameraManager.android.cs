@@ -402,7 +402,7 @@ namespace ZXing.Net.Maui
             var cameraControl = _camera?.CameraControl;
             var previewView = _previewView;
 
-            if (cameraControl == null || previewView == null || previewView.Width <= 0 || previewView.Height <= 0)
+            if (cameraControl == null || previewView == null || !previewView.IsAttachedToWindow || previewView.Width <= 0 || previewView.Height <= 0)
                 return;
 
             cameraControl.CancelFocusAndMetering();
@@ -425,8 +425,7 @@ namespace ZXing.Net.Maui
             {
                 Microsoft.Maui.ApplicationModel.MainThread.BeginInvokeOnMainThread(() =>
                 {
-                    if (_autoFocusTimer != null
-                        && generation == System.Threading.Volatile.Read(ref _autoFocusTimerGeneration)
+                    if (generation == System.Threading.Volatile.Read(ref _autoFocusTimerGeneration)
                         && !System.Threading.Volatile.Read(ref _isDisposed)
                         && System.Threading.Volatile.Read(ref _isCameraBound))
                     {
