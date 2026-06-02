@@ -46,6 +46,7 @@ namespace ZXing.Net.Maui
         private ProcessCameraProvider _cameraProvider;
         private ICamera _camera;
         private System.Threading.Timer _autoFocusTimer;
+        private int _connectGeneration;
         private int _autoFocusTimerGeneration;
         private bool _isCameraBound;
         private bool _isDisposed;
@@ -66,22 +67,37 @@ namespace ZXing.Net.Maui
 
         public void Connect()
         {
+            var connectGeneration = System.Threading.Interlocked.Increment(ref _connectGeneration);
             var cameraProviderFuture = ProcessCameraProvider.GetInstance(Context.Context);
 
             cameraProviderFuture.AddListener(new Java.Lang.Runnable(() =>
             {
+                if (!IsConnectGenerationCurrent(connectGeneration))
+                    return;
+
+                var previewView = _previewView;
+                var cameraExecutor = _cameraExecutor;
+                if (previewView == null || cameraExecutor == null)
+                    return;
+
                 // Used to bind the lifecycle of cameras to the lifecycle owner
-                _cameraProvider = (ProcessCameraProvider)cameraProviderFuture.Get();
+                var cameraProvider = (ProcessCameraProvider)cameraProviderFuture.Get();
+                if (!IsConnectGenerationCurrent(connectGeneration))
+                    return;
 
-                ConfigureUseCases();
+                _cameraProvider = cameraProvider;
 
-                UpdateCamera();
+                ConfigureUseCases(cameraExecutor, previewView);
+
+                if (IsConnectGenerationCurrent(connectGeneration))
+                    UpdateCamera();
 
             }), ContextCompat.GetMainExecutor(Context.Context)); //GetMainExecutor: returns an Executor that runs on the main thread.
         }
 
         public void Disconnect()
         {
+            System.Threading.Interlocked.Increment(ref _connectGeneration);
             System.Threading.Volatile.Write(ref _isCameraBound, false);
             StopAutoFocusTimer();
             _cameraProvider?.UnbindAll();
@@ -219,12 +235,17 @@ namespace ZXing.Net.Maui
             if (_cameraProvider == null)
                 return;
 
+            var previewView = _previewView;
+            var cameraExecutor = _cameraExecutor;
+            if (previewView == null || cameraExecutor == null)
+                return;
+
             _cameraProvider.UnbindAll();
-            ConfigureUseCases();
+            ConfigureUseCases(cameraExecutor, previewView);
             UpdateCamera();
         }
 
-        void ConfigureUseCases()
+        void ConfigureUseCases(IExecutorService cameraExecutor, PreviewView previewView)
         {
             _resolutionSelector?.Dispose();
             _resolutionSelector = CreateResolutionSelector();
@@ -235,7 +256,7 @@ namespace ZXing.Net.Maui
                 .SetResolutionSelector(_resolutionSelector)
                 .Build();
 
-            _cameraPreview.SetSurfaceProvider(_cameraExecutor, _previewView.SurfaceProvider);
+            _cameraPreview.SetSurfaceProvider(cameraExecutor, previewView.SurfaceProvider);
 
             _imageAnalyzer?.Dispose();
             _imageAnalyzer = new ImageAnalysis
@@ -246,7 +267,7 @@ namespace ZXing.Net.Maui
                 .SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
                 .Build();
 
-            _imageAnalyzer.SetAnalyzer(_cameraExecutor, new FrameAnalyzer((buffer, size) =>
+            _imageAnalyzer.SetAnalyzer(cameraExecutor, new FrameAnalyzer((buffer, size) =>
                 FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
         }
 
@@ -340,6 +361,7 @@ namespace ZXing.Net.Maui
 
         public void Dispose()
         {
+            System.Threading.Interlocked.Increment(ref _connectGeneration);
             System.Threading.Volatile.Write(ref _isDisposed, true);
             System.Threading.Volatile.Write(ref _isCameraBound, false);
             StopAutoFocusTimer();
@@ -420,6 +442,10 @@ namespace ZXing.Net.Maui
             _autoFocusTimer?.Dispose();
             _autoFocusTimer = null;
         }
+
+        private bool IsConnectGenerationCurrent(int generation)
+            => generation == System.Threading.Volatile.Read(ref _connectGeneration)
+                && !System.Threading.Volatile.Read(ref _isDisposed);
 
         private sealed class TapFocusTouchListener : Java.Lang.Object, Android.Views.View.IOnTouchListener
         {
