@@ -90,9 +90,19 @@ cameraBarcodeReaderView.Options = new BarcodeReaderOptions
 {
   Formats = BarcodeFormats.OneDimensional,
   AutoRotate = true,
-  Multiple = true
+  Multiple = true,
+  DelayBetweenAnalyzingFrames = 150,
+  InitialDelayBeforeAnalyzingFrames = 300,
+  DelayBetweenContinuousScans = 1000,
+  CameraResolutionSelector = availableResolutions =>
+    availableResolutions
+      .OrderBy(resolution => Math.Abs((resolution.Width * resolution.Height) - (1280 * 720)))
+      .ThenBy(resolution => Math.Abs(resolution.Width - 1280) + Math.Abs(resolution.Height - 720))
+      .First()
 };
 ```
+
+The delay options are expressed in milliseconds and default to the Xamarin plugin cadence: `150` milliseconds between frame analyses, `300` milliseconds before initial analysis, and `1000` milliseconds between continuous scan detections. Set a delay to `0` to analyze as soon as the camera pipeline provides frames. `CameraResolutionSelector` receives the resolutions supported by the active camera and should return the preferred resolution.
 
 QR codes with international characters (e.g., £, €, ¥, or non-Latin scripts) are supported by default with UTF-8 encoding. You can override this if needed:
 ```csharp
@@ -172,7 +182,5 @@ The `BarcodeGeneratorView` supports UTF-8 character encoding by default, which a
 ```
 
 The `CharacterSet` property defaults to "UTF-8" if not specified. Other common values include "ISO-8859-1", "Shift_JIS", etc., depending on your barcode format requirements.
-
-
 
 

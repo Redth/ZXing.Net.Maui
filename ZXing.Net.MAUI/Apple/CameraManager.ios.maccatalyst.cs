@@ -7,6 +7,7 @@ using Foundation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using UIKit;
 using MSize = Microsoft.Maui.Graphics.Size;
@@ -72,7 +73,7 @@ namespace ZXing.Net.Maui
 
 		public void Connect()
 		{
-			UpdateCamera();
+			UpdateCamera(startIfStopped: true);
 
 			if (videoDataOutput == null)
 			{
@@ -108,112 +109,183 @@ namespace ZXing.Net.Maui
 		}
 
 		public void UpdateCamera()
+			=> UpdateCamera(startIfStopped: false);
+
+		void UpdateCamera(bool startIfStopped)
 		{
 			if (captureSession != null)
 			{
-				if (captureSession.Running)
+				var wasRunning = captureSession.Running;
+				if (wasRunning)
 					captureSession.StopRunning();
 
-				// Cleanup old input
-				if (captureInput != null && captureSession.Inputs.Length > 0 && captureSession.Inputs.Contains(captureInput))
+				captureSession.BeginConfiguration();
+				try
 				{
-					captureSession.RemoveInput(captureInput);
-					captureInput.Dispose();
-					captureInput = null;
-				}
-
-				// Cleanup old device
-				if (captureDevice != null)
-				{
-					captureDevice.Dispose();
-					captureDevice = null;
-				}
-
-				// If a specific camera is selected, use it
-				if (SelectedCamera != null)
-				{
-					captureDevice = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
-					var discoverySession = AVCaptureDeviceDiscoverySession.Create(CaptureDevices(), AVMediaTypes.Video, AVCaptureDevicePosition.Unspecified);
-					foreach (var device in discoverySession.Devices)
+					// Cleanup old input
+					if (captureInput != null && captureSession.Inputs.Length > 0 && captureSession.Inputs.Contains(captureInput))
 					{
-						if (device.UniqueID == SelectedCamera.DeviceId)
-						{
-							captureDevice = device;
-							break;
-						}
+						captureSession.RemoveInput(captureInput);
+						captureInput.Dispose();
+						captureInput = null;
 					}
-				}
-				else
-				{
-					var discoverySession = AVCaptureDeviceDiscoverySession.Create(CaptureDevices(), AVMediaTypes.Video, AVCaptureDevicePosition.Unspecified);
-					
-					// Prioritize cameras suitable for barcode scanning
-					AVCaptureDevice selectedDevice = null;
-					AVCaptureDevice fallbackDevice = null;
-					
-					foreach (var device in discoverySession.Devices)
-					{
-						// Skip depth-only cameras (TrueDepth, LiDAR) as they're not suitable for barcode scanning
-						if (device.DeviceType == AVCaptureDeviceType.BuiltInTrueDepthCamera ||
-							device.DeviceType == AVCaptureDeviceType.BuiltInLiDarDepthCamera)
-							continue;
-						
-						var isCorrectPosition = (CameraLocation == CameraLocation.Front && device.Position == AVCaptureDevicePosition.Front) ||
-												(CameraLocation == CameraLocation.Rear && device.Position == AVCaptureDevicePosition.Back);
-						
-						if (isCorrectPosition)
-						{
-							// Prefer multi-camera systems (Dual, Triple, DualWide) - these are the main cameras on modern iPhones
-							if (device.DeviceType == AVCaptureDeviceType.BuiltInDualCamera ||
-								device.DeviceType == AVCaptureDeviceType.BuiltInTripleCamera ||
-								device.DeviceType == AVCaptureDeviceType.BuiltInDualWideCamera)
-							{
-								selectedDevice = device;
-								break; // Multi-camera systems are ideal for barcode scanning
-							}
-							// Wide-angle is a good standard camera
-							else if (device.DeviceType == AVCaptureDeviceType.BuiltInWideAngleCamera && selectedDevice == null)
-							{
-								selectedDevice = device;
-							}
-							// Avoid ultra-wide and telephoto, but keep as last resort fallback
-							else if (fallbackDevice == null)
-							{
-								fallbackDevice = device;
-							}
-						}
-					}
-					
-					// Use selected device, or fallback if nothing better was found
-					captureDevice = selectedDevice ?? fallbackDevice;
 
-					if (captureDevice == null)
+					// Cleanup old device
+					if (captureDevice != null)
+					{
+						captureDevice.Dispose();
+						captureDevice = null;
+					}
+
+					// If a specific camera is selected, use it
+					if (SelectedCamera != null)
+					{
 						captureDevice = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
-				}
+						var discoverySession = AVCaptureDeviceDiscoverySession.Create(CaptureDevices(), AVMediaTypes.Video, AVCaptureDevicePosition.Unspecified);
+						foreach (var device in discoverySession.Devices)
+						{
+							if (device.UniqueID == SelectedCamera.DeviceId)
+							{
+								captureDevice = device;
+								break;
+							}
+						}
+					}
+					else
+					{
+						var discoverySession = AVCaptureDeviceDiscoverySession.Create(CaptureDevices(), AVMediaTypes.Video, AVCaptureDevicePosition.Unspecified);
+						
+						// Prioritize cameras suitable for barcode scanning
+						AVCaptureDevice selectedDevice = null;
+						AVCaptureDevice fallbackDevice = null;
 
-				if (captureDevice is null)
-					return;
+						foreach (var device in discoverySession.Devices)
+						{
+							// Skip depth-only cameras (TrueDepth, LiDAR) as they're not suitable for barcode scanning
+							if (device.DeviceType == AVCaptureDeviceType.BuiltInTrueDepthCamera ||
+								device.DeviceType == AVCaptureDeviceType.BuiltInLiDarDepthCamera)
+								continue;
 
-				captureInput = new AVCaptureDeviceInput(captureDevice, out var err);
+							var isCorrectPosition = (CameraLocation == CameraLocation.Front && device.Position == AVCaptureDevicePosition.Front) ||
+													(CameraLocation == CameraLocation.Rear && device.Position == AVCaptureDevicePosition.Back);
 
-				captureSession.AddInput(captureInput);
+							if (isCorrectPosition)
+							{
+								// Prefer multi-camera systems (Dual, Triple, DualWide) - these are the main cameras on modern iPhones
+								if (device.DeviceType == AVCaptureDeviceType.BuiltInDualCamera ||
+									device.DeviceType == AVCaptureDeviceType.BuiltInTripleCamera ||
+									device.DeviceType == AVCaptureDeviceType.BuiltInDualWideCamera)
+								{
+									selectedDevice = device;
+									break; // Multi-camera systems are ideal for barcode scanning
+								}
+								// Wide-angle is a good standard camera
+								else if (device.DeviceType == AVCaptureDeviceType.BuiltInWideAngleCamera && selectedDevice == null)
+								{
+									selectedDevice = device;
+								}
+								// Avoid ultra-wide and telephoto, but keep as last resort fallback
+								else if (fallbackDevice == null)
+								{
+									fallbackDevice = device;
+								}
+							}
+						}
+
+						// Use selected device, or fallback if nothing better was found
+						captureDevice = selectedDevice ?? fallbackDevice;
+
+						if (captureDevice == null)
+							captureDevice = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
+					}
+
+					if (captureDevice is null)
+						return;
+
+					captureInput = new AVCaptureDeviceInput(captureDevice, out var err);
+
+					captureSession.AddInput(captureInput);
+					ApplySelectedResolution();
 
 #if IOS
-				// Enable multitasking camera access for iPadOS Windowed Apps mode
-				// MultitaskingCameraAccess API is only available on iOS 16+
-				if (OperatingSystem.IsIOSVersionAtLeast(16))
-				{
-					if (captureSession.MultitaskingCameraAccessSupported)
+					// Enable multitasking camera access for iPadOS Windowed Apps mode
+					// MultitaskingCameraAccess API is available on iPadOS 16+.
+					if (OperatingSystem.IsIOSVersionAtLeast(16) && !OperatingSystem.IsMacCatalyst())
 					{
-						captureSession.BeginConfiguration();
-						captureSession.MultitaskingCameraAccessEnabled = true;
-						captureSession.CommitConfiguration();
+#pragma warning disable CA1416
+						EnableMultitaskingCameraAccess();
+#pragma warning restore CA1416
 					}
+#endif
 				}
+				finally
+				{
+					captureSession.CommitConfiguration();
+				}
+
+				if (wasRunning || startIfStopped)
+					captureSession.StartRunning();
+			}
+		}
+
+		partial void ApplyCameraOptions()
+		{
+			if (captureSession != null && captureDevice != null)
+				UpdateCamera();
+		}
+
+#if IOS
+		[SupportedOSPlatform("ios16.0")]
+		[UnsupportedOSPlatform("maccatalyst")]
+		void EnableMultitaskingCameraAccess()
+		{
+			if (captureSession.MultitaskingCameraAccessSupported)
+			{
+				captureSession.MultitaskingCameraAccessEnabled = true;
+			}
+		}
 #endif
 
-				captureSession.StartRunning();
+		void ApplySelectedResolution()
+		{
+			var supportedPresets = Resolutions
+				.Where(resolution => captureDevice.SupportsAVCaptureSessionPreset(resolution.Key))
+				.ToList();
+
+			if (supportedPresets.Count == 0)
+				return;
+
+			var selectedResolution = SelectResolution(supportedPresets.Select(resolution => new CameraResolution((int)resolution.Value.Width, (int)resolution.Value.Height)).ToList());
+			var selectedPreset = supportedPresets
+				.OrderBy(resolution => Distance(resolution.Value, selectedResolution))
+				.First()
+				.Key;
+
+			if (captureSession.CanSetSessionPreset(selectedPreset))
+				captureSession.SessionPreset = selectedPreset;
+		}
+
+		CameraResolution SelectResolution(IReadOnlyList<CameraResolution> availableResolutions)
+		{
+			if (Options.CameraResolutionSelector == null)
+				return new CameraResolution(640, 480);
+
+			try
+			{
+				return Options.CameraResolutionSelector(availableResolutions) ?? new CameraResolution(640, 480);
 			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine($"Camera resolution selector failed: {ex.Message}");
+				return new CameraResolution(640, 480);
+			}
+		}
+
+		static double Distance(MSize availableResolution, CameraResolution selectedResolution)
+		{
+			var widthDifference = availableResolution.Width - selectedResolution.Width;
+			var heightDifference = availableResolution.Height - selectedResolution.Height;
+			return (widthDifference * widthDifference) + (heightDifference * heightDifference);
 		}
 
 		public Task<IReadOnlyList<CameraInfo>> GetAvailableCameras()

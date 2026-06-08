@@ -1,5 +1,6 @@
-﻿using System.Runtime.Versioning;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -47,7 +48,7 @@ namespace ZXing.Net.Maui
         private ProcessCameraProvider _cameraProvider;
         private ICamera _camera;
 
-        private static readonly Android.Util.Size ScreenSize = new(640, 480);
+        private static readonly Android.Util.Size DefaultResolution = new(640, 480);
 
         public NativePlatformCameraPreviewView CreateNativeView()
         {
@@ -66,35 +67,7 @@ namespace ZXing.Net.Maui
                 // Used to bind the lifecycle of cameras to the lifecycle owner
                 _cameraProvider = (ProcessCameraProvider)cameraProviderFuture.Get();
 
-                _resolutionSelector?.Dispose();
-
-                _resolutionSelector = new ResolutionSelector
-                    .Builder()
-                    .SetResolutionStrategy(new ResolutionStrategy(ScreenSize, ResolutionStrategy.FallbackRuleClosestHigherThenLower))
-                    .Build();
-
-                // Preview
-                _cameraPreview?.Dispose();
-
-                _cameraPreview = new Preview
-                    .Builder()
-                    .SetResolutionSelector(_resolutionSelector)
-                    .Build();
-
-                _cameraPreview.SetSurfaceProvider(_cameraExecutor, _previewView.SurfaceProvider);
-
-                // Frame by frame analyze
-                _imageAnalyzer?.Dispose();
-
-                _imageAnalyzer = new ImageAnalysis
-                    .Builder()
-                    .SetOutputImageFormat(ImageAnalysis.OutputImageFormatRgba8888)
-                    .SetResolutionSelector(_resolutionSelector)
-                    .SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
-                    .Build();
-
-                _imageAnalyzer.SetAnalyzer(_cameraExecutor, new FrameAnalyzer((buffer, size) =>
-                    FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
+                ConfigureUseCases();
 
                 UpdateCamera();
 
@@ -114,7 +87,7 @@ namespace ZXing.Net.Maui
                 // Unbind use cases before rebinding
                 _cameraProvider.UnbindAll();
 
-                CameraSelector? selectedCameraSelector = null;
+                CameraSelector selectedCameraSelector = null;
 
                 // If a specific camera is selected, use it
                 if (SelectedCamera is not null)
@@ -221,6 +194,98 @@ namespace ZXing.Net.Maui
         public void UpdateTorch(bool on)
         {
             _camera?.CameraControl?.EnableTorch(on);
+        }
+
+        partial void ApplyCameraOptions()
+        {
+            if (_cameraProvider == null)
+                return;
+
+            _cameraProvider.UnbindAll();
+            ConfigureUseCases();
+            UpdateCamera();
+        }
+
+        void ConfigureUseCases()
+        {
+            _resolutionSelector?.Dispose();
+            _resolutionSelector = CreateResolutionSelector();
+
+            _cameraPreview?.Dispose();
+            _cameraPreview = new Preview
+                .Builder()
+                .SetResolutionSelector(_resolutionSelector)
+                .Build();
+
+            _cameraPreview.SetSurfaceProvider(_cameraExecutor, _previewView.SurfaceProvider);
+
+            _imageAnalyzer?.Dispose();
+            _imageAnalyzer = new ImageAnalysis
+                .Builder()
+                .SetOutputImageFormat(ImageAnalysis.OutputImageFormatRgba8888)
+                .SetResolutionSelector(_resolutionSelector)
+                .SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
+                .Build();
+
+            _imageAnalyzer.SetAnalyzer(_cameraExecutor, new FrameAnalyzer((buffer, size) =>
+                FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
+        }
+
+        ResolutionSelector CreateResolutionSelector()
+        {
+            var builder = new ResolutionSelector
+                .Builder()
+                .SetResolutionStrategy(new ResolutionStrategy(DefaultResolution, ResolutionStrategy.FallbackRuleClosestHigherThenLower));
+
+            if (Options.CameraResolutionSelector != null)
+                builder.SetResolutionFilter(new CameraResolutionFilter(Options.CameraResolutionSelector));
+
+            return builder.Build();
+        }
+
+        sealed class CameraResolutionFilter : Java.Lang.Object, IResolutionFilter
+        {
+            readonly CameraResolutionSelectorDelegate selector;
+
+            public CameraResolutionFilter(CameraResolutionSelectorDelegate selector)
+                => this.selector = selector;
+
+            public IList<Android.Util.Size> Filter(IList<Android.Util.Size> supportedSizes, int rotationDegrees)
+            {
+                if (supportedSizes == null || supportedSizes.Count == 0)
+                    return supportedSizes;
+
+                var availableResolutions = supportedSizes
+                    .Select(size => new CameraResolution(size.Width, size.Height))
+                    .ToList();
+
+                CameraResolution selectedResolution;
+                try
+                {
+                    selectedResolution = selector(availableResolutions);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Camera resolution selector failed: {ex.Message}");
+                    return supportedSizes;
+                }
+
+                if (selectedResolution == null)
+                    return supportedSizes;
+
+                var selectedSize = supportedSizes.FirstOrDefault(size =>
+                    size.Width == selectedResolution.Width && size.Height == selectedResolution.Height);
+
+                if (selectedSize == null)
+                {
+                    Debug.WriteLine($"Camera resolution selector returned unsupported resolution: {selectedResolution.Width}x{selectedResolution.Height}");
+                    return supportedSizes;
+                }
+
+                return supportedSizes
+                    .OrderByDescending(size => size.Width == selectedSize.Width && size.Height == selectedSize.Height)
+                    .ToList();
+            }
         }
 
         public void Focus(Point point)
