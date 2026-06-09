@@ -105,11 +105,18 @@ namespace ZXing.Net.Maui
             scannerTimingGate.Reset();
             scannerTimingGate.UpdateOptions(_virtualView?.Options);
 
-            if (cameraManager != null)
-            {
-                cameraManager.UpdateOptions(_virtualView?.Options);
+            var manager = cameraManager;
 
-                if (await CameraManager.CheckPermissions())
+            if (manager != null)
+            {
+                manager.UpdateOptions(_virtualView?.Options);
+
+                var hasPermission = await CameraManager.CheckPermissions();
+
+                if (_virtualView == null || cameraManager != manager)
+                    return;
+
+                if (hasPermission)
                 {
                     if (_isDetecting)
                     {
@@ -117,11 +124,11 @@ namespace ZXing.Net.Maui
                         scannerTimingGate.StartInitialDelay();
                     }
 
-                    cameraManager.Connect();
+                    manager.Connect();
                     _isConnected = true;
                 }
 
-                cameraManager.FrameReady += CameraManager_FrameReady;
+                manager.FrameReady += CameraManager_FrameReady;
             }
         }
 
@@ -223,11 +230,14 @@ namespace ZXing.Net.Maui
                     {
                         // View became visible and camera is connected - rebind camera
                         // This ensures the camera preview works even if the view started invisible
-                        if (handler.cameraManager != null)
+                        var manager = handler.cameraManager;
+
+                        if (manager != null)
                         {
                             if (await CameraManager.CheckPermissions())
                             {
-                                handler.cameraManager.UpdateCamera();
+                                if (handler._isConnected && handler.cameraManager == manager)
+                                    manager.UpdateCamera();
                             }
                         }
                     }

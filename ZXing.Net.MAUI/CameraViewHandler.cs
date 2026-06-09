@@ -51,15 +51,22 @@ namespace ZXing.Net.Maui
 
 			_virtualView = VirtualView;
 
-			if (cameraManager != null)
+			var manager = cameraManager;
+
+			if (manager != null)
 			{
-				if (await CameraManager.CheckPermissions())
+				var hasPermission = await CameraManager.CheckPermissions();
+
+				if (_virtualView == null || cameraManager != manager)
+					return;
+
+				if (hasPermission)
 				{
-					cameraManager.Connect();
+					manager.Connect();
 					_isConnected = true;
 				}
 
-				cameraManager.FrameReady += CameraManager_FrameReady;
+				manager.FrameReady += CameraManager_FrameReady;
 			}
 		}
 
@@ -76,6 +83,7 @@ namespace ZXing.Net.Maui
 
 				cameraManager.Disconnect();
 				cameraManager.Dispose();
+				cameraManager = null;
 			}
 
 			_isConnected = false;
@@ -85,7 +93,10 @@ namespace ZXing.Net.Maui
 		}
 
 		public void Dispose()
-			=> cameraManager?.Dispose();
+		{
+			cameraManager?.Dispose();
+			cameraManager = null;
+		}
 
 		public void Focus(Point point)
 			=> cameraManager?.Focus(point);
@@ -127,11 +138,14 @@ namespace ZXing.Net.Maui
 					{
 						// View became visible and camera is connected - rebind camera
 						// This ensures the camera preview works even if the view started invisible
-						if (handler.cameraManager != null)
+						var manager = handler.cameraManager;
+
+						if (manager != null)
 						{
 							if (await CameraManager.CheckPermissions())
 							{
-								handler.cameraManager.UpdateCamera();
+								if (handler._isConnected && handler.cameraManager == manager)
+									manager.UpdateCamera();
 							}
 						}
 					}
