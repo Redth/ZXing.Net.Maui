@@ -315,7 +315,10 @@ namespace ZXing.Net.Maui
 				if (captureSession.Running)
 					captureSession.StopRunning();
 
-				captureSession.RemoveOutput(videoDataOutput);
+				if (ContainsReference(captureSession.Outputs, videoDataOutput))
+				{
+					captureSession.RemoveOutput(videoDataOutput);
+				}
 
 				// Cleanup old input
 				if (captureInput != null && captureSession.Inputs.Length > 0 && captureSession.Inputs.Contains(captureInput))

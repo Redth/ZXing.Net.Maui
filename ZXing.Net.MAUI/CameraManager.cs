@@ -65,6 +65,21 @@ namespace ZXing.Net.Maui
 		internal static bool ShouldApplyCameraOptions(BarcodeReaderOptions currentOptions, BarcodeReaderOptions nextOptions)
 			=> currentOptions?.CameraResolutionSelector != nextOptions?.CameraResolutionSelector;
 
+		internal static bool ContainsReference<T>(IReadOnlyCollection<T> items, object instance)
+			where T : class
+		{
+			if (instance is null || items is null || items.Count == 0)
+				return false;
+
+			foreach (var item in items)
+			{
+				if (ReferenceEquals(item, instance))
+					return true;
+			}
+
+			return false;
+		}
+
 		public static async Task<bool> CheckPermissions()
 			=> (await Permissions.RequestAsync<Permissions.Camera>()) == PermissionStatus.Granted;
 
