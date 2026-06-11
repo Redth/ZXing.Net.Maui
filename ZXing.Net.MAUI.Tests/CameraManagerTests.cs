@@ -42,4 +42,23 @@ public class CameraManagerTests
 		Assert.False(CameraManager.ShouldApplyCameraOptions(selectorOptions, sameSelectorOptions));
 		Assert.True(CameraManager.ShouldApplyCameraOptions(selectorOptions, otherSelectorOptions));
 	}
+
+	[Fact]
+	public void ContainsReferenceReturnsFalseWhenInstanceIsNull()
+	{
+		var items = new[] { new object() };
+
+		Assert.False(CameraManager.ContainsReference(items, null));
+	}
+
+	[Fact]
+	public void ContainsReferenceReturnsTrueOnlyForSameInstance()
+	{
+		var shared = new object();
+		var sameValueDifferentInstance = new object();
+		var items = new[] { new object(), shared };
+
+		Assert.True(CameraManager.ContainsReference(items, shared));
+		Assert.False(CameraManager.ContainsReference(items, sameValueDifferentInstance));
+	}
 }
