@@ -33,9 +33,6 @@ using ZXing.Net.Maui.Controls;
 
 namespace ZXing.Net.Maui.Controls
 {
-	/// <summary>
-	/// Extension methods for configuring barcode reader in MAUI applications.
-	/// </summary>
 	public static class CameraViewExtensions
 	{
 		public static MauiAppBuilder UseBarcodeReader(this MauiAppBuilder builder)
