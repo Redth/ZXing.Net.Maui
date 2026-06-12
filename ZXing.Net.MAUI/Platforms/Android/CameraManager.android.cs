@@ -98,13 +98,17 @@ namespace ZXing.Net.Maui
         {
             _isConnected = false;
 
-            _cameraProvider?.UnbindAll();
-            _camera = null;
-            _cameraExecutor?.Shutdown();
+            RunOnMainThread(DisconnectOnMainThread);
         }
 
         public void UpdateCamera()
         {
+            if (!IsMainThread)
+            {
+                RunOnMainThread(UpdateCamera);
+                return;
+            }
+
             if (!_isConnected || _isDisposed)
                 return;
 
@@ -230,6 +234,14 @@ namespace ZXing.Net.Maui
         }
 
         partial void ApplyCameraOptions()
+        {
+            if (!_isConnected || _isDisposed)
+                return;
+
+            RunOnMainThread(ApplyCameraOptionsOnMainThread);
+        }
+
+        void ApplyCameraOptionsOnMainThread()
         {
             if (!_isConnected || _isDisposed)
                 return;
@@ -364,9 +376,12 @@ namespace ZXing.Net.Maui
         bool CanFocus()
             => _isConnected && !_isDisposed && _camera != null && _previewView != null;
 
+        bool IsMainThread
+            => Android.OS.Looper.MyLooper() == Android.OS.Looper.MainLooper;
+
         void RunOnMainThread(Action action)
         {
-            if (Android.OS.Looper.MyLooper() == Android.OS.Looper.MainLooper)
+            if (IsMainThread)
                 action();
             else
                 ContextCompat.GetMainExecutor(Context.Context).Execute(new Java.Lang.Runnable(action));
@@ -378,6 +393,9 @@ namespace ZXing.Net.Maui
             var previewView = _previewView;
 
             if (!CanFocus() || camera == null || previewView == null)
+                return;
+
+            if (previewView.Width <= 0 || previewView.Height <= 0)
                 return;
 
             if (double.IsNaN(point.X) || double.IsNaN(point.Y) || double.IsInfinity(point.X) || double.IsInfinity(point.Y))
@@ -400,7 +418,22 @@ namespace ZXing.Net.Maui
             _isDisposed = true;
             _isConnected = false;
 
+            RunOnMainThread(DisposeOnMainThread);
+        }
+
+        void DisconnectOnMainThread()
+        {
             _cameraProvider?.UnbindAll();
+            _camera = null;
+            _cameraExecutor?.Shutdown();
+        }
+
+        void DisposeOnMainThread()
+        {
+            var camera = _camera;
+
+            _cameraProvider?.UnbindAll();
+            _camera = null;
             _cameraExecutor?.Shutdown();
 
             _imageAnalyzer?.Dispose();
@@ -424,8 +457,7 @@ namespace ZXing.Net.Maui
             _cameraExecutor?.Dispose();
             _cameraExecutor = null;
 
-            _camera?.Dispose();
-            _camera = null;
+            camera?.Dispose();
         }
     }
 }
