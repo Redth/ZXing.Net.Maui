@@ -51,7 +51,7 @@ namespace ZXing.Net.Maui.Controls
 		}
 
 		public static readonly BindableProperty CharacterSetProperty =
-			BindableProperty.Create(nameof(CharacterSet), typeof(string), typeof(BarcodeGeneratorView), defaultValue: "UTF-8");
+			BindableProperty.Create(nameof(CharacterSet), typeof(string), typeof(BarcodeGeneratorView), defaultValue: null);
 
 		public string CharacterSet
 		{
