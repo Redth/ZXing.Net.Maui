@@ -119,8 +119,7 @@ namespace ZXing.Net.Maui
             if (cameraProvider != null && cameraPreview != null && imageAnalyzer != null)
             {
                 // Unbind use cases before rebinding
-                cameraProvider.UnbindAll();
-                _camera = null;
+                UnbindCamera(cameraProvider);
 
                 CameraSelector selectedCameraSelector = null;
 
@@ -253,8 +252,7 @@ namespace ZXing.Net.Maui
             if (cameraProvider == null || previewView == null || cameraExecutor == null)
                 return;
 
-            cameraProvider.UnbindAll();
-            _camera = null;
+            UnbindCamera(cameraProvider);
             ConfigureUseCases(previewView, cameraExecutor);
             UpdateCamera();
         }
@@ -441,17 +439,13 @@ namespace ZXing.Net.Maui
 
         void DisconnectOnMainThread()
         {
-            _cameraProvider?.UnbindAll();
-            _camera = null;
+            UnbindCamera(_cameraProvider);
             _cameraExecutor?.Shutdown();
         }
 
         void DisposeOnMainThread()
         {
-            var camera = _camera;
-
-            _cameraProvider?.UnbindAll();
-            _camera = null;
+            UnbindCamera(_cameraProvider);
             _cameraExecutor?.Shutdown();
 
             _imageAnalyzer?.Dispose();
@@ -474,7 +468,14 @@ namespace ZXing.Net.Maui
 
             _cameraExecutor?.Dispose();
             _cameraExecutor = null;
+        }
 
+        void UnbindCamera(ProcessCameraProvider cameraProvider)
+        {
+            var camera = _camera;
+
+            cameraProvider?.UnbindAll();
+            _camera = null;
             camera?.Dispose();
         }
     }
