@@ -429,6 +429,7 @@ namespace ZXing.Net.Maui
 				_mediaFrameReader.FrameArrived += ColorFrameReader_FrameArrived;
 				await _mediaFrameReader.StartAsync();
 
+				ApplyZoomFactorUnlocked();
 				ShowPreviewBitmap();
 			}
 			catch (Exception ex)
@@ -698,25 +699,7 @@ namespace ZXing.Net.Maui
 
 			try
 			{
-				var zoomControl = _mediaCapture?.VideoDeviceController?.ZoomControl;
-				if (zoomControl?.Supported ?? false)
-				{
-					var minZoom = (float)zoomControl.Min;
-					var maxZoom = (float)zoomControl.Max;
-					if (maxZoom < minZoom)
-						maxZoom = minZoom;
-
-					var normalizedZoom = ZoomFactor * (maxZoom - minZoom) + minZoom;
-					if (normalizedZoom < minZoom)
-						normalizedZoom = minZoom;
-					else if (normalizedZoom > maxZoom)
-						normalizedZoom = maxZoom;
-
-					if (Math.Abs(zoomControl.Value - normalizedZoom) > float.Epsilon)
-					{
-						zoomControl.Value = normalizedZoom;
-					}
-				}
+				ApplyZoomFactorUnlocked();
 			}
 			catch (Exception ex)
 			{
@@ -726,6 +709,29 @@ namespace ZXing.Net.Maui
 			{
 				MediaCaptureLifeLock.Release();
 			}
+		}
+
+		private void ApplyZoomFactorUnlocked()
+		{
+			var zoomControl = _mediaCapture?.VideoDeviceController?.ZoomControl;
+			if (!(zoomControl?.Supported ?? false))
+				return;
+
+			var minZoom = (float)zoomControl.Min;
+			var maxZoom = (float)zoomControl.Max;
+			if (maxZoom < minZoom)
+				maxZoom = minZoom;
+
+			var normalizedZoom = ZoomFactor * (maxZoom - minZoom) + minZoom;
+			if (normalizedZoom < minZoom)
+				normalizedZoom = minZoom;
+			else if (normalizedZoom > maxZoom)
+				normalizedZoom = maxZoom;
+
+			var zoomStep = (float)zoomControl.Step;
+			var zoomDeadband = zoomStep > 0f ? zoomStep / 2f : float.Epsilon;
+			if (Math.Abs((float)zoomControl.Value - normalizedZoom) > zoomDeadband)
+				zoomControl.Value = normalizedZoom;
 		}
 
 		private async Task FocusAsync(Microsoft.Maui.Graphics.Point point)
