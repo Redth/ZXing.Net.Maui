@@ -243,6 +243,9 @@ namespace ZXing.Net.Maui
             UpdateCamera();
         }
 
+        private static partial bool ShouldApplyPlatformCameraOptions(CameraManagerOptions currentOptions, CameraManagerOptions nextOptions)
+            => currentOptions.AutoRotate != nextOptions.AutoRotate;
+
         void ConfigureUseCases(PreviewView previewView, IExecutorService cameraExecutor)
         {
             _resolutionSelector?.Dispose();
@@ -260,6 +263,7 @@ namespace ZXing.Net.Maui
             _imageAnalyzer = new ImageAnalysis
                 .Builder()
                 .SetOutputImageFormat(ImageAnalysis.OutputImageFormatRgba8888)
+                .SetOutputImageRotationEnabled(Options.AutoRotate)
                 .SetResolutionSelector(_resolutionSelector)
                 .SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
                 .Build();

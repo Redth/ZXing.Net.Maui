@@ -49,6 +49,9 @@ namespace ZXing.Net.Maui
             return Task.FromResult<IReadOnlyList<CameraInfo>>(new List<CameraInfo>());
         }
 
+        private static partial bool ShouldApplyPlatformCameraOptions(CameraManagerOptions currentOptions, CameraManagerOptions nextOptions)
+            => false;
+
         void LogUnsupported()
             => Debug.WriteLine("Camera preview is not supported on this platform.");
     }

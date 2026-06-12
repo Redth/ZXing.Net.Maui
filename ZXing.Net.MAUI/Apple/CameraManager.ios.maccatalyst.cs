@@ -234,6 +234,9 @@ namespace ZXing.Net.Maui
 				UpdateCamera();
 		}
 
+		private static partial bool ShouldApplyPlatformCameraOptions(CameraManagerOptions currentOptions, CameraManagerOptions nextOptions)
+			=> false;
+
 #if IOS
 		[SupportedOSPlatform("ios16.0")]
 		[UnsupportedOSPlatform("maccatalyst")]

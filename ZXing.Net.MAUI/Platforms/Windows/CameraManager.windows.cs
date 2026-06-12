@@ -224,6 +224,9 @@ namespace ZXing.Net.Maui
 				TryEnqueueUI(async () => await UpdateCameraAsync(forceReinitialize: true));
 		}
 
+		private static partial bool ShouldApplyPlatformCameraOptions(CameraManagerOptions currentOptions, CameraManagerOptions nextOptions)
+			=> false;
+
 		#region Task helpers
 		private void TryEnqueueUI(DispatcherQueueHandler callback)
 		{

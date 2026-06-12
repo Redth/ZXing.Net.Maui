@@ -5,15 +5,44 @@ namespace ZXing.Net.MAUI.Tests;
 public class CameraManagerTests
 {
 	[Fact]
-	public void ShouldApplyCameraOptionsIgnoresDelayOnlyChanges()
+	public void CameraManagerOptionsOnlyIncludesCameraRelevantBarcodeReaderOptions()
 	{
-		var currentOptions = new BarcodeReaderOptions();
-		var nextOptions = new BarcodeReaderOptions
+		CameraResolutionSelectorDelegate selector = availableResolutions => availableResolutions.FirstOrDefault();
+		var barcodeOptions = new BarcodeReaderOptions
 		{
+			AutoRotate = true,
+			TryHarder = true,
+			Multiple = true,
+			DelayBetweenAnalyzingFrames = 1,
+			DelayBetweenContinuousScans = 2,
+			InitialDelayBeforeAnalyzingFrames = 3,
+			CameraResolutionSelector = selector
+		};
+
+		var cameraOptions = CameraManagerOptions.FromBarcodeReaderOptions(barcodeOptions);
+
+		Assert.True(cameraOptions.AutoRotate);
+		Assert.Same(selector, cameraOptions.CameraResolutionSelector);
+	}
+
+	[Fact]
+	public void CameraManagerOptionsUsesDefaultsWhenBarcodeReaderOptionsAreNull()
+	{
+		Assert.Equal(default, CameraManagerOptions.FromBarcodeReaderOptions(null));
+	}
+
+	[Fact]
+	public void ShouldApplyCameraOptionsIgnoresDecoderAndTimingOnlyChanges()
+	{
+		var currentOptions = CameraManagerOptions.FromBarcodeReaderOptions(new BarcodeReaderOptions());
+		var nextOptions = CameraManagerOptions.FromBarcodeReaderOptions(new BarcodeReaderOptions
+		{
+			TryHarder = true,
+			Multiple = true,
 			DelayBetweenAnalyzingFrames = 1,
 			DelayBetweenContinuousScans = 2,
 			InitialDelayBeforeAnalyzingFrames = 3
-		};
+		});
 
 		Assert.False(CameraManager.ShouldApplyCameraOptions(currentOptions, nextOptions));
 	}
@@ -37,10 +66,18 @@ public class CameraManagerTests
 			CameraResolutionSelector = otherSelector
 		};
 
-		Assert.True(CameraManager.ShouldApplyCameraOptions(noSelectorOptions, selectorOptions));
-		Assert.True(CameraManager.ShouldApplyCameraOptions(selectorOptions, noSelectorOptions));
-		Assert.False(CameraManager.ShouldApplyCameraOptions(selectorOptions, sameSelectorOptions));
-		Assert.True(CameraManager.ShouldApplyCameraOptions(selectorOptions, otherSelectorOptions));
+		Assert.True(CameraManager.ShouldApplyCameraOptions(
+			CameraManagerOptions.FromBarcodeReaderOptions(noSelectorOptions),
+			CameraManagerOptions.FromBarcodeReaderOptions(selectorOptions)));
+		Assert.True(CameraManager.ShouldApplyCameraOptions(
+			CameraManagerOptions.FromBarcodeReaderOptions(selectorOptions),
+			CameraManagerOptions.FromBarcodeReaderOptions(noSelectorOptions)));
+		Assert.False(CameraManager.ShouldApplyCameraOptions(
+			CameraManagerOptions.FromBarcodeReaderOptions(selectorOptions),
+			CameraManagerOptions.FromBarcodeReaderOptions(sameSelectorOptions)));
+		Assert.True(CameraManager.ShouldApplyCameraOptions(
+			CameraManagerOptions.FromBarcodeReaderOptions(selectorOptions),
+			CameraManagerOptions.FromBarcodeReaderOptions(otherSelectorOptions)));
 	}
 
 	[Fact]

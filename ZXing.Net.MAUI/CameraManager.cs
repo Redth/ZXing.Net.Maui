@@ -15,7 +15,7 @@ namespace ZXing.Net.Maui
 		}
 
 		protected readonly IMauiContext Context;
-		BarcodeReaderOptions options = new();
+		CameraManagerOptions options;
 
 #pragma warning disable CS0067
 		public event EventHandler<CameraFrameBufferEventArgs> FrameReady;
@@ -24,7 +24,7 @@ namespace ZXing.Net.Maui
 		public CameraLocation CameraLocation { get; private set; }
 		public CameraInfo SelectedCamera { get; private set; }
 
-		protected BarcodeReaderOptions Options => options;
+		protected CameraManagerOptions Options => options;
 
 		/// <summary>
 		/// Gets a value indicating whether barcode scanning is supported on this device.
@@ -51,19 +51,19 @@ namespace ZXing.Net.Maui
 			UpdateCamera();
 		}
 
-		public void UpdateOptions(BarcodeReaderOptions options)
+		public void UpdateOptions(CameraManagerOptions options)
 		{
-			var nextOptions = options ?? new BarcodeReaderOptions();
-			var shouldApplyCameraOptions = ShouldApplyCameraOptions(this.options, nextOptions);
+			var shouldApplyCameraOptions = ShouldApplyCameraOptions(this.options, options);
 
-			this.options = nextOptions;
+			this.options = options;
 
 			if (shouldApplyCameraOptions)
 				ApplyCameraOptions();
 		}
 
-		internal static bool ShouldApplyCameraOptions(BarcodeReaderOptions currentOptions, BarcodeReaderOptions nextOptions)
-			=> currentOptions?.CameraResolutionSelector != nextOptions?.CameraResolutionSelector;
+		internal static bool ShouldApplyCameraOptions(CameraManagerOptions currentOptions, CameraManagerOptions nextOptions)
+			=> currentOptions.CameraResolutionSelector != nextOptions.CameraResolutionSelector
+				|| ShouldApplyPlatformCameraOptions(currentOptions, nextOptions);
 
 		internal static bool ContainsReference<T>(IReadOnlyCollection<T> items, object instance)
 			where T : class
@@ -84,5 +84,7 @@ namespace ZXing.Net.Maui
 			=> (await Permissions.RequestAsync<Permissions.Camera>()) == PermissionStatus.Granted;
 
 		partial void ApplyCameraOptions();
+
+		private static partial bool ShouldApplyPlatformCameraOptions(CameraManagerOptions currentOptions, CameraManagerOptions nextOptions);
 	}
 }
