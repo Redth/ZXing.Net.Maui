@@ -91,7 +91,7 @@ namespace ZXing.Net.Maui
         {
             if (cameraManager == null)
                 cameraManager = new(MauiContext, VirtualView?.CameraLocation ?? CameraLocation.Rear);
-            cameraManager.UpdateOptions(VirtualView?.Options);
+            cameraManager.UpdateOptions(CameraManagerOptions.FromBarcodeReaderOptions(VirtualView?.Options));
             var v = cameraManager.CreateNativeView();
             return v;
         }
@@ -109,7 +109,7 @@ namespace ZXing.Net.Maui
 
             if (manager != null)
             {
-                manager.UpdateOptions(_virtualView?.Options);
+                manager.UpdateOptions(CameraManagerOptions.FromBarcodeReaderOptions(_virtualView?.Options));
 
                 var hasPermission = await CameraManager.CheckPermissions();
 
@@ -187,7 +187,7 @@ namespace ZXing.Net.Maui
             var options = cameraBarcodeReaderView.Options ?? new BarcodeReaderOptions();
             handler.UpdateReaderOptions(options);
             handler.scannerTimingGate.UpdateOptions(options);
-            handler.cameraManager?.UpdateOptions(options);
+            handler.cameraManager?.UpdateOptions(CameraManagerOptions.FromBarcodeReaderOptions(options));
         }
 
         public static void MapIsDetecting(CameraBarcodeReaderViewHandler handler, ICameraBarcodeReaderView cameraBarcodeReaderView)
