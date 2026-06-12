@@ -120,6 +120,14 @@ Toggle Torch
 cameraBarcodeReaderView.IsTorchOn = !cameraBarcodeReaderView.IsTorchOn;
 ```
 
+Set zoom
+```csharp
+// 0 = minimum zoom, 1 = maximum zoom. Values outside this range are clamped.
+cameraBarcodeReaderView.ZoomFactor = 0.5f;
+```
+
+The zoom factor is normalized from `0` to `1` across platforms. Android uses CameraX linear zoom, iOS maps the value to the active device zoom range capped at `5x`, and Windows maps it to the device `ZoomControl` range when supported.
+
 Flip between Rear/Front cameras
 ```csharp
 cameraBarcodeReaderView.CameraLocation
@@ -184,4 +192,3 @@ If you need to encode international characters (e.g., Chinese, Japanese, Arabic,
 ```
 
 The `CharacterSet` property is not set by default, which lets the barcode encoder use its native encoding. This avoids adding ECI (Extended Channel Interpretation) headers that some barcode scanners may not support. Common values include "UTF-8", "ISO-8859-1", "Shift_JIS", etc., depending on your barcode format requirements.
-

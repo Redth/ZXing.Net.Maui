@@ -209,6 +209,11 @@ namespace ZXing.Net.Maui
 
 		public void UpdateTorch(bool on) => TryEnqueueUI(async () => await UpdateTorchAsync(on));
 
+		partial void ApplyZoomFactor()
+		{
+			TryEnqueueUI(async () => await ApplyZoomFactorAsync());
+		}
+
 		public void Focus(Microsoft.Maui.Graphics.Point point) => TryEnqueueUI(async () => await FocusAsync(point));
 
 		public void AutoFocus() => TryEnqueueUI(async () => await AutoFocusAsync());
@@ -424,6 +429,7 @@ namespace ZXing.Net.Maui
 				_mediaFrameReader.FrameArrived += ColorFrameReader_FrameArrived;
 				await _mediaFrameReader.StartAsync();
 
+				ApplyZoomFactorUnlocked();
 				ShowPreviewBitmap();
 			}
 			catch (Exception ex)
@@ -684,6 +690,57 @@ namespace ZXing.Net.Maui
 			finally
 			{
 				MediaCaptureLifeLock.Release();
+			}
+		}
+
+		private async Task ApplyZoomFactorAsync()
+		{
+			await MediaCaptureLifeLock.WaitAsync();
+
+			try
+			{
+				ApplyZoomFactorUnlocked();
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
+			}
+			finally
+			{
+				MediaCaptureLifeLock.Release();
+			}
+		}
+
+		private void ApplyZoomFactorUnlocked()
+		{
+			try
+			{
+				var zoomControl = _mediaCapture?.VideoDeviceController?.ZoomControl;
+				if (!(zoomControl?.Supported ?? false))
+					return;
+
+				var minZoom = (double)zoomControl.Min;
+				var maxZoom = (double)zoomControl.Max;
+				if (maxZoom < minZoom)
+					maxZoom = minZoom;
+
+				var normalizedZoom = (double)ZoomFactor * (maxZoom - minZoom) + minZoom;
+				normalizedZoom = Math.Clamp(normalizedZoom, minZoom, maxZoom);
+
+				var zoomStep = (double)zoomControl.Step;
+				if (zoomStep > 0d)
+				{
+					normalizedZoom = Math.Round((normalizedZoom - minZoom) / zoomStep) * zoomStep + minZoom;
+					normalizedZoom = Math.Clamp(normalizedZoom, minZoom, maxZoom);
+				}
+
+				var zoomDeadband = zoomStep > 0d ? zoomStep / 2d : double.Epsilon;
+				if (Math.Abs((double)zoomControl.Value - normalizedZoom) > zoomDeadband)
+					zoomControl.Value = (float)normalizedZoom;
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
 			}
 		}
 

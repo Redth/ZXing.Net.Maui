@@ -34,6 +34,10 @@ namespace ZXing.Net.Maui
         public void UpdateTorch(bool on)
             => LogUnsupported();
 
+        partial void ApplyZoomFactor()
+        {
+        }
+
         public void Focus(Microsoft.Maui.Graphics.Point point)
             => LogUnsupported();
 

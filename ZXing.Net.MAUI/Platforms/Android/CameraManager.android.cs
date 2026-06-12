@@ -173,6 +173,8 @@ namespace ZXing.Net.Maui
                     // if not, this should be sufficient as a fallback
                     _camera = cameraProvider.BindToLifecycle(maLifecycleOwner, _cameraSelector, cameraPreview, imageAnalyzer);
                 }
+
+                ApplyZoomFactor();
             }
         }
 
@@ -327,6 +329,11 @@ namespace ZXing.Net.Maui
                     .OrderByDescending(size => size.Width == selectedSize.Width && size.Height == selectedSize.Height)
                     .ToList();
             }
+        }
+
+        partial void ApplyZoomFactor()
+        {
+            _camera?.CameraControl?.SetLinearZoom(ZoomFactor);
         }
 
         public void Focus(Point point)

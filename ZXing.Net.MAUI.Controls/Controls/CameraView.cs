@@ -40,6 +40,16 @@ namespace ZXing.Net.Maui.Controls
 			set => SetValue(SelectedCameraProperty, value);
 		}
 
+		public static readonly BindableProperty ZoomFactorProperty =
+			BindableProperty.Create(nameof(ZoomFactor), typeof(float), typeof(CameraView), defaultValue: 0f,
+				coerceValue: ZoomFactorPropertyHelper.Coerce);
+
+		public float ZoomFactor
+		{
+			get => (float)GetValue(ZoomFactorProperty);
+			set => SetValue(ZoomFactorProperty, value);
+		}
+
 		public void AutoFocus()
 			=> StrongHandler?.Invoke(nameof(AutoFocus), null);
 
