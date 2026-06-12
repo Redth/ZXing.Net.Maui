@@ -4,8 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Android.Graphics;
-
 using AndroidX.Camera.Core;
 using AndroidX.Camera.Core.ResolutionSelector;
 using AndroidX.Camera.Lifecycle;
@@ -13,6 +11,7 @@ using AndroidX.Camera.View;
 using AndroidX.Core.Content;
 
 using Java.Util.Concurrent;
+using Microsoft.Maui.Graphics;
 
 namespace ZXing.Net.Maui
 {
@@ -100,6 +99,7 @@ namespace ZXing.Net.Maui
             _isConnected = false;
 
             _cameraProvider?.UnbindAll();
+            _camera = null;
             _cameraExecutor?.Shutdown();
         }
 
@@ -116,6 +116,7 @@ namespace ZXing.Net.Maui
             {
                 // Unbind use cases before rebinding
                 cameraProvider.UnbindAll();
+                _camera = null;
 
                 CameraSelector selectedCameraSelector = null;
 
@@ -241,6 +242,7 @@ namespace ZXing.Net.Maui
                 return;
 
             cameraProvider.UnbindAll();
+            _camera = null;
             ConfigureUseCases(previewView, cameraExecutor);
             UpdateCamera();
         }
@@ -338,12 +340,56 @@ namespace ZXing.Net.Maui
 
         public void Focus(Point point)
         {
+            if (!CanFocus())
+                return;
 
+            RunOnMainThread(() => FocusOnMainThread(point));
         }
 
         public void AutoFocus()
         {
+            if (!CanFocus())
+                return;
 
+            RunOnMainThread(() =>
+            {
+                var previewView = _previewView;
+                if (!CanFocus() || previewView == null || previewView.Width <= 0 || previewView.Height <= 0)
+                    return;
+
+                FocusOnMainThread(new Point(previewView.Width / 2d, previewView.Height / 2d));
+            });
+        }
+
+        bool CanFocus()
+            => _isConnected && !_isDisposed && _camera != null && _previewView != null;
+
+        void RunOnMainThread(Action action)
+        {
+            if (Android.OS.Looper.MyLooper() == Android.OS.Looper.MainLooper)
+                action();
+            else
+                ContextCompat.GetMainExecutor(Context.Context).Execute(new Java.Lang.Runnable(action));
+        }
+
+        void FocusOnMainThread(Point point)
+        {
+            var camera = _camera;
+            var previewView = _previewView;
+
+            if (!CanFocus() || camera == null || previewView == null)
+                return;
+
+            if (double.IsNaN(point.X) || double.IsNaN(point.Y) || double.IsInfinity(point.X) || double.IsInfinity(point.Y))
+                return;
+
+            var meteringPoint = previewView.MeteringPointFactory.CreatePoint((float)point.X, (float)point.Y);
+            var focusMeteringAction = new FocusMeteringAction.Builder(meteringPoint, FocusMeteringAction.FlagAf).Build();
+
+            if (!camera.CameraInfo.IsFocusMeteringSupported(focusMeteringAction))
+                return;
+
+            camera.CameraControl.StartFocusAndMetering(focusMeteringAction);
         }
 
         public void Dispose()
