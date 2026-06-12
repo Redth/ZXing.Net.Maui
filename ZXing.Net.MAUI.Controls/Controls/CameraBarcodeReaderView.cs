@@ -64,7 +64,7 @@ namespace ZXing.Net.Maui.Controls
 
 		public static readonly BindableProperty ZoomFactorProperty =
 			BindableProperty.Create(nameof(ZoomFactor), typeof(float), typeof(CameraBarcodeReaderView), defaultValue: 0f,
-				coerceValue: static (_, value) => Math.Clamp((float)value, 0f, 1f));
+				coerceValue: ZoomFactorPropertyHelper.Coerce);
 
 		public float ZoomFactor
 		{

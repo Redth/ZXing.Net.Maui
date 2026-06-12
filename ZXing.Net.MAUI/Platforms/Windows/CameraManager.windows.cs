@@ -729,6 +729,14 @@ namespace ZXing.Net.Maui
 				normalizedZoom = maxZoom;
 
 			var zoomStep = (float)zoomControl.Step;
+			if (zoomStep > 0f)
+				normalizedZoom = (float)Math.Round((normalizedZoom - minZoom) / zoomStep) * zoomStep + minZoom;
+
+			if (normalizedZoom < minZoom)
+				normalizedZoom = minZoom;
+			else if (normalizedZoom > maxZoom)
+				normalizedZoom = maxZoom;
+
 			var zoomDeadband = zoomStep > 0f ? zoomStep / 2f : float.Epsilon;
 			if (Math.Abs((float)zoomControl.Value - normalizedZoom) > zoomDeadband)
 				zoomControl.Value = normalizedZoom;
