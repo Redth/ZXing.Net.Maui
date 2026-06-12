@@ -83,6 +83,9 @@ namespace ZXing.Net.Maui
 
 		public void UpdateZoomFactor(float zoomFactor)
 		{
+			if (float.IsNaN(zoomFactor))
+				zoomFactor = 0f;
+
 			ZoomFactor = Math.Clamp(zoomFactor, 0f, 1f);
 			ApplyZoomFactor();
 		}

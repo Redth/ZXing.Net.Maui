@@ -713,33 +713,35 @@ namespace ZXing.Net.Maui
 
 		private void ApplyZoomFactorUnlocked()
 		{
-			var zoomControl = _mediaCapture?.VideoDeviceController?.ZoomControl;
-			if (!(zoomControl?.Supported ?? false))
-				return;
+			try
+			{
+				var zoomControl = _mediaCapture?.VideoDeviceController?.ZoomControl;
+				if (!(zoomControl?.Supported ?? false))
+					return;
 
-			var minZoom = (float)zoomControl.Min;
-			var maxZoom = (float)zoomControl.Max;
-			if (maxZoom < minZoom)
-				maxZoom = minZoom;
+				var minZoom = (double)zoomControl.Min;
+				var maxZoom = (double)zoomControl.Max;
+				if (maxZoom < minZoom)
+					maxZoom = minZoom;
 
-			var normalizedZoom = ZoomFactor * (maxZoom - minZoom) + minZoom;
-			if (normalizedZoom < minZoom)
-				normalizedZoom = minZoom;
-			else if (normalizedZoom > maxZoom)
-				normalizedZoom = maxZoom;
+				var normalizedZoom = (double)ZoomFactor * (maxZoom - minZoom) + minZoom;
+				normalizedZoom = Math.Clamp(normalizedZoom, minZoom, maxZoom);
 
-			var zoomStep = (float)zoomControl.Step;
-			if (zoomStep > 0f)
-				normalizedZoom = (float)Math.Round((normalizedZoom - minZoom) / zoomStep) * zoomStep + minZoom;
+				var zoomStep = (double)zoomControl.Step;
+				if (zoomStep > 0d)
+				{
+					normalizedZoom = Math.Round((normalizedZoom - minZoom) / zoomStep) * zoomStep + minZoom;
+					normalizedZoom = Math.Clamp(normalizedZoom, minZoom, maxZoom);
+				}
 
-			if (normalizedZoom < minZoom)
-				normalizedZoom = minZoom;
-			else if (normalizedZoom > maxZoom)
-				normalizedZoom = maxZoom;
-
-			var zoomDeadband = zoomStep > 0f ? zoomStep / 2f : float.Epsilon;
-			if (Math.Abs((float)zoomControl.Value - normalizedZoom) > zoomDeadband)
-				zoomControl.Value = normalizedZoom;
+				var zoomDeadband = zoomStep > 0d ? zoomStep / 2d : double.Epsilon;
+				if (Math.Abs((double)zoomControl.Value - normalizedZoom) > zoomDeadband)
+					zoomControl.Value = (float)normalizedZoom;
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
+			}
 		}
 
 		private async Task FocusAsync(Microsoft.Maui.Graphics.Point point)
