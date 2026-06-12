@@ -25,6 +25,7 @@ using Microsoft.Maui.Hosting;
 using Microsoft.Maui;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -48,7 +49,8 @@ namespace ZXing.Net.Maui.Controls
 			return builder;
 		}
 
-		public static MauiAppBuilder UseBarcodeReader<TBarcodeReader>(this MauiAppBuilder builder) where TBarcodeReader : class, Readers.IBarcodeReader
+		public static MauiAppBuilder UseBarcodeReader<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TBarcodeReader>(this MauiAppBuilder builder)
+			where TBarcodeReader : class, Readers.IBarcodeReader
 		{
 			builder.ConfigureMauiHandlers(handlers =>
 			{

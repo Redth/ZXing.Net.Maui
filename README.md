@@ -192,3 +192,9 @@ If you need to encode international characters (e.g., Chinese, Japanese, Arabic,
 ```
 
 The `CharacterSet` property is not set by default, which lets the barcode encoder use its native encoding. This avoids adding ECI (Extended Channel Interpretation) headers that some barcode scanners may not support. Common values include "UTF-8", "ISO-8859-1", "Shift_JIS", etc., depending on your barcode format requirements.
+
+## Trimming and AOT
+
+ZXing.Net.Maui and ZXing.Net.Maui.Controls declare AOT compatibility and are validated with the .NET trim/AOT analyzers. Normal usage through `UseBarcodeReader()` should not require linker or trimmer exceptions.
+
+If you register a custom barcode reader with `UseBarcodeReader<TBarcodeReader>()`, make sure the implementation has public constructors that `Microsoft.Extensions.DependencyInjection` can activate.
