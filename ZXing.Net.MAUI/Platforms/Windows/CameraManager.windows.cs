@@ -25,8 +25,8 @@
 // Note 3 - the camera sharing mode is currently set to MediaCaptureSharingMode.SharedReadOnly, so multiple views of
 //          the same camera can be successfully created; the drawback is that the preview resolution can't be changed
 //          and the low level camera stream flows at its native resolution and format.
-//          To always get frames at the preview resolution (currently, 640 x 480 or 480 x 640, according to horizontal
-//          or vertical native camera layout) and also to preserve the native aspect ratio, keep the line
+//          To always get frames at the selected preview resolution (640 x 480 by default, or the
+//          CameraResolutionSelector result when set) and also to preserve the native aspect ratio, keep the line
 //          "#define FORCE_FRAMES_AT_PREVIEW_RESOLUTION" uncommented; on the other hand, to get frames at the native
 //          stream resolution (1920 x 1080 or 640 x 480 or whatever it is), comment out that line.
 #define ENABLE_DEVICE_WATCHER
@@ -209,6 +209,11 @@ namespace ZXing.Net.Maui
 
 		public void UpdateTorch(bool on) => TryEnqueueUI(async () => await UpdateTorchAsync(on));
 
+		partial void ApplyZoomFactor()
+		{
+			TryEnqueueUI(async () => await ApplyZoomFactorAsync());
+		}
+
 		public void Focus(Microsoft.Maui.Graphics.Point point) => TryEnqueueUI(async () => await FocusAsync(point));
 
 		public void AutoFocus() => TryEnqueueUI(async () => await AutoFocusAsync());
@@ -217,6 +222,15 @@ namespace ZXing.Net.Maui
 
 		public void Dispose() { }
 		#endregion
+
+		partial void ApplyCameraOptions()
+		{
+			if (_mediaCapture != null)
+				TryEnqueueUI(async () => await UpdateCameraAsync(forceReinitialize: true));
+		}
+
+		private static partial bool ShouldApplyPlatformCameraOptions(CameraManagerOptions currentOptions, CameraManagerOptions nextOptions)
+			=> false;
 
 		#region Task helpers
 		private void TryEnqueueUI(DispatcherQueueHandler callback)
@@ -271,7 +285,7 @@ namespace ZXing.Net.Maui
 		}
 
 		//sourceGroupId is sent by the DeviceWatcher.
-		private async Task UpdateCameraAsync(string sourceGroupId = null)
+		private async Task UpdateCameraAsync(string sourceGroupId = null, bool forceReinitialize = false)
 		{
 			await ExecuteLockedAsync(async () =>
 			{
@@ -281,7 +295,7 @@ namespace ZXing.Net.Maui
 					return;
 				}
 
-				await InitCameraUnlockedAsync(sourceGroupId);
+				await InitCameraUnlockedAsync(sourceGroupId, forceReinitialize);
 			});
 		}
 
@@ -293,7 +307,7 @@ namespace ZXing.Net.Maui
 
 		//Initialize or update the camera, according to sourceGroupId parameter and CameraLocation property.
 		//The sourceGroupId is only sent by the DeviceWatcher.
-		private async Task InitCameraUnlockedAsync(string sourceGroupId = null)
+		private async Task InitCameraUnlockedAsync(string sourceGroupId = null, bool forceReinitialize = false)
 		{
 			try
 			{
@@ -337,12 +351,19 @@ namespace ZXing.Net.Maui
 				{
 					if (_currentMediaFrameSourceInfoId.Equals(selectedMediaFrameSourceInfo.Id))
 					{
-						//The selected camera is the same as the previous one: do nothing and exit.
-						return;
-					}
+						if (!forceReinitialize)
+						{
+							//The selected camera is the same as the previous one: do nothing and exit.
+							return;
+						}
 
-					//Reinit the camera, by releasing the previous MediaCapture resources.
-					await UninitCameraUnlockedAsync();
+						await UninitCameraUnlockedAsync();
+					}
+					else
+					{
+						//Reinit the camera, by releasing the previous MediaCapture resources.
+						await UninitCameraUnlockedAsync();
+					}
 				}
 
 				//Initialize the new MediaCapture instance.
@@ -365,10 +386,11 @@ namespace ZXing.Net.Maui
 				//Select and configure the required MediaFrameSource.
 				//If sharingMode is "SharedReadOnly", MediaFrameSource can't be configured.
 				var selectedMediaFrameSource = _mediaCapture.FrameSources[selectedMediaFrameSourceInfo.Id];
+				var selectedFrameReaderResolution = SelectFrameReaderResolution(selectedMediaFrameSource);
 				if (settings.SharingMode == MediaCaptureSharingMode.ExclusiveControl)
 				{
 					var preferredFormat = selectedMediaFrameSource.SupportedFormats.FirstOrDefault(f =>
-									(f.VideoFormat.Width == PreviewWidth && f.VideoFormat.Height == PreviewHeight));
+									(f.VideoFormat.Width == (uint)selectedFrameReaderResolution.Width && f.VideoFormat.Height == (uint)selectedFrameReaderResolution.Height));
 					if (preferredFormat != null)
 					{
 						await selectedMediaFrameSource.SetFormatAsync(preferredFormat);
@@ -382,20 +404,20 @@ namespace ZXing.Net.Maui
 				//Create the FrameReader bound to 'selectedMediaFrameSource' and attach the FrameArrived event.
 				//Automatically rescale the output frame by passing 'bitmapSize' to 'CreateFrameReaderAsync'.
 #if FORCE_FRAMES_AT_PREVIEW_RESOLUTION
-				var bitmapSize = new BitmapSize(PreviewWidth, PreviewHeight);
+				var bitmapSize = new BitmapSize((uint)selectedFrameReaderResolution.Width, (uint)selectedFrameReaderResolution.Height);
 				var videoFormat = selectedMediaFrameSource?.CurrentFormat?.VideoFormat;
 				if ((videoFormat?.Width > 0) && (videoFormat?.Height > 0))
 				{
 					if (videoFormat.Width >= videoFormat.Height)
 					{
 						//Horizontal layout: preserve preview minimal dimension as height; preserve native aspect ratio.
-						bitmapSize.Height = uint.Min(PreviewWidth, PreviewHeight);
+						bitmapSize.Height = uint.Min((uint)selectedFrameReaderResolution.Width, (uint)selectedFrameReaderResolution.Height);
 						bitmapSize.Width = (bitmapSize.Height * videoFormat.Width) / videoFormat.Height;
 					}
 					else
 					{
 						//Vertical layout: preserve preview minimal dimension as width; preserve native aspect ratio.
-						bitmapSize.Width = uint.Min(PreviewWidth, PreviewHeight);
+						bitmapSize.Width = uint.Min((uint)selectedFrameReaderResolution.Width, (uint)selectedFrameReaderResolution.Height);
 						bitmapSize.Height = (bitmapSize.Width * videoFormat.Height) / videoFormat.Width;
 					}
 				}
@@ -407,6 +429,7 @@ namespace ZXing.Net.Maui
 				_mediaFrameReader.FrameArrived += ColorFrameReader_FrameArrived;
 				await _mediaFrameReader.StartAsync();
 
+				ApplyZoomFactorUnlocked();
 				ShowPreviewBitmap();
 			}
 			catch (Exception ex)
@@ -540,6 +563,43 @@ namespace ZXing.Net.Maui
 			return null;
 		}
 
+		private CameraResolution SelectFrameReaderResolution(MediaFrameSource selectedMediaFrameSource)
+		{
+			var fallbackResolution = new CameraResolution((int)PreviewWidth, (int)PreviewHeight);
+			if (Options.CameraResolutionSelector == null)
+				return fallbackResolution;
+
+			var availableResolutions = selectedMediaFrameSource.SupportedFormats
+				.Select(format => new CameraResolution((int)format.VideoFormat.Width, (int)format.VideoFormat.Height))
+				.Where(resolution => resolution.Width > 0 && resolution.Height > 0)
+				.GroupBy(resolution => (resolution.Width, resolution.Height))
+				.Select(group => group.First())
+				.ToList();
+
+			if (availableResolutions.Count == 0)
+				return fallbackResolution;
+
+			CameraResolution selectedResolution;
+			try
+			{
+				selectedResolution = Options.CameraResolutionSelector(availableResolutions);
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
+				return fallbackResolution;
+			}
+
+			if (selectedResolution == null)
+				return fallbackResolution;
+
+			return availableResolutions.Any(resolution =>
+				resolution.Width == selectedResolution.Width &&
+				resolution.Height == selectedResolution.Height)
+				? selectedResolution
+				: fallbackResolution;
+		}
+
 		//Returns the camera with the specified device ID.
 		private async static Task<MediaFrameSourceInfo> FindCameraByDeviceIdAsync(string deviceId)
 		{
@@ -630,6 +690,57 @@ namespace ZXing.Net.Maui
 			finally
 			{
 				MediaCaptureLifeLock.Release();
+			}
+		}
+
+		private async Task ApplyZoomFactorAsync()
+		{
+			await MediaCaptureLifeLock.WaitAsync();
+
+			try
+			{
+				ApplyZoomFactorUnlocked();
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
+			}
+			finally
+			{
+				MediaCaptureLifeLock.Release();
+			}
+		}
+
+		private void ApplyZoomFactorUnlocked()
+		{
+			try
+			{
+				var zoomControl = _mediaCapture?.VideoDeviceController?.ZoomControl;
+				if (!(zoomControl?.Supported ?? false))
+					return;
+
+				var minZoom = (double)zoomControl.Min;
+				var maxZoom = (double)zoomControl.Max;
+				if (maxZoom < minZoom)
+					maxZoom = minZoom;
+
+				var normalizedZoom = (double)ZoomFactor * (maxZoom - minZoom) + minZoom;
+				normalizedZoom = Math.Clamp(normalizedZoom, minZoom, maxZoom);
+
+				var zoomStep = (double)zoomControl.Step;
+				if (zoomStep > 0d)
+				{
+					normalizedZoom = Math.Round((normalizedZoom - minZoom) / zoomStep) * zoomStep + minZoom;
+					normalizedZoom = Math.Clamp(normalizedZoom, minZoom, maxZoom);
+				}
+
+				var zoomDeadband = zoomStep > 0d ? zoomStep / 2d : double.Epsilon;
+				if (Math.Abs((double)zoomControl.Value - normalizedZoom) > zoomDeadband)
+					zoomControl.Value = (float)normalizedZoom;
+			}
+			catch (Exception ex)
+			{
+				Debug.WriteLine(ex);
 			}
 		}
 

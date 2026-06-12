@@ -90,9 +90,21 @@ cameraBarcodeReaderView.Options = new BarcodeReaderOptions
 {
   Formats = BarcodeFormats.OneDimensional,
   AutoRotate = true,
-  Multiple = true
+  Multiple = true,
+  DelayBetweenAnalyzingFrames = 150,
+  InitialDelayBeforeAnalyzingFrames = 300,
+  DelayBetweenContinuousScans = 1000,
+  CameraResolutionSelector = availableResolutions =>
+    availableResolutions
+      .OrderBy(resolution => Math.Abs((resolution.Width * resolution.Height) - (1280 * 720)))
+      .ThenBy(resolution => Math.Abs(resolution.Width - 1280) + Math.Abs(resolution.Height - 720))
+      .First()
 };
 ```
+
+The delay options are expressed in milliseconds and default to the Xamarin plugin cadence: `150` milliseconds between frame analyses, `300` milliseconds before initial analysis, and `1000` milliseconds between continuous scan detections. Set a delay to `0` to analyze as soon as the camera pipeline provides frames. `CameraResolutionSelector` receives the resolutions supported by the active camera and should return the preferred resolution.
+
+The selected camera resolution is also the frame size passed to the barcode decoder. Higher resolutions provide more pixels but increase the amount of work needed for every frame, so selecting the largest available resolution can reduce scan throughput. Prefer the lowest resolution that reliably decodes for your use case, such as a size close to `1280x720` or `640x480`, instead of always ordering by the highest pixel count.
 
 QR codes with international characters (e.g., £, €, ¥, or non-Latin scripts) are supported by default with UTF-8 encoding. You can override this if needed:
 ```csharp
@@ -107,6 +119,14 @@ Toggle Torch
 ```csharp
 cameraBarcodeReaderView.IsTorchOn = !cameraBarcodeReaderView.IsTorchOn;
 ```
+
+Set zoom
+```csharp
+// 0 = minimum zoom, 1 = maximum zoom. Values outside this range are clamped.
+cameraBarcodeReaderView.ZoomFactor = 0.5f;
+```
+
+The zoom factor is normalized from `0` to `1` across platforms. Android uses CameraX linear zoom, iOS maps the value to the active device zoom range capped at `5x`, and Windows maps it to the device `ZoomControl` range when supported.
 
 Flip between Rear/Front cameras
 ```csharp
@@ -160,7 +180,7 @@ protected void BarcodesDetected(object sender, BarcodeDetectionEventArgs e)
 
 ### Character Encoding
 
-The `BarcodeGeneratorView` supports UTF-8 character encoding by default, which allows you to encode international characters including Chinese, Japanese, Arabic, and other non-ASCII characters. You can also specify a different character encoding if needed:
+If you need to encode international characters (e.g., Chinese, Japanese, Arabic, or other non-ASCII characters), you can specify a character encoding using the `CharacterSet` property:
 
 ```xaml
 <zxing:BarcodeGeneratorView
@@ -171,32 +191,10 @@ The `BarcodeGeneratorView` supports UTF-8 character encoding by default, which a
   CharacterSet="UTF-8" />
 ```
 
-The `CharacterSet` property defaults to "UTF-8" if not specified. Other common values include "ISO-8859-1", "Shift_JIS", etc., depending on your barcode format requirements.
+The `CharacterSet` property is not set by default, which lets the barcode encoder use its native encoding. This avoids adding ECI (Extended Channel Interpretation) headers that some barcode scanners may not support. Common values include "UTF-8", "ISO-8859-1", "Shift_JIS", etc., depending on your barcode format requirements.
 
-## Troubleshooting
+## Trimming and AOT
 
-### Release Build Crashes (Trimming/Linker Issues)
+ZXing.Net.Maui and ZXing.Net.Maui.Controls declare AOT compatibility and are validated with the .NET trim/AOT analyzers. Normal usage through `UseBarcodeReader()` should not require linker or trimmer exceptions.
 
-If your app crashes when opening the scanner in release builds but works fine in debug builds, this is likely due to aggressive code trimming by the .NET linker.
-
-**This library is now trimmer-safe** and includes the necessary `[DynamicDependency]` attributes to preserve required code during trimming.
-
-If you're still experiencing issues:
-
-1. **Update to the latest version** of ZXing.Net.Maui.Controls which includes trimming safety improvements
-2. **Verify you're calling `UseBarcodeReader()`** in your `MauiProgram.cs` - this properly registers the handlers with trimming support
-3. **If issues persist**, you can exclude the assembly from trimming by adding this to your .csproj:
-
-```xml
-<ItemGroup>
-  <TrimmerRootAssembly Include="ZXing.Net.Maui" />
-  <TrimmerRootAssembly Include="ZXing.Net.Maui.Controls" />
-</ItemGroup>
-```
-
-For more information about .NET MAUI trimming:
-- [Trim a .NET MAUI app](https://learn.microsoft.com/dotnet/maui/deployment/trimming)
-- [Prepare .NET libraries for trimming](https://learn.microsoft.com/dotnet/core/deploying/trimming/prepare-libraries-for-trimming)
-
-
-
+If you register a custom barcode reader with `UseBarcodeReader<TBarcodeReader>()`, make sure the implementation has public constructors that `Microsoft.Extensions.DependencyInjection` can activate.

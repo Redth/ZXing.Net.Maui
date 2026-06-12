@@ -2,17 +2,12 @@
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Versioning;
 
 #nullable enable
 
 namespace ZXing.Net.Maui
 {
-	/// <summary>
-	/// Handler for CameraView that manages camera preview functionality.
-	/// This handler is trimmer-safe with appropriate DynamicDependency attributes.
-	/// </summary>
 	public partial class CameraViewHandler : ViewHandler<ICameraView, NativePlatformCameraPreviewView>
 	{
 		public static PropertyMapper<ICameraView, CameraViewHandler> CameraViewMapper = new()
@@ -20,6 +15,7 @@ namespace ZXing.Net.Maui
 			[nameof(ICameraView.IsTorchOn)] = (handler, virtualView) => handler.cameraManager?.UpdateTorch(virtualView.IsTorchOn),
 			[nameof(ICameraView.CameraLocation)] = (handler, virtualView) => handler.cameraManager?.UpdateCameraLocation(virtualView.CameraLocation),
 			[nameof(ICameraView.SelectedCamera)] = (handler, virtualView) => handler.cameraManager?.UpdateSelectedCamera(virtualView.SelectedCamera),
+			[nameof(ICameraView.ZoomFactor)] = (handler, virtualView) => handler.cameraManager?.UpdateZoomFactor(virtualView.ZoomFactor),
 			[nameof(IView.Visibility)] = MapVisibility
 		};
 
@@ -34,22 +30,10 @@ namespace ZXing.Net.Maui
 		volatile ICameraView? _virtualView;
 		volatile bool _isConnected;
 
-		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraViewHandler))]
-		[DynamicDependency(nameof(CameraViewMapper))]
-		[DynamicDependency(nameof(CameraCommandMapper))]
-		[DynamicDependency(nameof(MapVisibility))]
-		[DynamicDependency(nameof(MapFocus))]
-		[DynamicDependency(nameof(MapAutoFocus))]
 		public CameraViewHandler() : base(CameraViewMapper)
 		{
 		}
 
-		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(CameraViewHandler))]
-		[DynamicDependency(nameof(CameraViewMapper))]
-		[DynamicDependency(nameof(CameraCommandMapper))]
-		[DynamicDependency(nameof(MapVisibility))]
-		[DynamicDependency(nameof(MapFocus))]
-		[DynamicDependency(nameof(MapAutoFocus))]
 		public CameraViewHandler(PropertyMapper? mapper = null) : base(mapper ?? CameraViewMapper)
 		{
 		}
@@ -68,15 +52,22 @@ namespace ZXing.Net.Maui
 
 			_virtualView = VirtualView;
 
-			if (cameraManager != null)
+			var manager = cameraManager;
+
+			if (manager != null)
 			{
-				if (await CameraManager.CheckPermissions())
+				var hasPermission = await CameraManager.CheckPermissions();
+
+				if (_virtualView == null || cameraManager != manager)
+					return;
+
+				if (hasPermission)
 				{
-					cameraManager.Connect();
+					manager.Connect();
 					_isConnected = true;
 				}
 
-				cameraManager.FrameReady += CameraManager_FrameReady;
+				manager.FrameReady += CameraManager_FrameReady;
 			}
 		}
 
@@ -93,6 +84,7 @@ namespace ZXing.Net.Maui
 
 				cameraManager.Disconnect();
 				cameraManager.Dispose();
+				cameraManager = null;
 			}
 
 			_isConnected = false;
@@ -102,7 +94,10 @@ namespace ZXing.Net.Maui
 		}
 
 		public void Dispose()
-			=> cameraManager?.Dispose();
+		{
+			cameraManager?.Dispose();
+			cameraManager = null;
+		}
 
 		public void Focus(Point point)
 			=> cameraManager?.Focus(point);
@@ -144,11 +139,14 @@ namespace ZXing.Net.Maui
 					{
 						// View became visible and camera is connected - rebind camera
 						// This ensures the camera preview works even if the view started invisible
-						if (handler.cameraManager != null)
+						var manager = handler.cameraManager;
+
+						if (manager != null)
 						{
 							if (await CameraManager.CheckPermissions())
 							{
-								handler.cameraManager.UpdateCamera();
+								if (handler._isConnected && handler.cameraManager == manager)
+									manager.UpdateCamera();
 							}
 						}
 					}

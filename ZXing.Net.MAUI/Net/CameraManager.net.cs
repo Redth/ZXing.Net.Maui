@@ -34,6 +34,10 @@ namespace ZXing.Net.Maui
         public void UpdateTorch(bool on)
             => LogUnsupported();
 
+        partial void ApplyZoomFactor()
+        {
+        }
+
         public void Focus(Microsoft.Maui.Graphics.Point point)
             => LogUnsupported();
 
@@ -48,6 +52,9 @@ namespace ZXing.Net.Maui
             LogUnsupported();
             return Task.FromResult<IReadOnlyList<CameraInfo>>(new List<CameraInfo>());
         }
+
+        private static partial bool ShouldApplyPlatformCameraOptions(CameraManagerOptions currentOptions, CameraManagerOptions nextOptions)
+            => false;
 
         void LogUnsupported()
             => Debug.WriteLine("Camera preview is not supported on this platform.");

@@ -2,15 +2,10 @@
 using Microsoft.Maui.Graphics;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace ZXing.Net.Maui.Controls
 {
-	/// <summary>
-	/// A MAUI view for camera preview functionality.
-	/// This class is trimmer-safe through the bindable property system.
-	/// </summary>
 	public partial class CameraView : View, ICameraView
 	{
 		public event EventHandler<CameraFrameBufferEventArgs> FrameReady;
@@ -43,6 +38,16 @@ namespace ZXing.Net.Maui.Controls
 		{
 			get => (CameraInfo)GetValue(SelectedCameraProperty);
 			set => SetValue(SelectedCameraProperty, value);
+		}
+
+		public static readonly BindableProperty ZoomFactorProperty =
+			BindableProperty.Create(nameof(ZoomFactor), typeof(float), typeof(CameraView), defaultValue: 0f,
+				coerceValue: ZoomFactorPropertyHelper.Coerce);
+
+		public float ZoomFactor
+		{
+			get => (float)GetValue(ZoomFactorProperty);
+			set => SetValue(ZoomFactorProperty, value);
 		}
 
 		public void AutoFocus()

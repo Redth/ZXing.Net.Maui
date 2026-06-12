@@ -38,10 +38,6 @@ namespace ZXing.Net.Maui.Controls
 	/// </summary>
 	public static class CameraViewExtensions
 	{
-		/// <summary>
-		/// Registers barcode reader handlers and services with the MAUI app builder.
-		/// </summary>
-		[DynamicDependency(DynamicallyAccessedMemberTypes.PublicConstructors, typeof(Readers.ZXingBarcodeReader))]
 		public static MauiAppBuilder UseBarcodeReader(this MauiAppBuilder builder)
 		{
 			builder.ConfigureMauiHandlers(handlers =>
@@ -56,10 +52,8 @@ namespace ZXing.Net.Maui.Controls
 			return builder;
 		}
 
-		/// <summary>
-		/// Registers barcode reader handlers and services with a custom barcode reader implementation.
-		/// </summary>
-		public static MauiAppBuilder UseBarcodeReader<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TBarcodeReader>(this MauiAppBuilder builder) where TBarcodeReader : class, Readers.IBarcodeReader
+		public static MauiAppBuilder UseBarcodeReader<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] TBarcodeReader>(this MauiAppBuilder builder)
+			where TBarcodeReader : class, Readers.IBarcodeReader
 		{
 			builder.ConfigureMauiHandlers(handlers =>
 			{

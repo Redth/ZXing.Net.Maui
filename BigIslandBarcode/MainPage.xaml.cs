@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
@@ -17,8 +18,23 @@ namespace BigIslandBarcode
 			{
 				Formats = BarcodeFormats.All,
 				AutoRotate = true,
-				Multiple = true
+				Multiple = true,
+				DelayBetweenAnalyzingFrames = 150,
+				InitialDelayBeforeAnalyzingFrames = 300,
+				DelayBetweenContinuousScans = 1000,
+				CameraResolutionSelector = SelectCameraResolution
 			};
+		}
+
+		static CameraResolution SelectCameraResolution(IReadOnlyList<CameraResolution> availableResolutions)
+		{
+			if (availableResolutions.Count == 0)
+				return new CameraResolution(640, 480);
+
+			return availableResolutions
+				.OrderBy(resolution => Math.Abs((resolution.Width * resolution.Height) - (1280 * 720)))
+				.ThenBy(resolution => Math.Abs(resolution.Width - 1280) + Math.Abs(resolution.Height - 720))
+				.First();
 		}
 
 		protected void BarcodesDetected(object sender, BarcodeDetectionEventArgs e)
@@ -79,6 +95,11 @@ namespace BigIslandBarcode
 		void TorchButton_Clicked(object sender, EventArgs e)
 		{
 			barcodeView.IsTorchOn = !barcodeView.IsTorchOn;
+		}
+
+		void ZoomFactorChanged(object sender, ValueChangedEventArgs e)
+		{
+			barcodeView.ZoomFactor = (float)e.NewValue;
 		}
 	}
 }

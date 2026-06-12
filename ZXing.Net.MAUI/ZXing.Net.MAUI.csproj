@@ -19,9 +19,8 @@
 		<DebugType>portable</DebugType>
 		<IsPackable>true</IsPackable>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<!-- Enable trimming support and indicate library is trim-safe and AOT-compatible -->
-		<IsTrimmable>true</IsTrimmable>
 		<IsAotCompatible>true</IsAotCompatible>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
 		<PackageReference Include="Xamarin.AndroidX.Camera.Camera2" Version="1.4.2.3" />

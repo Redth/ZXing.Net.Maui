@@ -14,6 +14,12 @@ namespace ZXing.Net.Maui
 
 		CameraInfo SelectedCamera { get; set; }
 
+		float ZoomFactor
+		{
+			get => 0f;
+			set { }
+		}
+
 		//CameraMode Mode { get; set; }
 
 		void AutoFocus();

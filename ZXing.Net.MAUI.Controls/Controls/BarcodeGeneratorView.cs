@@ -1,13 +1,8 @@
 ﻿using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
-using System.Diagnostics.CodeAnalysis;
 
 namespace ZXing.Net.Maui.Controls
 {
-	/// <summary>
-	/// A MAUI view for generating barcode images.
-	/// This class is trimmer-safe through the bindable property system.
-	/// </summary>
 	public partial class BarcodeGeneratorView : View, IBarcodeGeneratorView
 	{
 		public static readonly BindableProperty FormatProperty =
@@ -56,7 +51,7 @@ namespace ZXing.Net.Maui.Controls
 		}
 
 		public static readonly BindableProperty CharacterSetProperty =
-			BindableProperty.Create(nameof(CharacterSet), typeof(string), typeof(BarcodeGeneratorView), defaultValue: "UTF-8");
+			BindableProperty.Create(nameof(CharacterSet), typeof(string), typeof(BarcodeGeneratorView), defaultValue: null);
 
 		public string CharacterSet
 		{

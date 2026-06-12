@@ -1,5 +1,6 @@
-﻿using System.Runtime.Versioning;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -46,8 +47,10 @@ namespace ZXing.Net.Maui
         private CameraSelector _cameraSelector = null;
         private ProcessCameraProvider _cameraProvider;
         private ICamera _camera;
+        private bool _isConnected;
+        private bool _isDisposed;
 
-        private static readonly Android.Util.Size ScreenSize = new(640, 480);
+        private static readonly Android.Util.Size DefaultResolution = new(640, 480);
 
         public NativePlatformCameraPreviewView CreateNativeView()
         {
@@ -59,42 +62,33 @@ namespace ZXing.Net.Maui
 
         public void Connect()
         {
+            if (_isDisposed)
+                return;
+
+            _isConnected = true;
+
             var cameraProviderFuture = ProcessCameraProvider.GetInstance(Context.Context);
 
             cameraProviderFuture.AddListener(new Java.Lang.Runnable(() =>
             {
+                if (!_isConnected || _isDisposed)
+                    return;
+
+                var previewView = _previewView;
+                var cameraExecutor = _cameraExecutor;
+
+                if (previewView == null || cameraExecutor == null)
+                    return;
+
                 // Used to bind the lifecycle of cameras to the lifecycle owner
-                _cameraProvider = (ProcessCameraProvider)cameraProviderFuture.Get();
+                var cameraProvider = (ProcessCameraProvider)cameraProviderFuture.Get();
 
-                _resolutionSelector?.Dispose();
+                if (!_isConnected || _isDisposed)
+                    return;
 
-                _resolutionSelector = new ResolutionSelector
-                    .Builder()
-                    .SetResolutionStrategy(new ResolutionStrategy(ScreenSize, ResolutionStrategy.FallbackRuleClosestHigherThenLower))
-                    .Build();
+                _cameraProvider = cameraProvider;
 
-                // Preview
-                _cameraPreview?.Dispose();
-
-                _cameraPreview = new Preview
-                    .Builder()
-                    .SetResolutionSelector(_resolutionSelector)
-                    .Build();
-
-                _cameraPreview.SetSurfaceProvider(_cameraExecutor, _previewView.SurfaceProvider);
-
-                // Frame by frame analyze
-                _imageAnalyzer?.Dispose();
-
-                _imageAnalyzer = new ImageAnalysis
-                    .Builder()
-                    .SetOutputImageFormat(ImageAnalysis.OutputImageFormatRgba8888)
-                    .SetResolutionSelector(_resolutionSelector)
-                    .SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
-                    .Build();
-
-                _imageAnalyzer.SetAnalyzer(_cameraExecutor, new FrameAnalyzer((buffer, size) =>
-                    FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
+                ConfigureUseCases(previewView, cameraExecutor);
 
                 UpdateCamera();
 
@@ -103,18 +97,27 @@ namespace ZXing.Net.Maui
 
         public void Disconnect()
         {
+            _isConnected = false;
+
             _cameraProvider?.UnbindAll();
             _cameraExecutor?.Shutdown();
         }
 
         public void UpdateCamera()
         {
-            if (_cameraProvider != null)
+            if (!_isConnected || _isDisposed)
+                return;
+
+            var cameraProvider = _cameraProvider;
+            var cameraPreview = _cameraPreview;
+            var imageAnalyzer = _imageAnalyzer;
+
+            if (cameraProvider != null && cameraPreview != null && imageAnalyzer != null)
             {
                 // Unbind use cases before rebinding
-                _cameraProvider.UnbindAll();
+                cameraProvider.UnbindAll();
 
-                CameraSelector? selectedCameraSelector = null;
+                CameraSelector selectedCameraSelector = null;
 
                 // If a specific camera is selected, use it
                 if (SelectedCamera is not null)
@@ -125,7 +128,7 @@ namespace ZXing.Net.Maui
                     {
                         var targetFacing = parts[0] == "front" ? CameraSelector.LensFacingFront : CameraSelector.LensFacingBack;
                         
-                        var availableCameraInfos = _cameraProvider.AvailableCameraInfos;
+                        var availableCameraInfos = cameraProvider.AvailableCameraInfos;
                         var facingIndex = 0;
                         
                         foreach (var cameraInfo in availableCameraInfos)
@@ -147,9 +150,9 @@ namespace ZXing.Net.Maui
                     var cameraLocation = CameraLocation;
 
                     // Select back camera as a default, or front camera otherwise
-                    if (cameraLocation == CameraLocation.Rear && _cameraProvider.HasCamera(CameraSelector.DefaultBackCamera))
+                    if (cameraLocation == CameraLocation.Rear && cameraProvider.HasCamera(CameraSelector.DefaultBackCamera))
                         selectedCameraSelector = CameraSelector.DefaultBackCamera;
-                    else if (cameraLocation == CameraLocation.Front && _cameraProvider.HasCamera(CameraSelector.DefaultFrontCamera))
+                    else if (cameraLocation == CameraLocation.Front && cameraProvider.HasCamera(CameraSelector.DefaultFrontCamera))
                         selectedCameraSelector = CameraSelector.DefaultFrontCamera;
                     else
                         selectedCameraSelector = CameraSelector.DefaultBackCamera;
@@ -163,13 +166,15 @@ namespace ZXing.Net.Maui
                 // The Context here SHOULD be something that's a lifecycle owner
                 if (Context.Context is AndroidX.Lifecycle.ILifecycleOwner lifecycleOwner)
                 {
-                    _camera = _cameraProvider.BindToLifecycle(lifecycleOwner, _cameraSelector, _cameraPreview, _imageAnalyzer);
+                    _camera = cameraProvider.BindToLifecycle(lifecycleOwner, _cameraSelector, cameraPreview, imageAnalyzer);
                 }
                 else if (Microsoft.Maui.ApplicationModel.Platform.CurrentActivity is AndroidX.Lifecycle.ILifecycleOwner maLifecycleOwner)
                 {
                     // if not, this should be sufficient as a fallback
-                    _camera = _cameraProvider.BindToLifecycle(maLifecycleOwner, _cameraSelector, _cameraPreview, _imageAnalyzer);
+                    _camera = cameraProvider.BindToLifecycle(maLifecycleOwner, _cameraSelector, cameraPreview, imageAnalyzer);
                 }
+
+                ApplyZoomFactor();
             }
         }
 
@@ -223,6 +228,114 @@ namespace ZXing.Net.Maui
             _camera?.CameraControl?.EnableTorch(on);
         }
 
+        partial void ApplyCameraOptions()
+        {
+            if (!_isConnected || _isDisposed)
+                return;
+
+            var cameraProvider = _cameraProvider;
+            var previewView = _previewView;
+            var cameraExecutor = _cameraExecutor;
+
+            if (cameraProvider == null || previewView == null || cameraExecutor == null)
+                return;
+
+            cameraProvider.UnbindAll();
+            ConfigureUseCases(previewView, cameraExecutor);
+            UpdateCamera();
+        }
+
+        private static partial bool ShouldApplyPlatformCameraOptions(CameraManagerOptions currentOptions, CameraManagerOptions nextOptions)
+            => currentOptions.AutoRotate != nextOptions.AutoRotate;
+
+        void ConfigureUseCases(PreviewView previewView, IExecutorService cameraExecutor)
+        {
+            _resolutionSelector?.Dispose();
+            _resolutionSelector = CreateResolutionSelector();
+
+            _cameraPreview?.Dispose();
+            _cameraPreview = new Preview
+                .Builder()
+                .SetResolutionSelector(_resolutionSelector)
+                .Build();
+
+            _cameraPreview.SetSurfaceProvider(cameraExecutor, previewView.SurfaceProvider);
+
+            _imageAnalyzer?.Dispose();
+            _imageAnalyzer = new ImageAnalysis
+                .Builder()
+                .SetOutputImageFormat(ImageAnalysis.OutputImageFormatRgba8888)
+                .SetOutputImageRotationEnabled(Options.AutoRotate)
+                .SetResolutionSelector(_resolutionSelector)
+                .SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
+                .Build();
+
+            _imageAnalyzer.SetAnalyzer(cameraExecutor, new FrameAnalyzer((buffer, size) =>
+                FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
+        }
+
+        ResolutionSelector CreateResolutionSelector()
+        {
+            var builder = new ResolutionSelector
+                .Builder()
+                .SetResolutionStrategy(new ResolutionStrategy(DefaultResolution, ResolutionStrategy.FallbackRuleClosestHigherThenLower));
+
+            if (Options.CameraResolutionSelector != null)
+                builder.SetResolutionFilter(new CameraResolutionFilter(Options.CameraResolutionSelector));
+
+            return builder.Build();
+        }
+
+        sealed class CameraResolutionFilter : Java.Lang.Object, IResolutionFilter
+        {
+            readonly CameraResolutionSelectorDelegate selector;
+
+            public CameraResolutionFilter(CameraResolutionSelectorDelegate selector)
+                => this.selector = selector;
+
+            public IList<Android.Util.Size> Filter(IList<Android.Util.Size> supportedSizes, int rotationDegrees)
+            {
+                if (supportedSizes == null || supportedSizes.Count == 0)
+                    return supportedSizes;
+
+                var availableResolutions = supportedSizes
+                    .Select(size => new CameraResolution(size.Width, size.Height))
+                    .ToList();
+
+                CameraResolution selectedResolution;
+                try
+                {
+                    selectedResolution = selector(availableResolutions);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Camera resolution selector failed: {ex.Message}");
+                    return supportedSizes;
+                }
+
+                if (selectedResolution == null)
+                    return supportedSizes;
+
+                var selectedSize = supportedSizes.FirstOrDefault(size =>
+                    size.Width == selectedResolution.Width && size.Height == selectedResolution.Height);
+
+                if (selectedSize == null)
+                {
+                    Debug.WriteLine($"Camera resolution selector returned unsupported resolution: {selectedResolution.Width}x{selectedResolution.Height}");
+                    return supportedSizes;
+                }
+
+                return supportedSizes
+                    .OrderByDescending(size => size.Width == selectedSize.Width && size.Height == selectedSize.Height)
+                    .ToList();
+            }
+        }
+
+        partial void ApplyZoomFactor()
+        {
+            _camera?.CameraControl?.SetLinearZoom(ZoomFactor);
+        }
+
         public void Focus(Point point)
         {
 
@@ -235,6 +348,15 @@ namespace ZXing.Net.Maui
 
         public void Dispose()
         {
+            if (_isDisposed)
+                return;
+
+            _isDisposed = true;
+            _isConnected = false;
+
+            _cameraProvider?.UnbindAll();
+            _cameraExecutor?.Shutdown();
+
             _imageAnalyzer?.Dispose();
             _imageAnalyzer = null;
 
