@@ -355,7 +355,7 @@ namespace ZXing.Net.Maui
             if (!CanFocus())
                 return;
 
-            RunOnMainThread(() => FocusOnMainThread(point));
+            RunOnMainThread(() => FocusOnMainThread(point.X, point.Y, convertToPlatformPixels: true));
         }
 
         public void AutoFocus()
@@ -369,7 +369,7 @@ namespace ZXing.Net.Maui
                 if (!CanFocus() || previewView == null || previewView.Width <= 0 || previewView.Height <= 0)
                     return;
 
-                FocusOnMainThread(new Point(previewView.Width / 2d, previewView.Height / 2d));
+                FocusOnMainThread(previewView.Width / 2d, previewView.Height / 2d, convertToPlatformPixels: false);
             });
         }
 
@@ -387,7 +387,7 @@ namespace ZXing.Net.Maui
                 ContextCompat.GetMainExecutor(Context.Context).Execute(new Java.Lang.Runnable(action));
         }
 
-        void FocusOnMainThread(Point point)
+        void FocusOnMainThread(double x, double y, bool convertToPlatformPixels)
         {
             var camera = _camera;
             var previewView = _previewView;
@@ -398,16 +398,34 @@ namespace ZXing.Net.Maui
             if (previewView.Width <= 0 || previewView.Height <= 0)
                 return;
 
-            if (double.IsNaN(point.X) || double.IsNaN(point.Y) || double.IsInfinity(point.X) || double.IsInfinity(point.Y))
+            if (double.IsNaN(x) || double.IsNaN(y) || double.IsInfinity(x) || double.IsInfinity(y))
                 return;
 
-            var meteringPoint = previewView.MeteringPointFactory.CreatePoint((float)point.X, (float)point.Y);
+            if (convertToPlatformPixels)
+            {
+                x = ToPlatformPixels(x);
+                y = ToPlatformPixels(y);
+            }
+
+            if (x < 0 || y < 0 || x > previewView.Width || y > previewView.Height)
+                return;
+
+            var meteringPoint = previewView.MeteringPointFactory.CreatePoint((float)x, (float)y);
             var focusMeteringAction = new FocusMeteringAction.Builder(meteringPoint, FocusMeteringAction.FlagAf).Build();
 
             if (!camera.CameraInfo.IsFocusMeteringSupported(focusMeteringAction))
                 return;
 
             camera.CameraControl.StartFocusAndMetering(focusMeteringAction);
+        }
+
+        double ToPlatformPixels(double value)
+        {
+            var density = Context.Context.Resources?.DisplayMetrics?.Density ?? 1f;
+            if (float.IsNaN(density) || float.IsInfinity(density) || density <= 0f)
+                density = 1f;
+
+            return value * density;
         }
 
         public void Dispose()
