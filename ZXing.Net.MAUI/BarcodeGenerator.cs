@@ -23,6 +23,16 @@ namespace ZXing.Net.Maui
 #endif
 		}
 
+		public static Task<NativePlatformImage> GenerateAsync(
+			string value,
+			BarcodeGeneratorOptions options = null,
+			CancellationToken cancellationToken = default)
+		{
+			cancellationToken.ThrowIfCancellationRequested();
+
+			return Task.FromResult(Generate(value, options));
+		}
+
 		public static async Task WriteToStreamAsync(
 			string value,
 			Stream stream,

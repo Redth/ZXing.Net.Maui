@@ -213,7 +213,7 @@ await BarcodeGenerator.WriteToStreamAsync(
   });
 ```
 
-`BarcodeGenerator.Generate(...)` returns the platform-native image type (`Bitmap` on Android, `UIImage` on iOS/MacCatalyst, and `WriteableBitmap` on Windows) if your app needs to display or process it directly. Image generation and writing are supported on Android, iOS, MacCatalyst, and Windows; the plain `net10.0` target throws `PlatformNotSupportedException` because it has no platform image encoder.
+`BarcodeGenerator.Generate(...)` and `GenerateAsync(...)` return the platform-native image type (`Bitmap` on Android, `UIImage` on iOS/MacCatalyst, and `WriteableBitmap` on Windows) if your app needs to display or process it directly. Image generation and writing are supported on Android, iOS, MacCatalyst, and Windows; the plain `net10.0` target throws `PlatformNotSupportedException` because it has no platform image encoder.
 
 ### Character Encoding
 

@@ -82,4 +82,14 @@ public class BarcodeGeneratorOptionsTests
 	{
 		Assert.Equal(ZXingBarcodeFormat.QR_CODE, BarcodeGenerator.GetZXingFormat(MauiBarcodeFormat.QrCode));
 	}
+
+	[Fact]
+	public async Task GenerateAsyncHonorsAlreadyCanceledToken()
+	{
+		using var cancellationTokenSource = new CancellationTokenSource();
+		await cancellationTokenSource.CancelAsync();
+
+		await Assert.ThrowsAsync<OperationCanceledException>(() =>
+			BarcodeGenerator.GenerateAsync("https://dotnet.microsoft.com", cancellationToken: cancellationTokenSource.Token));
+	}
 }
