@@ -178,6 +178,43 @@ protected void BarcodesDetected(object sender, BarcodeDetectionEventArgs e)
   Margin="3" />
 ```
 
+### Programmatic Barcode Image Export
+
+Use `BarcodeGenerator` when you need to create barcode images without a `BarcodeGeneratorView`, or when you want to write the generated image directly to a file or stream.
+
+```csharp
+var filePath = Path.Combine(FileSystem.AppDataDirectory, "barcode.png");
+
+await BarcodeGenerator.WriteToFileAsync(
+  "https://dotnet.microsoft.com",
+  filePath,
+  new BarcodeGeneratorOptions
+  {
+    Format = BarcodeFormat.QrCode,
+    Width = 512,
+    Height = 512,
+    Margin = 2,
+    ForegroundColor = Colors.DarkBlue,
+    BackgroundColor = Colors.White
+  });
+```
+
+You can also write to an existing stream and choose PNG or JPEG output:
+
+```csharp
+await using var stream = File.Create(filePath);
+
+await BarcodeGenerator.WriteToStreamAsync(
+  "https://dotnet.microsoft.com",
+  stream,
+  imageOptions: new BarcodeImageOptions
+  {
+    Format = BarcodeImageFormat.Png
+  });
+```
+
+`BarcodeGenerator.Generate(...)` returns the platform-native image type (`Bitmap` on Android, `UIImage` on iOS/MacCatalyst, and `WriteableBitmap` on Windows) if your app needs to display or process it directly. Image generation and writing are supported on Android, iOS, MacCatalyst, and Windows; the plain `net10.0` target throws `PlatformNotSupportedException` because it has no platform image encoder.
+
 ### Character Encoding
 
 If you need to encode international characters (e.g., Chinese, Japanese, Arabic, or other non-ASCII characters), you can specify a character encoding using the `CharacterSet` property:

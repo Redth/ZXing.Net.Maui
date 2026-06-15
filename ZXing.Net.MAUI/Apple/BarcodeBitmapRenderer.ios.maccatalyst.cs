@@ -32,12 +32,19 @@ namespace ZXing.Net.Maui
 			get => new UIColor(bitmapRenderer.BackgroundColor).AsColor();
 			set => bitmapRenderer.BackgroundColor = value.AsCGColor();
 		}
+
+		internal nfloat ImageScale
+		{
+			get => bitmapRenderer.ImageScale;
+			set => bitmapRenderer.ImageScale = value;
+		}
 	}
 
 	internal class BarcodeBitmapRenderer : IBarcodeRenderer<UIImage>
 	{
 		public CGColor ForegroundColor { get; set; } = new CGColor(0f, 0f, 0f);
 		public CGColor BackgroundColor { get; set; } = new CGColor(1.0f, 1.0f, 1.0f);
+		public nfloat ImageScale { get; set; } = UIScreen.MainScreen.Scale;
 
 		public UIImage Render(BitMatrix matrix, ZXing.BarcodeFormat format, string content)
 			=> Render(matrix, format, content, new EncodingOptions());
@@ -46,7 +53,7 @@ namespace ZXing.Net.Maui
 		{
 			var renderer = new UIGraphicsImageRenderer(new CGSize(matrix.Width, matrix.Height), new UIGraphicsImageRendererFormat {
 				Opaque = false,
-				Scale = UIScreen.MainScreen.Scale
+				Scale = ImageScale
 			});
 
 			var waiter = new ManualResetEvent(false);

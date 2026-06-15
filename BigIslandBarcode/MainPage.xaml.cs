@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Storage;
 using ZXing.Net.Maui;
 using ZXing.Net.Maui.Controls;
 
@@ -95,6 +97,44 @@ namespace BigIslandBarcode
 		void TorchButton_Clicked(object sender, EventArgs e)
 		{
 			barcodeView.IsTorchOn = !barcodeView.IsTorchOn;
+		}
+
+		async void SaveBarcodeButton_Clicked(object sender, EventArgs e)
+		{
+			if (string.IsNullOrEmpty(barcodeGenerator.Value))
+			{
+				await DisplayAlertAsync("No Barcode", "Scan or enter a barcode value before saving.", "OK");
+				return;
+			}
+
+			try
+			{
+				var filePath = Path.Combine(FileSystem.AppDataDirectory, $"barcode_{DateTime.Now:yyyyMMddHHmmss}.png");
+				await BarcodeGenerator.WriteToFileAsync(
+					barcodeGenerator.Value,
+					filePath,
+					new BarcodeGeneratorOptions
+					{
+						Format = barcodeGenerator.Format,
+						Width = barcodeGenerator.WidthRequest > 0 ? (int)barcodeGenerator.WidthRequest : 300,
+						Height = barcodeGenerator.HeightRequest > 0 ? (int)barcodeGenerator.HeightRequest : 300,
+						ForegroundColor = barcodeGenerator.ForegroundColor,
+						BackgroundColor = barcodeGenerator.BackgroundColor,
+						Margin = barcodeGenerator.BarcodeMargin,
+						CharacterSet = barcodeGenerator.CharacterSet
+					});
+
+				ResultLabel.Text = "Barcode saved!";
+				await DisplayAlertAsync("Barcode Saved", filePath, "OK");
+			}
+			catch (Exception ex) when (ex is ArgumentException
+				or IOException
+				or UnauthorizedAccessException
+				or PlatformNotSupportedException
+				or InvalidOperationException)
+			{
+				await DisplayAlertAsync("Save Failed", ex.Message, "OK");
+			}
 		}
 
 		void ZoomFactorChanged(object sender, ValueChangedEventArgs e)

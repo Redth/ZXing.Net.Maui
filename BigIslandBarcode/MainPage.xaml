@@ -30,7 +30,7 @@
 			Grid.Row="3"
 			BackgroundColor="#aa000000"
 			Padding="20"
-			ColumnDefinitions="Auto,Auto,*,Auto">
+			ColumnDefinitions="Auto,Auto,*,Auto,Auto">
 
 			<Button Text="🔄️" Grid.Column="0" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="SwitchCameraButton_Clicked" />
 
@@ -49,7 +49,9 @@
 				CharacterSet="UTF-8"
 				BarcodeMargin="1" />
 
-			<Button Text="💡" Grid.Column="3" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="TorchButton_Clicked" />
+			<Button Text="💾" Grid.Column="3" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="SaveBarcodeButton_Clicked" />
+
+			<Button Text="💡" Grid.Column="4" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="TorchButton_Clicked" />
 		</Grid>
 
 	</Grid>
