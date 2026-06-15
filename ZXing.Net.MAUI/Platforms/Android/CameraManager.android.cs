@@ -4,8 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Android.Graphics;
-
 using AndroidX.Camera.Core;
 using AndroidX.Camera.Core.ResolutionSelector;
 using AndroidX.Camera.Lifecycle;
@@ -13,6 +11,7 @@ using AndroidX.Camera.View;
 using AndroidX.Core.Content;
 
 using Java.Util.Concurrent;
+using Microsoft.Maui.Graphics;
 
 namespace ZXing.Net.Maui
 {
@@ -99,12 +98,17 @@ namespace ZXing.Net.Maui
         {
             _isConnected = false;
 
-            _cameraProvider?.UnbindAll();
-            _cameraExecutor?.Shutdown();
+            RunOnMainThread(DisconnectOnMainThread);
         }
 
         public void UpdateCamera()
         {
+            if (!IsMainThread)
+            {
+                RunOnMainThread(UpdateCamera);
+                return;
+            }
+
             if (!_isConnected || _isDisposed)
                 return;
 
@@ -115,7 +119,7 @@ namespace ZXing.Net.Maui
             if (cameraProvider != null && cameraPreview != null && imageAnalyzer != null)
             {
                 // Unbind use cases before rebinding
-                cameraProvider.UnbindAll();
+                UnbindCamera(cameraProvider);
 
                 CameraSelector selectedCameraSelector = null;
 
@@ -233,6 +237,14 @@ namespace ZXing.Net.Maui
             if (!_isConnected || _isDisposed)
                 return;
 
+            RunOnMainThread(ApplyCameraOptionsOnMainThread);
+        }
+
+        void ApplyCameraOptionsOnMainThread()
+        {
+            if (!_isConnected || _isDisposed)
+                return;
+
             var cameraProvider = _cameraProvider;
             var previewView = _previewView;
             var cameraExecutor = _cameraExecutor;
@@ -240,7 +252,7 @@ namespace ZXing.Net.Maui
             if (cameraProvider == null || previewView == null || cameraExecutor == null)
                 return;
 
-            cameraProvider.UnbindAll();
+            UnbindCamera(cameraProvider);
             ConfigureUseCases(previewView, cameraExecutor);
             UpdateCamera();
         }
@@ -338,12 +350,80 @@ namespace ZXing.Net.Maui
 
         public void Focus(Point point)
         {
+            if (!CanFocus())
+                return;
 
+            RunOnMainThread(() => FocusOnMainThread(point.X, point.Y, convertToPlatformPixels: true));
         }
 
         public void AutoFocus()
         {
+            if (!CanFocus())
+                return;
 
+            RunOnMainThread(() =>
+            {
+                var previewView = _previewView;
+                if (!CanFocus() || previewView == null || previewView.Width <= 0 || previewView.Height <= 0)
+                    return;
+
+                FocusOnMainThread(previewView.Width / 2d, previewView.Height / 2d, convertToPlatformPixels: false);
+            });
+        }
+
+        bool CanFocus()
+            => _isConnected && !_isDisposed && _camera != null && _previewView != null;
+
+        bool IsMainThread
+            => Android.OS.Looper.MyLooper() == Android.OS.Looper.MainLooper;
+
+        void RunOnMainThread(Action action)
+        {
+            if (IsMainThread)
+                action();
+            else
+                ContextCompat.GetMainExecutor(Context.Context).Execute(new Java.Lang.Runnable(action));
+        }
+
+        void FocusOnMainThread(double x, double y, bool convertToPlatformPixels)
+        {
+            var camera = _camera;
+            var previewView = _previewView;
+
+            if (!CanFocus() || camera == null || previewView == null)
+                return;
+
+            if (previewView.Width <= 0 || previewView.Height <= 0)
+                return;
+
+            if (double.IsNaN(x) || double.IsNaN(y) || double.IsInfinity(x) || double.IsInfinity(y))
+                return;
+
+            if (convertToPlatformPixels)
+            {
+                x = ToPlatformPixels(x);
+                y = ToPlatformPixels(y);
+            }
+
+            if (x < 0 || y < 0 || x > previewView.Width || y > previewView.Height)
+                return;
+
+            var meteringPoint = previewView.MeteringPointFactory.CreatePoint((float)x, (float)y);
+            var focusMeteringAction = new FocusMeteringAction.Builder(meteringPoint, FocusMeteringAction.FlagAf).Build();
+
+            if (!camera.CameraInfo.IsFocusMeteringSupported(focusMeteringAction))
+                return;
+
+            camera.CameraControl.StartFocusAndMetering(focusMeteringAction);
+        }
+
+        double ToPlatformPixels(double value)
+        {
+            var density = Context.Context.Resources?.DisplayMetrics?.Density ?? 1f;
+            if (float.IsNaN(density) || float.IsInfinity(density) || density <= 0f)
+                density = 1f;
+
+            return value * density;
         }
 
         public void Dispose()
@@ -354,7 +434,18 @@ namespace ZXing.Net.Maui
             _isDisposed = true;
             _isConnected = false;
 
-            _cameraProvider?.UnbindAll();
+            RunOnMainThread(DisposeOnMainThread);
+        }
+
+        void DisconnectOnMainThread()
+        {
+            UnbindCamera(_cameraProvider);
+            _cameraExecutor?.Shutdown();
+        }
+
+        void DisposeOnMainThread()
+        {
+            UnbindCamera(_cameraProvider);
             _cameraExecutor?.Shutdown();
 
             _imageAnalyzer?.Dispose();
@@ -377,9 +468,15 @@ namespace ZXing.Net.Maui
 
             _cameraExecutor?.Dispose();
             _cameraExecutor = null;
+        }
 
-            _camera?.Dispose();
+        void UnbindCamera(ProcessCameraProvider cameraProvider)
+        {
+            var camera = _camera;
+
+            cameraProvider?.UnbindAll();
             _camera = null;
+            camera?.Dispose();
         }
     }
 }
