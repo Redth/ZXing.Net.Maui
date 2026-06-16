@@ -42,7 +42,14 @@
 			VerticalOptions="End"
 			HorizontalOptions="Fill"
 			BackgroundColor="#aa000000">
-			<Slider Minimum="0" Maximum="1" Margin="24,0,24,8" ValueChanged="ZoomFactorChanged" />
+			<Slider
+				Minimum="0"
+				Maximum="1"
+				Margin="24,0,24,8"
+				MinimumTrackColor="#8B6DFF"
+				MaximumTrackColor="#66FFFFFF"
+				ThumbColor="White"
+				ValueChanged="ZoomFactorChanged" />
 		</Grid>
 
 		<Border
