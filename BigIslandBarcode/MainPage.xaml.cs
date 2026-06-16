@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Maui.Controls;
-using Microsoft.Maui.Storage;
+using Microsoft.Maui.Media;
 using ZXing.Net.Maui;
 
 namespace BigIslandBarcode
@@ -116,7 +116,11 @@ namespace BigIslandBarcode
 		{
 			try
 			{
-				var file = await FilePicker.PickAsync(PickOptions.Images);
+				var files = await MediaPicker.Default.PickPhotosAsync(new MediaPickerOptions
+				{
+					Title = "Select barcode image"
+				});
+				var file = files?.FirstOrDefault();
 				if (file is null)
 					return;
 
