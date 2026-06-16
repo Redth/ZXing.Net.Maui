@@ -38,6 +38,21 @@ namespace BigIslandBarcode
 				.First();
 		}
 
+		protected override void OnAppearing()
+		{
+			base.OnAppearing();
+
+			barcodeView.IsDetecting = true;
+		}
+
+		protected override void OnDisappearing()
+		{
+			barcodeView.IsDetecting = false;
+			barcodeView.IsTorchOn = false;
+
+			base.OnDisappearing();
+		}
+
 		protected void BarcodesDetected(object sender, BarcodeDetectionEventArgs e)
 		{
 			foreach (var barcode in e.Results)

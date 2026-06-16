@@ -1,7 +1,17 @@
 ﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
 	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
 	x:Class="BigIslandBarcode.GeneratorPage"
-	Title="Barcode Generator">
+	Title="Barcode Generator"
+	BackgroundColor="{AppThemeBinding Light=White, Dark=#101010}">
+
+	<ContentPage.Resources>
+		<ResourceDictionary>
+			<Style TargetType="Label">
+				<Setter Property="TextColor" Value="{AppThemeBinding Light=#1F1F1F, Dark=#F5F5F5}" />
+				<Setter Property="FontFamily" Value="OpenSansRegular" />
+			</Style>
+		</ResourceDictionary>
+	</ContentPage.Resources>
 
 	<ScrollView>
 		<VerticalStackLayout Padding="20" Spacing="16">
@@ -10,7 +20,7 @@
 			<VerticalStackLayout Spacing="6">
 				<Label Text="Barcode value" />
 				<Entry x:Name="ValueEntry" Placeholder="Value to encode" />
-				<Label x:Name="FormatHelpLabel" FontSize="12" TextColor="Gray" LineBreakMode="WordWrap" />
+				<Label x:Name="FormatHelpLabel" FontSize="12" TextColor="{AppThemeBinding Light=#6E6E6E, Dark=#BDBDBD}" LineBreakMode="WordWrap" />
 			</VerticalStackLayout>
 
 			<Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="12">
@@ -66,7 +76,7 @@
 				<Image x:Name="PreviewImage" HeightRequest="280" Aspect="AspectFit" />
 			</Frame>
 
-			<Label x:Name="StatusLabel" LineBreakMode="WordWrap" />
+			<Label x:Name="StatusLabel" TextColor="{AppThemeBinding Light=#6E6E6E, Dark=#BDBDBD}" LineBreakMode="WordWrap" />
 		</VerticalStackLayout>
 	</ScrollView>
 </ContentPage>

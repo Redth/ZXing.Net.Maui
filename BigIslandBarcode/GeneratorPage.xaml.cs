@@ -339,7 +339,7 @@ namespace BigIslandBarcode
 				BarcodeFormat.Plessey => new("ABC123", "0123456789ABCDEF", true, null, "Plessey requires hexadecimal characters 0-9 or A-F."),
 				BarcodeFormat.UpcA => FormatInputRule.Digits("042100005264", 12, "UPC-A requires 11 or 12 digits."),
 				BarcodeFormat.UpcE => FormatInputRule.Digits("01234565", 8, "UPC-E requires 7 or 8 digits."),
-				_ => new("I love .NET MAUI", null, false, null, "This format can encode the default sample text.")
+				_ => new("I love .NET MAUI", null, false, null, "This format can encode any text characters.")
 			};
 
 		readonly record struct FormatInputRule(
