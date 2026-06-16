@@ -1,0 +1,87 @@
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	x:Class="BigIslandBarcode.GeneratorPage"
+	Title="Barcode Generator"
+	BackgroundColor="{AppThemeBinding Light=White, Dark=#101010}">
+
+	<ContentPage.Resources>
+		<ResourceDictionary>
+			<Style TargetType="Label">
+				<Setter Property="TextColor" Value="{AppThemeBinding Light=#1F1F1F, Dark=#F5F5F5}" />
+				<Setter Property="FontFamily" Value="OpenSansRegular" />
+			</Style>
+		</ResourceDictionary>
+	</ContentPage.Resources>
+
+	<ScrollView>
+		<VerticalStackLayout Padding="20" Spacing="16">
+			<Label Text="Generate barcode image" FontSize="24" FontAttributes="Bold" />
+
+			<VerticalStackLayout Spacing="6">
+				<Label Text="Barcode value" />
+				<Entry x:Name="ValueEntry" Placeholder="Value to encode" />
+				<Label x:Name="FormatHelpLabel" FontSize="12" TextColor="{AppThemeBinding Light=#6E6E6E, Dark=#BDBDBD}" LineBreakMode="WordWrap" />
+			</VerticalStackLayout>
+
+			<Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="12" RowSpacing="12">
+				<VerticalStackLayout Spacing="6">
+					<Label Text="Barcode format" />
+					<Picker x:Name="FormatPicker" />
+				</VerticalStackLayout>
+
+				<VerticalStackLayout Grid.Column="1" Spacing="6">
+					<Label Text="Output image format" />
+					<Picker x:Name="ImageFormatPicker" />
+				</VerticalStackLayout>
+
+				<VerticalStackLayout Grid.Row="1" Spacing="6">
+					<Label Text="Output width (px)" />
+					<Entry x:Name="WidthEntry" Keyboard="Numeric" Text="512" />
+				</VerticalStackLayout>
+
+				<VerticalStackLayout Grid.Row="1" Grid.Column="1" Spacing="6">
+					<Label Text="Output height (px)" />
+					<Entry x:Name="HeightEntry" Keyboard="Numeric" Text="512" />
+				</VerticalStackLayout>
+
+				<VerticalStackLayout Grid.Row="2" Spacing="6">
+					<Label Text="Quiet zone margin" />
+					<Entry x:Name="MarginEntry" Keyboard="Numeric" Text="2" />
+				</VerticalStackLayout>
+
+				<VerticalStackLayout Grid.Row="2" Grid.Column="1" Spacing="6">
+					<Label Text="Character set hint (optional)" MaxLines="1" LineBreakMode="TailTruncation" />
+					<Entry x:Name="CharacterSetEntry" Placeholder="e.g. UTF-8" />
+				</VerticalStackLayout>
+			</Grid>
+
+			<Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+				<VerticalStackLayout Spacing="6">
+					<Label Text="Foreground color" />
+					<Picker x:Name="ForegroundColorPicker" />
+				</VerticalStackLayout>
+
+				<VerticalStackLayout Grid.Column="1" Spacing="6">
+					<Label Text="Background color" />
+					<Picker x:Name="BackgroundColorPicker" />
+				</VerticalStackLayout>
+			</Grid>
+
+			<Grid ColumnDefinitions="*,*" ColumnSpacing="12">
+				<Button x:Name="GeneratePreviewButton" Text="Generate Preview" Clicked="GeneratePreviewButton_Clicked" />
+				<Button x:Name="SaveImageButton" Grid.Column="1" Text="Save Image" Clicked="SaveImageButton_Clicked" />
+			</Grid>
+
+			<HorizontalStackLayout x:Name="BusyLayout" Spacing="8" IsVisible="False">
+				<ActivityIndicator x:Name="BusyIndicator" IsRunning="False" />
+				<Label Text="Generating barcode image..." VerticalOptions="Center" TextColor="{AppThemeBinding Light=#6E6E6E, Dark=#BDBDBD}" />
+			</HorizontalStackLayout>
+
+			<Frame Padding="16" BackgroundColor="White" BorderColor="#DDDDDD" CornerRadius="8">
+				<Image x:Name="PreviewImage" HeightRequest="280" Aspect="AspectFit" />
+			</Frame>
+
+			<Label x:Name="StatusLabel" TextColor="{AppThemeBinding Light=#6E6E6E, Dark=#BDBDBD}" LineBreakMode="WordWrap" />
+		</VerticalStackLayout>
+	</ScrollView>
+</ContentPage>

@@ -1,15 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using ZXing.Net.Maui;
-using ZXing.Net.Maui.Controls;
 
 namespace BigIslandBarcode
 {
 	public partial class MainPage : ContentPage
 	{
+		string generatorValue = "I love .NET MAUI";
+		BarcodeFormat generatorFormat = BarcodeFormat.QrCode;
+		string lastScannedValue;
+
 		public MainPage()
 		{
 			InitializeComponent();
@@ -37,6 +39,21 @@ namespace BigIslandBarcode
 				.First();
 		}
 
+		protected override void OnAppearing()
+		{
+			base.OnAppearing();
+
+			barcodeView.IsDetecting = true;
+		}
+
+		protected override void OnDisappearing()
+		{
+			barcodeView.IsDetecting = false;
+			barcodeView.IsTorchOn = false;
+
+			base.OnDisappearing();
+		}
+
 		protected void BarcodesDetected(object sender, BarcodeDetectionEventArgs e)
 		{
 			foreach (var barcode in e.Results)
@@ -47,13 +64,12 @@ namespace BigIslandBarcode
 			{
 				Dispatcher.Dispatch(() =>
 				{
-                    // Update BarcodeGeneratorView
-					barcodeGenerator.ClearValue(BarcodeGeneratorView.ValueProperty);
-					barcodeGenerator.Format = first.Format;
-					barcodeGenerator.Value = first.Value;
-                    
-                    // Update Label
-                    ResultLabel.Text = $"Barcodes: {first.Format} -> {first.Value}";
+					generatorFormat = first.Format;
+					generatorValue = first.Value;
+					lastScannedValue = first.Value;
+					ResultFormatLabel.Text = first.Format.ToString();
+					ResultValueLabel.Text = first.Value;
+					ResultHintLabel.IsVisible = true;
 				});
 			}
 		}
@@ -87,7 +103,9 @@ namespace BigIslandBarcode
 				if (selectedCamera != null)
 				{
 					barcodeView.SelectedCamera = selectedCamera;
-					ResultLabel.Text = $"Selected: {selectedCamera.Name}";
+					ResultFormatLabel.Text = "Camera";
+					ResultValueLabel.Text = $"Selected: {selectedCamera.Name}";
+					ResultHintLabel.IsVisible = false;
 				}
 			}
 		}
@@ -95,6 +113,19 @@ namespace BigIslandBarcode
 		void TorchButton_Clicked(object sender, EventArgs e)
 		{
 			barcodeView.IsTorchOn = !barcodeView.IsTorchOn;
+		}
+
+		async void GeneratorButton_Clicked(object sender, EventArgs e)
+		{
+			await Navigation.PushAsync(new GeneratorPage(generatorValue, generatorFormat));
+		}
+
+		async void ResultPanel_Tapped(object sender, TappedEventArgs e)
+		{
+			if (string.IsNullOrEmpty(lastScannedValue))
+				return;
+
+			await DisplayAlertAsync(generatorFormat.ToString(), lastScannedValue, "OK");
 		}
 
 		void ZoomFactorChanged(object sender, ValueChangedEventArgs e)

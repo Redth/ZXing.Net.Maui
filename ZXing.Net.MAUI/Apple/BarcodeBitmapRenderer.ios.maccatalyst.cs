@@ -3,7 +3,6 @@ using ZXing.Rendering;
 using Microsoft.Maui.Graphics.Platform;
 using MauiColor = Microsoft.Maui.Graphics.Color;
 using ZXing.Common;
-using System.Threading;
 
 
 #if IOS || MACCATALYST
@@ -32,48 +31,56 @@ namespace ZXing.Net.Maui
 			get => new UIColor(bitmapRenderer.BackgroundColor).AsColor();
 			set => bitmapRenderer.BackgroundColor = value.AsCGColor();
 		}
+
+		internal nfloat ImageScale
+		{
+			get => bitmapRenderer.ImageScale;
+			set => bitmapRenderer.ImageScale = value;
+		}
 	}
 
 	internal class BarcodeBitmapRenderer : IBarcodeRenderer<UIImage>
 	{
 		public CGColor ForegroundColor { get; set; } = new CGColor(0f, 0f, 0f);
 		public CGColor BackgroundColor { get; set; } = new CGColor(1.0f, 1.0f, 1.0f);
+		public nfloat ImageScale { get; set; } = UIScreen.MainScreen.Scale;
 
 		public UIImage Render(BitMatrix matrix, ZXing.BarcodeFormat format, string content)
 			=> Render(matrix, format, content, new EncodingOptions());
 
 		public UIImage Render(BitMatrix matrix, ZXing.BarcodeFormat format, string content, EncodingOptions options)
 		{
-			var renderer = new UIGraphicsImageRenderer(new CGSize(matrix.Width, matrix.Height), new UIGraphicsImageRendererFormat {
+			var width = matrix.Width;
+			var height = matrix.Height;
+			var renderer = new UIGraphicsImageRenderer(new CGSize(width, height), new UIGraphicsImageRendererFormat {
 				Opaque = false,
-				Scale = UIScreen.MainScreen.Scale
+				Scale = ImageScale
 			});
 
-			var waiter = new ManualResetEvent(false);
-			UIImage image = null!;
-			
-			renderer.CreateImage(context =>
+			return renderer.CreateImage(context =>
 			{
-				for (var x = 0; x < matrix.Width; x++)
+				var cgContext = context.CGContext;
+				cgContext.SetFillColor(BackgroundColor);
+				cgContext.FillRect(new CGRect(0, 0, width, height));
+
+				cgContext.SetFillColor(ForegroundColor);
+				for (var y = 0; y < height; y++)
 				{
-					for (var y = 0; y < matrix.Height; y++)
+					var x = 0;
+					while (x < width)
 					{
-						context.CGContext.SetFillColor(matrix[x, y] ? ForegroundColor : BackgroundColor);
-						context.CGContext.FillRect(new CGRect(x, y, 1, 1));
+						while (x < width && !matrix[x, y])
+							x++;
+
+						var start = x;
+						while (x < width && matrix[x, y])
+							x++;
+
+						if (x > start)
+							cgContext.FillRect(new CGRect(start, y, x - start, 1));
 					}
 				}
-				
-				SetImage(context.CurrentImage);
 			});
-
-			waiter.WaitOne();
-			return image;
-			
-			void SetImage(UIImage img)
-			{
-				image = img;
-				waiter.Set();
-			}
 		}
 	}
 }
