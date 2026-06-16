@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Media;
 using ZXing.Net.Maui;
 
 namespace BigIslandBarcode
@@ -64,12 +66,7 @@ namespace BigIslandBarcode
 			{
 				Dispatcher.Dispatch(() =>
 				{
-					generatorFormat = first.Format;
-					generatorValue = first.Value;
-					lastScannedValue = first.Value;
-					ResultFormatLabel.Text = first.Format.ToString();
-					ResultValueLabel.Text = first.Value;
-					ResultHintLabel.IsVisible = true;
+					ShowBarcodeResult(first);
 				});
 			}
 		}
@@ -115,9 +112,72 @@ namespace BigIslandBarcode
 			barcodeView.IsTorchOn = !barcodeView.IsTorchOn;
 		}
 
+		async void DecodeImageButton_Clicked(object sender, EventArgs e)
+		{
+			try
+			{
+				var files = await MediaPicker.Default.PickPhotosAsync(new MediaPickerOptions
+				{
+					Title = "Select barcode image"
+				});
+				var file = files?.FirstOrDefault();
+				if (file is null)
+					return;
+
+				await using var stream = await file.OpenReadAsync();
+				var results = await BarcodeReader.DecodeAsync(
+					stream,
+					new BarcodeReaderOptions
+					{
+						Formats = BarcodeFormats.All,
+						AutoRotate = true,
+						Multiple = true,
+						TryHarder = true,
+						TryInverted = true
+					});
+
+				var first = results.FirstOrDefault();
+				if (first is null)
+				{
+					ShowNoBarcodeResult("Image");
+					return;
+				}
+
+				ShowBarcodeResult(first);
+				await DisplayAlertAsync(first.Format.ToString(), first.Value, "OK");
+			}
+			catch (Exception ex) when (ex is ArgumentException
+				or IOException
+				or UnauthorizedAccessException
+				or PlatformNotSupportedException
+				or InvalidOperationException
+				or NotSupportedException)
+			{
+				await DisplayAlertAsync("Image Decode Failed", ex.Message, "OK");
+			}
+		}
+
 		async void GeneratorButton_Clicked(object sender, EventArgs e)
 		{
 			await Navigation.PushAsync(new GeneratorPage(generatorValue, generatorFormat));
+		}
+
+		void ShowBarcodeResult(BarcodeResult barcode)
+		{
+			generatorFormat = barcode.Format;
+			generatorValue = barcode.Value;
+			lastScannedValue = barcode.Value;
+			ResultFormatLabel.Text = barcode.Format.ToString();
+			ResultValueLabel.Text = barcode.Value;
+			ResultHintLabel.IsVisible = true;
+		}
+
+		void ShowNoBarcodeResult(string source)
+		{
+			lastScannedValue = null;
+			ResultFormatLabel.Text = source;
+			ResultValueLabel.Text = "No barcode found";
+			ResultHintLabel.IsVisible = false;
 		}
 
 		async void ResultPanel_Tapped(object sender, TappedEventArgs e)

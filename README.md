@@ -115,6 +115,32 @@ cameraBarcodeReaderView.Options = new BarcodeReaderOptions
 };
 ```
 
+### Decode barcodes from image files or streams
+
+Still-image decoding is available on Android, iOS, MacCatalyst, and Windows without starting the camera. The same `BarcodeReaderOptions` used by the camera reader also apply to image streams.
+
+```csharp
+using ZXing.Net.Maui;
+using var stream = await fileResult.OpenReadAsync();
+
+var results = await BarcodeReader.DecodeAsync(
+  stream,
+  new BarcodeReaderOptions
+  {
+    Formats = BarcodeFormats.All,
+    AutoRotate = true,
+    TryHarder = true,
+    Multiple = true
+  });
+
+foreach (var result in results ?? [])
+  Console.WriteLine($"{result.Format}: {result.Value}");
+```
+
+You can also decode directly from a file path with `BarcodeReader.DecodeFromFileAsync(...)`.
+
+EXIF orientation is respected before decoding when the platform image APIs expose it. The neutral `net10.0` target does not include a platform image decoder, so stream decoding there throws `PlatformNotSupportedException`.
+
 Toggle Torch
 ```csharp
 cameraBarcodeReaderView.IsTorchOn = !cameraBarcodeReaderView.IsTorchOn;

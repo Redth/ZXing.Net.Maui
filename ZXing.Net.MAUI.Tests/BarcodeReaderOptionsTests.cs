@@ -14,6 +14,7 @@ public class BarcodeReaderOptionsTests
 		Assert.Equal(1000, options.DelayBetweenContinuousScans);
 		Assert.Equal(300, options.InitialDelayBeforeAnalyzingFrames);
 		Assert.Null(options.CameraResolutionSelector);
+		Assert.Equal(options, BarcodeReaderOptions.Default);
 	}
 
 	[Fact]
@@ -54,5 +55,39 @@ public class BarcodeReaderOptionsTests
 		]);
 
 		Assert.Same(expected, selected);
+	}
+
+	[Fact]
+	public void CreateReaderUsesProvidedOptions()
+	{
+		var options = new BarcodeReaderOptions
+		{
+			Formats = BarcodeFormats.TwoDimensional,
+			TryHarder = true
+		};
+
+		var reader = BarcodeReader.CreateReader(options);
+
+		Assert.Same(options, reader.Options);
+	}
+
+	[Fact]
+	public async Task DecodeAsyncHonorsAlreadyCanceledToken()
+	{
+		using var cancellationTokenSource = new CancellationTokenSource();
+		await cancellationTokenSource.CancelAsync();
+
+		await Assert.ThrowsAsync<OperationCanceledException>(() =>
+			BarcodeReader.DecodeAsync(Stream.Null, cancellationToken: cancellationTokenSource.Token));
+	}
+
+	[Fact]
+	public async Task DecodeFromFileAsyncHonorsAlreadyCanceledTokenBeforeOpeningFile()
+	{
+		using var cancellationTokenSource = new CancellationTokenSource();
+		await cancellationTokenSource.CancelAsync();
+
+		await Assert.ThrowsAsync<OperationCanceledException>(() =>
+			BarcodeReader.DecodeFromFileAsync("missing-image.png", cancellationToken: cancellationTokenSource.Token));
 	}
 }

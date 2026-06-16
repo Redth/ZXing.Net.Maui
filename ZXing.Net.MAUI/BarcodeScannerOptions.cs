@@ -19,6 +19,8 @@ namespace ZXing.Net.Maui
 		int delayBetweenContinuousScans = 1000;
 		int initialDelayBeforeAnalyzingFrames = 300;
 
+		public static BarcodeReaderOptions Default { get; } = new();
+
 		public bool AutoRotate { get; init; }
 
 		public bool TryHarder { get; init; }

@@ -1,4 +1,9 @@
-﻿namespace ZXing.Net.Maui.Readers
+﻿using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace ZXing.Net.Maui.Readers
 {
 	public class ZXingBarcodeReader : Readers.IBarcodeReader
 	{
@@ -7,23 +12,18 @@
 		public ZXingBarcodeReader()
 		{
 			zxingReader = new BarcodeReaderGeneric();
+			Options = BarcodeReaderOptions.Default;
 		}
 
 		BarcodeReaderOptions options;
 		public BarcodeReaderOptions Options
 		{
 
-			get => options ??= new BarcodeReaderOptions();
+			get => options ??= BarcodeReaderOptions.Default;
 			set
 			{
-				options = value ?? new BarcodeReaderOptions();
-				zxingReader.Options.PossibleFormats = options.Formats.ToZXingList();
-				zxingReader.Options.TryHarder = options.TryHarder;
-				zxingReader.AutoRotate = options.AutoRotate;
-				zxingReader.Options.TryInverted = options.TryInverted;
-				zxingReader.Options.UseCode39ExtendedMode = options.UseCode39ExtendedMode;
-				zxingReader.Options.CharacterSet = options.CharacterSet;
-				zxingReader.Options.AssumeGS1 = options.AssumeGS1;
+				options = value ?? BarcodeReaderOptions.Default;
+				ApplyOptions(options);
 			}
 		}
 
@@ -43,6 +43,30 @@
 			ls = new SoftwareBitmapLuminanceSource(image.Data);
 #endif
 
+			return Decode(ls);
+		}
+
+		public BarcodeResult[] Decode(Stream imageStream)
+		{
+			ArgumentNullException.ThrowIfNull(imageStream);
+
+			var image = StillImageDecoder.Decode(imageStream);
+			return Decode(image);
+		}
+
+		public async Task<BarcodeResult[]> DecodeAsync(Stream imageStream, CancellationToken cancellationToken = default)
+		{
+			ArgumentNullException.ThrowIfNull(imageStream);
+
+			var image = await StillImageDecoder.DecodeAsync(imageStream, cancellationToken).ConfigureAwait(false);
+			return Decode(image);
+		}
+
+		internal BarcodeResult[] Decode(ImageLuminanceData image)
+			=> Decode(image.CreateLuminanceSource());
+
+		BarcodeResult[] Decode(LuminanceSource ls)
+		{
 			if (Options.Multiple)
 				return zxingReader.DecodeMultiple(ls)?.ToBarcodeResults();
 
@@ -51,6 +75,17 @@
 				return [b];
 
 			return null;
+		}
+
+		void ApplyOptions(BarcodeReaderOptions options)
+		{
+			zxingReader.Options.PossibleFormats = options.Formats.ToZXingList();
+			zxingReader.Options.TryHarder = options.TryHarder;
+			zxingReader.AutoRotate = options.AutoRotate;
+			zxingReader.Options.TryInverted = options.TryInverted;
+			zxingReader.Options.UseCode39ExtendedMode = options.UseCode39ExtendedMode;
+			zxingReader.Options.CharacterSet = options.CharacterSet;
+			zxingReader.Options.AssumeGS1 = options.AssumeGS1;
 		}
 
 #if ANDROID
