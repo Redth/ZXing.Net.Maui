@@ -88,7 +88,7 @@
 			Grid.Row="2"
 			BackgroundColor="#99000000"
 			Padding="24,12,24,24"
-			ColumnDefinitions="Auto,Auto,Auto,*,Auto"
+			ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto"
 			ColumnSpacing="12">
 
 			<Button
@@ -113,7 +113,15 @@
 				Clicked="TorchButton_Clicked" />
 
 			<Button
-				Grid.Column="4"
+				Grid.Column="3"
+				Text="IMG"
+				FontSize="14"
+				Style="{StaticResource ScannerButtonStyle}"
+				AutomationProperties.Name="Decode image"
+				Clicked="DecodeImageButton_Clicked" />
+
+			<Button
+				Grid.Column="5"
 				Text="QR"
 				FontSize="18"
 				Style="{StaticResource PrimaryScannerButtonStyle}"
