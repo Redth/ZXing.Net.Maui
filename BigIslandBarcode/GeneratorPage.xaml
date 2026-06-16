@@ -50,7 +50,7 @@
 				</VerticalStackLayout>
 
 				<VerticalStackLayout Grid.Row="2" Grid.Column="1" Spacing="6">
-					<Label Text="Character set hint (optional)" />
+					<Label Text="Character set hint (optional)" MaxLines="1" LineBreakMode="TailTruncation" />
 					<Entry x:Name="CharacterSetEntry" Placeholder="e.g. UTF-8" />
 				</VerticalStackLayout>
 			</Grid>
@@ -68,9 +68,14 @@
 			</Grid>
 
 			<Grid ColumnDefinitions="*,*" ColumnSpacing="12">
-				<Button Text="Generate Preview" Clicked="GeneratePreviewButton_Clicked" />
-				<Button Grid.Column="1" Text="Save Image" Clicked="SaveImageButton_Clicked" />
+				<Button x:Name="GeneratePreviewButton" Text="Generate Preview" Clicked="GeneratePreviewButton_Clicked" />
+				<Button x:Name="SaveImageButton" Grid.Column="1" Text="Save Image" Clicked="SaveImageButton_Clicked" />
 			</Grid>
+
+			<HorizontalStackLayout x:Name="BusyLayout" Spacing="8" IsVisible="False">
+				<ActivityIndicator x:Name="BusyIndicator" IsRunning="False" />
+				<Label Text="Generating barcode image..." VerticalOptions="Center" TextColor="{AppThemeBinding Light=#6E6E6E, Dark=#BDBDBD}" />
+			</HorizontalStackLayout>
 
 			<Frame Padding="16" BackgroundColor="White" BorderColor="#DDDDDD" CornerRadius="8">
 				<Image x:Name="PreviewImage" HeightRequest="280" Aspect="AspectFit" />

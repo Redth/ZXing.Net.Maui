@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -44,7 +45,9 @@ namespace BigIslandBarcode
 		];
 
 		byte[] previewBytes;
+		string previewCacheKey;
 		bool generatedInitialPreview;
+		bool isGenerating;
 		bool updatingValueText;
 
 		public GeneratorPage(string value = null, BarcodeFormat format = BarcodeFormat.QrCode)
@@ -89,15 +92,28 @@ namespace BigIslandBarcode
 		{
 			try
 			{
+				SetBusy(true);
 				var imageOptions = GetImageOptions();
+				var generatorOptions = GetGeneratorOptions();
+				var value = GetBarcodeValue();
 				var extension = imageOptions.Format == BarcodeImageFormat.Jpeg ? "jpg" : "png";
 				var filePath = Path.Combine(FileSystem.AppDataDirectory, $"barcode_{DateTime.Now:yyyyMMddHHmmss}.{extension}");
+				var cacheKey = CreateCacheKey(value, generatorOptions, imageOptions);
 
-				await BarcodeGenerator.WriteToFileAsync(
-					GetBarcodeValue(),
-					filePath,
-					GetGeneratorOptions(),
-					imageOptions);
+				await Task.Yield();
+
+				if (previewBytes is not null && previewCacheKey == cacheKey)
+				{
+					await File.WriteAllBytesAsync(filePath, previewBytes);
+				}
+				else
+				{
+					await BarcodeGenerator.WriteToFileAsync(
+						value,
+						filePath,
+						generatorOptions,
+						imageOptions);
+				}
 
 				StatusLabel.Text = $"Saved to {filePath}";
 				await DisplayAlertAsync("Barcode Saved", filePath, "OK");
@@ -110,22 +126,39 @@ namespace BigIslandBarcode
 			{
 				await DisplayAlertAsync("Save Failed", ex.Message, "OK");
 			}
+			finally
+			{
+				SetBusy(false);
+			}
 		}
 
 		async Task GeneratePreviewAsync()
 		{
+			if (isGenerating)
+				return;
+
 			try
 			{
+				SetBusy(true);
+				var value = GetBarcodeValue();
+				var generatorOptions = GetGeneratorOptions();
+				var imageOptions = GetImageOptions();
+				var cacheKey = CreateCacheKey(value, generatorOptions, imageOptions);
+				var stopwatch = Stopwatch.StartNew();
+
+				await Task.Yield();
+
 				await using var stream = new MemoryStream();
 				await BarcodeGenerator.WriteToStreamAsync(
-					GetBarcodeValue(),
+					value,
 					stream,
-					GetGeneratorOptions(),
-					GetImageOptions());
+					generatorOptions,
+					imageOptions);
 
 				previewBytes = stream.ToArray();
+				previewCacheKey = cacheKey;
 				PreviewImage.Source = ImageSource.FromStream(() => new MemoryStream(previewBytes));
-				StatusLabel.Text = $"Preview generated: {previewBytes.Length:N0} bytes";
+				StatusLabel.Text = $"Preview generated in {stopwatch.ElapsedMilliseconds:N0} ms: {previewBytes.Length:N0} bytes";
 			}
 			catch (Exception ex) when (ex is ArgumentException
 				or PlatformNotSupportedException
@@ -133,6 +166,10 @@ namespace BigIslandBarcode
 			{
 				PreviewImage.Source = null;
 				StatusLabel.Text = ex.Message;
+			}
+			finally
+			{
+				SetBusy(false);
 			}
 		}
 
@@ -159,6 +196,27 @@ namespace BigIslandBarcode
 			{
 				Format = GetSelectedEnum<BarcodeImageFormat>(ImageFormatPicker, nameof(BarcodeImageOptions.Format))
 			};
+
+		void SetBusy(bool busy)
+		{
+			isGenerating = busy;
+			BusyIndicator.IsRunning = busy;
+			BusyLayout.IsVisible = busy;
+			GeneratePreviewButton.IsEnabled = !busy;
+			SaveImageButton.IsEnabled = !busy;
+		}
+
+		static string CreateCacheKey(string value, BarcodeGeneratorOptions generatorOptions, BarcodeImageOptions imageOptions)
+			=> string.Join("|",
+				value,
+				generatorOptions.Format,
+				generatorOptions.Width,
+				generatorOptions.Height,
+				generatorOptions.Margin,
+				generatorOptions.ForegroundColor.ToArgbHex(),
+				generatorOptions.BackgroundColor.ToArgbHex(),
+				generatorOptions.CharacterSet ?? string.Empty,
+				imageOptions.Format);
 
 		string GetBarcodeValue()
 		{
