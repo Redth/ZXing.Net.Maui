@@ -5,7 +5,31 @@
 	NavigationPage.HasNavigationBar="False"
 	BackgroundColor="#000000">
 
-	<Grid RowDefinitions="1*,3*,1*">
+	<ContentPage.Resources>
+		<ResourceDictionary>
+			<Style x:Key="ScannerButtonStyle" TargetType="Button">
+				<Setter Property="WidthRequest" Value="56" />
+				<Setter Property="HeightRequest" Value="56" />
+				<Setter Property="CornerRadius" Value="28" />
+				<Setter Property="Padding" Value="0" />
+				<Setter Property="BackgroundColor" Value="#CC000000" />
+				<Setter Property="BorderColor" Value="#55FFFFFF" />
+				<Setter Property="BorderWidth" Value="1" />
+				<Setter Property="TextColor" Value="White" />
+				<Setter Property="FontSize" Value="22" />
+				<Setter Property="HorizontalOptions" Value="Center" />
+				<Setter Property="VerticalOptions" Value="Center" />
+			</Style>
+
+			<Style x:Key="PrimaryScannerButtonStyle" TargetType="Button" BasedOn="{StaticResource ScannerButtonStyle}">
+				<Setter Property="BackgroundColor" Value="#512BD4" />
+				<Setter Property="BorderColor" Value="#8B6DFF" />
+				<Setter Property="FontAttributes" Value="Bold" />
+			</Style>
+		</ResourceDictionary>
+	</ContentPage.Resources>
+
+	<Grid RowDefinitions="96,*,Auto">
 
 		<zxing:CameraBarcodeReaderView
 			Grid.Row="0"
@@ -24,22 +48,51 @@
 		<Grid
 			Grid.Row="0"
 			BackgroundColor="#aa000000">
-			<Label x:Name="ResultLabel" Grid.Row="2" Text="Top text..." HorizontalOptions="Center" VerticalOptions="Center" TextColor="White" />
+			<Label
+				x:Name="ResultLabel"
+				Text="Point camera at a barcode"
+				HorizontalOptions="Center"
+				VerticalOptions="Center"
+				Margin="24,0"
+				LineBreakMode="TailTruncation"
+				TextColor="White" />
 		</Grid>
 
 		<Grid
-			Grid.Row="3"
-			BackgroundColor="#aa000000"
-			Padding="20"
-			ColumnDefinitions="Auto,Auto,*,Auto">
+			Grid.Row="2"
+			BackgroundColor="#99000000"
+			Padding="24,12,24,24"
+			ColumnDefinitions="*,*,*,*"
+			ColumnSpacing="12">
 
-			<Button Text="🔄️" Grid.Column="0" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="SwitchCameraButton_Clicked" />
+			<Button
+				Grid.Column="0"
+				Text="↻"
+				Style="{StaticResource ScannerButtonStyle}"
+				AutomationProperties.Name="Switch camera"
+				Clicked="SwitchCameraButton_Clicked" />
 
-			<Button Text="📷" Grid.Column="1" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="SelectCameraButton_Clicked" />
+			<Button
+				Grid.Column="1"
+				Text="📷"
+				Style="{StaticResource ScannerButtonStyle}"
+				AutomationProperties.Name="Select camera"
+				Clicked="SelectCameraButton_Clicked" />
 
-			<Button Text="🏷️" Grid.Column="2" HorizontalOptions="Center" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="GeneratorButton_Clicked" />
+			<Button
+				Grid.Column="2"
+				Text="QR"
+				FontSize="18"
+				Style="{StaticResource PrimaryScannerButtonStyle}"
+				AutomationProperties.Name="Open barcode generator"
+				Clicked="GeneratorButton_Clicked" />
 
-			<Button Text="💡" Grid.Column="3" BackgroundColor="#aa000000" CornerRadius="8" BorderColor="Black" Clicked="TorchButton_Clicked" />
+			<Button
+				Grid.Column="3"
+				Text="💡"
+				Style="{StaticResource ScannerButtonStyle}"
+				AutomationProperties.Name="Toggle torch"
+				Clicked="TorchButton_Clicked" />
 		</Grid>
 
 	</Grid>
