@@ -29,7 +29,7 @@
 		</ResourceDictionary>
 	</ContentPage.Resources>
 
-	<Grid RowDefinitions="96,*,Auto">
+	<Grid RowDefinitions="128,*,Auto">
 
 		<zxing:CameraBarcodeReaderView
 			Grid.Row="0"
@@ -42,27 +42,53 @@
 			VerticalOptions="End"
 			HorizontalOptions="Fill"
 			BackgroundColor="#aa000000">
-			<Slider Minimum="0" Maximum="1" ValueChanged="ZoomFactorChanged" />
+			<Slider Minimum="0" Maximum="1" Margin="24,0,24,8" ValueChanged="ZoomFactorChanged" />
 		</Grid>
 
-		<Grid
+		<Border
 			Grid.Row="0"
-			BackgroundColor="#aa000000">
-			<Label
-				x:Name="ResultLabel"
-				Text="Point camera at a barcode"
-				HorizontalOptions="Center"
-				VerticalOptions="Center"
-				Margin="24,0"
-				LineBreakMode="TailTruncation"
-				TextColor="White" />
-		</Grid>
+			Margin="24,12"
+			Padding="14,10"
+			BackgroundColor="#CC000000"
+			Stroke="#55FFFFFF"
+			StrokeThickness="1"
+			HorizontalOptions="Fill"
+			VerticalOptions="Center">
+			<Border.StrokeShape>
+				<RoundRectangle CornerRadius="16" />
+			</Border.StrokeShape>
+			<Border.GestureRecognizers>
+				<TapGestureRecognizer Tapped="ResultPanel_Tapped" />
+			</Border.GestureRecognizers>
+			<VerticalStackLayout Spacing="2">
+				<Label
+					x:Name="ResultFormatLabel"
+					Text="Ready to scan"
+					FontSize="12"
+					FontAttributes="Bold"
+					TextColor="#BDBDBD" />
+				<Label
+					x:Name="ResultValueLabel"
+					Text="Point camera at a barcode"
+					FontSize="16"
+					FontAttributes="Bold"
+					MaxLines="2"
+					LineBreakMode="TailTruncation"
+					TextColor="White" />
+				<Label
+					x:Name="ResultHintLabel"
+					Text="Tap to view full value"
+					FontSize="11"
+					IsVisible="False"
+					TextColor="#BDBDBD" />
+			</VerticalStackLayout>
+		</Border>
 
 		<Grid
 			Grid.Row="2"
 			BackgroundColor="#99000000"
 			Padding="24,12,24,24"
-			ColumnDefinitions="*,*,*,*"
+			ColumnDefinitions="Auto,Auto,Auto,*,Auto"
 			ColumnSpacing="12">
 
 			<Button
@@ -81,18 +107,18 @@
 
 			<Button
 				Grid.Column="2"
+				Text="💡"
+				Style="{StaticResource ScannerButtonStyle}"
+				AutomationProperties.Name="Toggle torch"
+				Clicked="TorchButton_Clicked" />
+
+			<Button
+				Grid.Column="4"
 				Text="QR"
 				FontSize="18"
 				Style="{StaticResource PrimaryScannerButtonStyle}"
 				AutomationProperties.Name="Open barcode generator"
 				Clicked="GeneratorButton_Clicked" />
-
-			<Button
-				Grid.Column="3"
-				Text="💡"
-				Style="{StaticResource ScannerButtonStyle}"
-				AutomationProperties.Name="Toggle torch"
-				Clicked="TorchButton_Clicked" />
 		</Grid>
 
 	</Grid>

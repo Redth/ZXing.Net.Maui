@@ -10,6 +10,7 @@ namespace BigIslandBarcode
 	{
 		string generatorValue = "I love .NET MAUI";
 		BarcodeFormat generatorFormat = BarcodeFormat.QrCode;
+		string lastScannedValue;
 
 		public MainPage()
 		{
@@ -65,7 +66,10 @@ namespace BigIslandBarcode
 				{
 					generatorFormat = first.Format;
 					generatorValue = first.Value;
-					ResultLabel.Text = $"Barcodes: {first.Format} -> {first.Value}";
+					lastScannedValue = first.Value;
+					ResultFormatLabel.Text = first.Format.ToString();
+					ResultValueLabel.Text = first.Value;
+					ResultHintLabel.IsVisible = true;
 				});
 			}
 		}
@@ -99,7 +103,9 @@ namespace BigIslandBarcode
 				if (selectedCamera != null)
 				{
 					barcodeView.SelectedCamera = selectedCamera;
-					ResultLabel.Text = $"Selected: {selectedCamera.Name}";
+					ResultFormatLabel.Text = "Camera";
+					ResultValueLabel.Text = $"Selected: {selectedCamera.Name}";
+					ResultHintLabel.IsVisible = false;
 				}
 			}
 		}
@@ -112,6 +118,14 @@ namespace BigIslandBarcode
 		async void GeneratorButton_Clicked(object sender, EventArgs e)
 		{
 			await Navigation.PushAsync(new GeneratorPage(generatorValue, generatorFormat));
+		}
+
+		async void ResultPanel_Tapped(object sender, TappedEventArgs e)
+		{
+			if (string.IsNullOrEmpty(lastScannedValue))
+				return;
+
+			await DisplayAlertAsync(generatorFormat.ToString(), lastScannedValue, "OK");
 		}
 
 		void ZoomFactorChanged(object sender, ValueChangedEventArgs e)
