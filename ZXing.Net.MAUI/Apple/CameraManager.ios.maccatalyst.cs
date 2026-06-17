@@ -74,6 +74,7 @@ namespace ZXing.Net.Maui
 		public void Connect()
 		{
 			UpdateCamera(startIfStopped: true);
+			view?.StartObservingOrientationChanges();
 
 			if (videoDataOutput == null)
 			{
@@ -315,6 +316,8 @@ namespace ZXing.Net.Maui
 
 		public void Disconnect()
 		{
+			view?.StopObservingOrientationChanges();
+
 			if (captureSession != null)
 			{
 				if (captureSession.Running)
@@ -439,6 +442,7 @@ namespace ZXing.Net.Maui
 
 		public void Dispose()
 		{
+			view?.StopObservingOrientationChanges();
 		}
 
 		static AVCaptureDeviceType[] CaptureDevices()
@@ -485,29 +489,199 @@ namespace ZXing.Net.Maui
 		}
 
 		public readonly AVCaptureVideoPreviewLayer PreviewLayer;
+		NSObject orientationObserver;
+		UIInterfaceOrientation? lastInterfaceOrientation;
+
+		public void StartObservingOrientationChanges()
+		{
+			if (orientationObserver != null)
+				return;
+
+			UIDevice.CurrentDevice.BeginGeneratingDeviceOrientationNotifications();
+			orientationObserver = NSNotificationCenter.DefaultCenter.AddObserver(
+				UIDevice.OrientationDidChangeNotification,
+				_ => RequestLayoutUpdate());
+
+			RequestLayoutUpdate();
+		}
+
+		public void StopObservingOrientationChanges()
+		{
+			if (orientationObserver == null)
+				return;
+
+			NSNotificationCenter.DefaultCenter.RemoveObserver(orientationObserver);
+			orientationObserver.Dispose();
+			orientationObserver = null;
+			UIDevice.CurrentDevice.EndGeneratingDeviceOrientationNotifications();
+		}
 
 		public override void LayoutSubviews()
 		{
 			base.LayoutSubviews();
-			CATransform3D transform = CATransform3D.MakeRotation(0, 0, 0, 1.0f);
-			switch (UIDevice.CurrentDevice.Orientation)
+			var interfaceOrientation = GetInterfaceOrientation();
+			var transform = CATransform3D.MakeRotation(0, 0, 0, 1.0f);
+			switch (interfaceOrientation)
 			{
-				case UIDeviceOrientation.Portrait:
+				case UIInterfaceOrientation.Portrait:
 					transform = CATransform3D.MakeRotation(0, 0, 0, 1.0f);
 					break;
-				case UIDeviceOrientation.PortraitUpsideDown:
+				case UIInterfaceOrientation.PortraitUpsideDown:
 					transform = CATransform3D.MakeRotation((nfloat)Math.PI, 0, 0, 1.0f);
 					break;
-				case UIDeviceOrientation.LandscapeLeft:
-					transform = CATransform3D.MakeRotation((nfloat)(-Math.PI / 2), 0, 0, 1.0f);
+				case UIInterfaceOrientation.LandscapeLeft:
+					transform = CATransform3D.MakeRotation((nfloat)(Math.PI / 2), 0, 0, 1.0f);
 					break;
-				case UIDeviceOrientation.LandscapeRight:
-					transform = CATransform3D.MakeRotation((nfloat)Math.PI / 2, 0, 0, 1.0f);
+				case UIInterfaceOrientation.LandscapeRight:
+					transform = CATransform3D.MakeRotation((nfloat)(-Math.PI / 2), 0, 0, 1.0f);
 					break;
 			}
 
 			PreviewLayer.Transform = transform;
 			PreviewLayer.Frame = Layer.Bounds;
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing)
+				StopObservingOrientationChanges();
+
+			base.Dispose(disposing);
+		}
+
+		void RequestLayoutUpdate()
+		{
+			if (NSThread.IsMain)
+			{
+				UpdateLayout();
+				return;
+			}
+
+			BeginInvokeOnMainThread(UpdateLayout);
+		}
+
+		void UpdateLayout()
+		{
+			SetNeedsLayout();
+			if (Window != null)
+				LayoutIfNeeded();
+		}
+
+		UIInterfaceOrientation GetInterfaceOrientation()
+		{
+			var interfaceOrientation = GetSceneInterfaceOrientation()
+				?? GetDeviceInterfaceOrientation()
+				?? lastInterfaceOrientation
+				?? UIInterfaceOrientation.Portrait;
+
+			lastInterfaceOrientation = interfaceOrientation;
+			return interfaceOrientation;
+		}
+
+		UIInterfaceOrientation? GetSceneInterfaceOrientation()
+		{
+			if (!SupportsWindowScenes())
+				return null;
+
+#pragma warning disable CA1416
+			var currentWindowScene = Window?.WindowScene;
+			if (currentWindowScene != null)
+			{
+				var currentOrientation = GetWindowSceneInterfaceOrientation(currentWindowScene);
+				if (IsKnownOrientation(currentOrientation))
+					return currentOrientation;
+			}
+
+			foreach (var scene in GetConnectedWindowScenes())
+			{
+				var sceneOrientation = GetWindowSceneInterfaceOrientation(scene);
+				if (IsForegroundScene(scene) && HasKeyWindow(scene) && IsKnownOrientation(sceneOrientation))
+					return sceneOrientation;
+			}
+
+			foreach (var scene in GetConnectedWindowScenes())
+			{
+				var sceneOrientation = GetWindowSceneInterfaceOrientation(scene);
+				if (IsForegroundScene(scene) && IsKnownOrientation(sceneOrientation))
+					return sceneOrientation;
+			}
+#pragma warning restore CA1416
+
+			return null;
+		}
+
+		static IEnumerable<UIWindowScene> GetConnectedWindowScenes()
+		{
+			var application = UIApplication.SharedApplication;
+			if (application?.ConnectedScenes == null)
+				yield break;
+
+			foreach (var scene in application.ConnectedScenes)
+			{
+				if (scene is UIWindowScene windowScene)
+					yield return windowScene;
+			}
+		}
+
+		static UIInterfaceOrientation? GetDeviceInterfaceOrientation()
+		{
+			switch (UIDevice.CurrentDevice.Orientation)
+			{
+				case UIDeviceOrientation.Portrait:
+					return UIInterfaceOrientation.Portrait;
+				case UIDeviceOrientation.PortraitUpsideDown:
+					return UIInterfaceOrientation.PortraitUpsideDown;
+				case UIDeviceOrientation.LandscapeLeft:
+					return UIInterfaceOrientation.LandscapeRight;
+				case UIDeviceOrientation.LandscapeRight:
+					return UIInterfaceOrientation.LandscapeLeft;
+				default:
+					return null;
+			}
+		}
+
+		static UIInterfaceOrientation GetWindowSceneInterfaceOrientation(UIWindowScene scene)
+		{
+#if IOS
+			if (OperatingSystem.IsIOSVersionAtLeast(26))
+				return scene.EffectiveGeometry.InterfaceOrientation;
+#elif MACCATALYST
+			if (OperatingSystem.IsMacCatalystVersionAtLeast(26))
+				return scene.EffectiveGeometry.InterfaceOrientation;
+#endif
+
+#pragma warning disable CA1422
+			return scene.InterfaceOrientation;
+#pragma warning restore CA1422
+		}
+
+		static bool HasKeyWindow(UIWindowScene scene)
+		{
+			foreach (var window in scene.Windows)
+			{
+				if (window.IsKeyWindow)
+					return true;
+			}
+
+			return false;
+		}
+
+		static bool IsForegroundScene(UIWindowScene scene)
+			=> scene.ActivationState == UISceneActivationState.ForegroundActive
+				|| scene.ActivationState == UISceneActivationState.ForegroundInactive;
+
+		static bool IsKnownOrientation(UIInterfaceOrientation orientation)
+			=> orientation != UIInterfaceOrientation.Unknown;
+
+		static bool SupportsWindowScenes()
+		{
+#if IOS
+			return OperatingSystem.IsIOSVersionAtLeast(13);
+#elif MACCATALYST
+			return OperatingSystem.IsMacCatalystVersionAtLeast(13);
+#else
+			return false;
+#endif
 		}
 	}
 }
