@@ -27,7 +27,13 @@ namespace ZXing.Net.Maui
         {
             try
             {
-                var buffer = image.GetPlanes()[0].Buffer;
+                var plane = image.GetPlanes()[0];
+                var buffer = CreateFrameBuffer(
+                    plane.Buffer,
+                    image.Width,
+                    image.Height,
+                    plane.RowStride,
+                    plane.PixelStride);
 
                 var s = new Size(image.Width, image.Height);
 
@@ -42,6 +48,36 @@ namespace ZXing.Net.Maui
             {
                 image.Close();
             }
+        }
+
+        static ByteBuffer CreateFrameBuffer(ByteBuffer sourceBuffer, int width, int height, int rowStride, int pixelStride)
+        {
+            var contiguousLength = RgbaFrameBuffer.GetContiguousLength(width, height);
+
+            if (RgbaFrameBuffer.IsContiguous(width, height, rowStride, pixelStride))
+                return PrepareBufferForRead(sourceBuffer, contiguousLength);
+
+            var requiredSourceLength = RgbaFrameBuffer.GetRequiredSourceLength(width, height, rowStride, pixelStride);
+            var source = PrepareBufferForRead(sourceBuffer, requiredSourceLength);
+            var sourceBytes = new byte[requiredSourceLength];
+            source.Get(sourceBytes, 0, sourceBytes.Length);
+
+            var contiguousBytes = new byte[contiguousLength];
+            RgbaFrameBuffer.CopyToContiguous(sourceBytes, contiguousBytes, width, height, rowStride, pixelStride);
+
+            return ByteBuffer.Wrap(contiguousBytes);
+        }
+
+        static ByteBuffer PrepareBufferForRead(ByteBuffer sourceBuffer, int length)
+        {
+            if (sourceBuffer.Limit() < length)
+                throw new ArgumentException("Source buffer limit is smaller than the RGBA frame layout requires.", nameof(sourceBuffer));
+
+            var buffer = sourceBuffer.Duplicate();
+            buffer.Position(0);
+            buffer.Limit(length);
+
+            return buffer;
         }
     }
 }
