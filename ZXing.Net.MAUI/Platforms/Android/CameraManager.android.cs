@@ -54,6 +54,11 @@ namespace ZXing.Net.Maui
         public NativePlatformCameraPreviewView CreateNativeView()
         {
             _previewView = new PreviewView(Context.Context);
+            _previewView.SetImplementationMode(PreviewView.ImplementationMode.Compatible);
+            _previewView.SetClipChildren(true);
+            _previewView.SetClipToPadding(true);
+            _previewView.OutlineProvider = Android.Views.ViewOutlineProvider.Bounds;
+            _previewView.ClipToOutline = true;
             _cameraExecutor = Executors.NewSingleThreadExecutor();
 
             return _previewView;
