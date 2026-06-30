@@ -4,8 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Android.Hardware.Camera2;
-using AndroidX.Camera.Camera2.InterOp;
 using AndroidX.Camera.Core;
 using AndroidX.Camera.Core.ResolutionSelector;
 using AndroidX.Camera.Lifecycle;
@@ -52,7 +50,6 @@ namespace ZXing.Net.Maui
         private bool _isDisposed;
 
         private static readonly Android.Util.Size DefaultResolution = new(640, 480);
-        private static readonly Java.Lang.Integer ContinuousPictureAutoFocusMode = Java.Lang.Integer.ValueOf((int)ControlAFMode.ContinuousPicture);
 
         public NativePlatformCameraPreviewView CreateNativeView()
         {
@@ -273,37 +270,25 @@ namespace ZXing.Net.Maui
             _resolutionSelector?.Dispose();
             _resolutionSelector = CreateResolutionSelector();
 
-            var previewBuilder = new Preview
-                .Builder()
-                .SetResolutionSelector(_resolutionSelector);
-
-            ApplyContinuousAutoFocus(previewBuilder);
-
             _cameraPreview?.Dispose();
-            _cameraPreview = previewBuilder.Build();
+            _cameraPreview = new Preview
+                .Builder()
+                .SetResolutionSelector(_resolutionSelector)
+                .Build();
 
             _cameraPreview.SetSurfaceProvider(cameraExecutor, previewView.SurfaceProvider);
 
-            var imageAnalysisBuilder = new ImageAnalysis
+            _imageAnalyzer?.Dispose();
+            _imageAnalyzer = new ImageAnalysis
                 .Builder()
                 .SetOutputImageFormat(ImageAnalysis.OutputImageFormatRgba8888)
                 .SetOutputImageRotationEnabled(Options.AutoRotate)
                 .SetResolutionSelector(_resolutionSelector)
-                .SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest);
-
-            ApplyContinuousAutoFocus(imageAnalysisBuilder);
-
-            _imageAnalyzer?.Dispose();
-            _imageAnalyzer = imageAnalysisBuilder.Build();
+                .SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
+                .Build();
 
             _imageAnalyzer.SetAnalyzer(cameraExecutor, new FrameAnalyzer((buffer, size) =>
                 FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
-        }
-
-        static void ApplyContinuousAutoFocus(IExtendableBuilder builder)
-        {
-            new Camera2Interop.Extender(builder)
-                .SetCaptureRequestOption(CaptureRequest.ControlAfMode, ContinuousPictureAutoFocusMode);
         }
 
         ResolutionSelector CreateResolutionSelector()
@@ -365,7 +350,26 @@ namespace ZXing.Net.Maui
 
         partial void ApplyZoomFactor()
         {
-            _camera?.CameraControl?.SetLinearZoom(ZoomFactor);
+            var camera = _camera;
+            if (camera == null)
+                return;
+
+            var zoomState = camera.CameraInfo?.ZoomState?.Value as IZoomState;
+            if (zoomState == null)
+            {
+                if (ZoomFactor <= 0f)
+                    camera.CameraControl?.SetZoomRatio(1f);
+                else
+                    camera.CameraControl?.SetLinearZoom(ZoomFactor);
+
+                return;
+            }
+
+            var minZoomRatio = Math.Max(1f, zoomState.MinZoomRatio);
+            var maxZoomRatio = Math.Max(minZoomRatio, zoomState.MaxZoomRatio);
+            var zoomRatio = ZoomFactor * (maxZoomRatio - minZoomRatio) + minZoomRatio;
+
+            camera.CameraControl?.SetZoomRatio(zoomRatio);
         }
 
         public void Focus(Point point)
