@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Android.Hardware.Camera2;
+using AndroidX.Camera.Camera2.InterOp;
 using AndroidX.Camera.Core;
 using AndroidX.Camera.Core.ResolutionSelector;
 using AndroidX.Camera.Lifecycle;
@@ -50,6 +52,7 @@ namespace ZXing.Net.Maui
         private bool _isDisposed;
 
         private static readonly Android.Util.Size DefaultResolution = new(640, 480);
+        private static readonly Java.Lang.Integer ContinuousPictureAutoFocusMode = Java.Lang.Integer.ValueOf((int)ControlAFMode.ContinuousPicture);
 
         public NativePlatformCameraPreviewView CreateNativeView()
         {
@@ -270,25 +273,37 @@ namespace ZXing.Net.Maui
             _resolutionSelector?.Dispose();
             _resolutionSelector = CreateResolutionSelector();
 
-            _cameraPreview?.Dispose();
-            _cameraPreview = new Preview
+            var previewBuilder = new Preview
                 .Builder()
-                .SetResolutionSelector(_resolutionSelector)
-                .Build();
+                .SetResolutionSelector(_resolutionSelector);
+
+            ApplyContinuousAutoFocus(previewBuilder);
+
+            _cameraPreview?.Dispose();
+            _cameraPreview = previewBuilder.Build();
 
             _cameraPreview.SetSurfaceProvider(cameraExecutor, previewView.SurfaceProvider);
 
-            _imageAnalyzer?.Dispose();
-            _imageAnalyzer = new ImageAnalysis
+            var imageAnalysisBuilder = new ImageAnalysis
                 .Builder()
                 .SetOutputImageFormat(ImageAnalysis.OutputImageFormatRgba8888)
                 .SetOutputImageRotationEnabled(Options.AutoRotate)
                 .SetResolutionSelector(_resolutionSelector)
-                .SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
-                .Build();
+                .SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest);
+
+            ApplyContinuousAutoFocus(imageAnalysisBuilder);
+
+            _imageAnalyzer?.Dispose();
+            _imageAnalyzer = imageAnalysisBuilder.Build();
 
             _imageAnalyzer.SetAnalyzer(cameraExecutor, new FrameAnalyzer((buffer, size) =>
                 FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
+        }
+
+        static void ApplyContinuousAutoFocus(IExtendableBuilder builder)
+        {
+            new Camera2Interop.Extender(builder)
+                .SetCaptureRequestOption(CaptureRequest.ControlAfMode, ContinuousPictureAutoFocusMode);
         }
 
         ResolutionSelector CreateResolutionSelector()
