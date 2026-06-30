@@ -350,7 +350,26 @@ namespace ZXing.Net.Maui
 
         partial void ApplyZoomFactor()
         {
-            _camera?.CameraControl?.SetLinearZoom(ZoomFactor);
+            var camera = _camera;
+            if (camera == null)
+                return;
+
+            var zoomState = camera.CameraInfo?.ZoomState?.Value as IZoomState;
+            if (zoomState == null)
+            {
+                if (ZoomFactor <= 0f)
+                    camera.CameraControl?.SetZoomRatio(1f);
+                else
+                    camera.CameraControl?.SetLinearZoom(ZoomFactor);
+
+                return;
+            }
+
+            var minZoomRatio = Math.Max(1f, zoomState.MinZoomRatio);
+            var maxZoomRatio = Math.Max(minZoomRatio, zoomState.MaxZoomRatio);
+            var zoomRatio = ZoomFactor * (maxZoomRatio - minZoomRatio) + minZoomRatio;
+
+            camera.CameraControl?.SetZoomRatio(zoomRatio);
         }
 
         public void Focus(Point point)
