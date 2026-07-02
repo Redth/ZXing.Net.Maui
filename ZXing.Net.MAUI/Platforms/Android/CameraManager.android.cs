@@ -101,6 +101,9 @@ namespace ZXing.Net.Maui
 
         public void Disconnect()
         {
+            if (_isDisposed)
+                return;
+
             _isConnected = false;
 
             RunOnMainThread(DisconnectOnMainThread);
@@ -463,13 +466,22 @@ namespace ZXing.Net.Maui
 
         void DisconnectOnMainThread()
         {
-            UnbindCamera(_cameraProvider);
+            if (_isDisposed)
+                return;
+
+            var cameraProvider = _cameraProvider;
+            _cameraProvider = null;
+
+            UnbindCamera(cameraProvider);
             _cameraExecutor?.Shutdown();
         }
 
         void DisposeOnMainThread()
         {
-            UnbindCamera(_cameraProvider);
+            var cameraProvider = _cameraProvider;
+            _cameraProvider = null;
+
+            UnbindCamera(cameraProvider);
             _cameraExecutor?.Shutdown();
 
             _imageAnalyzer?.Dispose();
@@ -484,8 +496,7 @@ namespace ZXing.Net.Maui
             _cameraSelector?.Dispose();
             _cameraSelector = null;
 
-            _cameraProvider?.Dispose();
-            _cameraProvider = null;
+            cameraProvider?.Dispose();
 
             _previewView?.Dispose();
             _previewView = null;
