@@ -496,8 +496,6 @@ namespace ZXing.Net.Maui
             _cameraSelector?.Dispose();
             _cameraSelector = null;
 
-            cameraProvider?.Dispose();
-
             _previewView?.Dispose();
             _previewView = null;
 
