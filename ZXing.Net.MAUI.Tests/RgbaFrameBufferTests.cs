@@ -55,4 +55,51 @@ public class RgbaFrameBufferTests
 		Assert.Throws<ArgumentException>(() =>
 			RgbaFrameBuffer.CopyToContiguous(source, destination, width: 2, height: 1, rowStride: 8, pixelStride: 4));
 	}
+
+	[Fact]
+	public void CopyToLuminanceConvertsRgbaPixels()
+	{
+		byte[] source =
+		[
+			255, 0, 0, 255,
+			0, 255, 0, 255,
+			0, 0, 255, 255,
+			255, 255, 255, 255
+		];
+		byte[] destination = new byte[4];
+
+		RgbaFrameBuffer.CopyToLuminance(source, destination, width: 2, height: 2);
+
+		Assert.Equal([81, 144, 40, 235], destination);
+	}
+
+	[Fact]
+	public void CopyToLuminanceRejectsEmptySourceForNonEmptyFrame()
+	{
+		Assert.Throws<ArgumentException>(() =>
+			RgbaFrameBuffer.CopyToLuminance([], new byte[1], width: 1, height: 1));
+	}
+
+	[Fact]
+	public void CopyToLuminanceRejectsSourceOneByteShort()
+	{
+		Assert.Throws<ArgumentException>(() =>
+			RgbaFrameBuffer.CopyToLuminance(new byte[15], new byte[4], width: 2, height: 2));
+	}
+
+	[Fact]
+	public void CopyToLuminanceIgnoresTrailingSourceBytes()
+	{
+		byte[] destination = new byte[1];
+
+		RgbaFrameBuffer.CopyToLuminance([255, 255, 255, 255, 123], destination, width: 1, height: 1);
+
+		Assert.Equal([235], destination);
+	}
+
+	[Fact]
+	public void CopyToLuminanceAllowsEmptyFrames()
+	{
+		RgbaFrameBuffer.CopyToLuminance([], [], width: 0, height: 0);
+	}
 }

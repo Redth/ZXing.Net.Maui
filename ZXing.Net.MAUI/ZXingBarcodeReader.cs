@@ -35,8 +35,8 @@ namespace ZXing.Net.Maui.Readers
 			LuminanceSource ls = default;
 
 #if ANDROID
-			Java.Nio.ByteBuffer imageData = Bitmap2Yuv420p(image.Data, w, h);
-			ls = new ByteBufferYUVLuminanceSource(imageData, w, h, 0, 0, w, h);
+			var luminance = GetLuminanceData(image, w, h);
+			ls = new PlanarYUVLuminanceSource(luminance, w, h, 0, 0, w, h, false);
 #elif MACCATALYST || IOS
 			ls = new CVPixelBufferBGRA32LuminanceSource(image.Data, w, h);
 #elif WINDOWS
@@ -89,33 +89,30 @@ namespace ZXing.Net.Maui.Readers
 		}
 
 #if ANDROID
-        private static unsafe Java.Nio.ByteBuffer Bitmap2Yuv420p(Java.Nio.ByteBuffer buffer, int w, int h)
+        static byte[] GetLuminanceData(PixelBufferHolder image, int width, int height)
         {
-            byte[] image = new byte[buffer.Remaining()];
-            buffer.Get(image);
-
-            byte[] imageYuv = new byte[w * h];
-
-            fixed (byte* packet = image)
+            var rgbaLength = RgbaFrameBuffer.GetContiguousLength(width, height);
+            var rgbaData = image.RgbaData;
+            if (rgbaData == null)
             {
-                byte* pimage = packet;
+                var buffer = image.Data?.Duplicate()
+                    ?? throw new ArgumentException("Pixel buffer data is required.", nameof(image));
+                buffer.Position(0);
 
-                fixed (byte* packetOut = imageYuv)
-                {
-                    byte* pimageOut = packetOut;
+                if (buffer.Limit() < rgbaLength)
+                    throw new ArgumentException(
+                        $"Pixel buffer contains {buffer.Limit()} bytes but the {width}x{height} RGBA frame requires {rgbaLength}.",
+                        nameof(image));
 
-                    for (int i = 0; i < (w * h); i++)
-                    {
-                        byte r = *pimage++;
-                        byte g = *pimage++;
-                        byte b = *pimage++;
-                        pimage++;   // a
-                        *pimageOut++ = (byte)(((66 * r + 129 * g + 25 * b) >> 8) + 16);
-                    }
-                }
+                buffer.Limit(rgbaLength);
+                rgbaData = new byte[rgbaLength];
+                buffer.Get(rgbaData, 0, rgbaData.Length);
             }
 
-            return Java.Nio.ByteBuffer.Wrap(imageYuv);
+            var luminance = new byte[RgbaFrameBuffer.GetLuminanceLength(width, height)];
+            RgbaFrameBuffer.CopyToLuminance(rgbaData, luminance, width, height);
+
+            return luminance;
         }
 #endif
 	}
