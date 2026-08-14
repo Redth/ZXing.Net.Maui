@@ -46,6 +46,8 @@ namespace ZXing.Net.Maui
 		AVCaptureVideoPreviewLayer videoPreviewLayer;
 		CaptureDelegate captureDelegate;
 		DispatchQueue dispatchQueue;
+		CameraConfiguration? appliedConfiguration;
+		bool isConnected;
 		Dictionary<NSString, MSize> Resolutions => new()
 		{
 			{ AVCaptureSession.Preset352x288, new MSize(352, 288) },
@@ -73,7 +75,10 @@ namespace ZXing.Net.Maui
 
 		public void Connect()
 		{
-			UpdateCamera(startIfStopped: true);
+			if (isConnected)
+				return;
+
+			isConnected = true;
 			view?.StartObservingOrientationChanges();
 
 			if (videoDataOutput == null)
@@ -106,7 +111,7 @@ namespace ZXing.Net.Maui
 				videoDataOutput.SetSampleBufferDelegate(captureDelegate, dispatchQueue);
 			}
 
-			captureSession.AddOutput(videoDataOutput);
+			UpdateCamera(startIfStopped: true);
 		}
 
 		public void UpdateCamera()
@@ -114,19 +119,33 @@ namespace ZXing.Net.Maui
 
 		void UpdateCamera(bool startIfStopped)
 		{
-			if (captureSession != null)
+			if (captureSession != null && isConnected)
 			{
-				var wasRunning = captureSession.Running;
-				if (wasRunning)
-					captureSession.StopRunning();
+				var configuration = Configuration;
+				var hasInput = ContainsReference(captureSession.Inputs, captureInput);
+				var hasOutput = ContainsReference(captureSession.Outputs, videoDataOutput);
+
+				if (!RequiresCameraConfiguration(appliedConfiguration, configuration, hasInput, hasOutput))
+				{
+					if (startIfStopped && !captureSession.Running)
+						captureSession.StartRunning();
+
+					ApplyZoomFactor();
+					return;
+				}
 
 				captureSession.BeginConfiguration();
 				try
 				{
+					if (!hasOutput)
+						captureSession.AddOutput(videoDataOutput);
+
 					// Cleanup old input
-					if (captureInput != null && captureSession.Inputs.Length > 0 && captureSession.Inputs.Contains(captureInput))
+					if (captureInput != null)
 					{
-						captureSession.RemoveInput(captureInput);
+						if (hasInput)
+							captureSession.RemoveInput(captureInput);
+
 						captureInput.Dispose();
 						captureInput = null;
 					}
@@ -207,6 +226,7 @@ namespace ZXing.Net.Maui
 
 					captureSession.AddInput(captureInput);
 					ApplySelectedResolution();
+					appliedConfiguration = configuration;
 
 #if IOS
 					// Enable multitasking camera access for iPadOS Windowed Apps mode
@@ -224,7 +244,7 @@ namespace ZXing.Net.Maui
 					captureSession.CommitConfiguration();
 				}
 
-				if (wasRunning || startIfStopped)
+				if (startIfStopped && !captureSession.Running)
 					captureSession.StartRunning();
 
 				ApplyZoomFactor();
@@ -316,6 +336,7 @@ namespace ZXing.Net.Maui
 
 		public void Disconnect()
 		{
+			isConnected = false;
 			view?.StopObservingOrientationChanges();
 
 			if (captureSession != null)
@@ -342,6 +363,8 @@ namespace ZXing.Net.Maui
 					captureDevice.Dispose();
 					captureDevice = null;
 				}
+
+				appliedConfiguration = null;
 			}
 		}
 

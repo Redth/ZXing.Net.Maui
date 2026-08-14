@@ -98,4 +98,40 @@ public class CameraManagerTests
 		Assert.True(CameraManager.ContainsReference(items, shared));
 		Assert.False(CameraManager.ContainsReference(items, sameValueDifferentInstance));
 	}
+
+	[Fact]
+	public void RequiresCameraConfigurationSkipsAnAlreadyAppliedConfiguration()
+	{
+		CameraResolutionSelectorDelegate selector = availableResolutions => availableResolutions.FirstOrDefault();
+		var configuration = new CameraConfiguration(CameraLocation.Rear, "rear-camera", selector);
+
+		Assert.False(CameraManager.RequiresCameraConfiguration(configuration, configuration, hasInput: true, hasOutput: true));
+	}
+
+	[Fact]
+	public void RequiresCameraConfigurationReconfiguresWhenStateOrSessionGraphChanges()
+	{
+		CameraResolutionSelectorDelegate selector = availableResolutions => availableResolutions.FirstOrDefault();
+		CameraResolutionSelectorDelegate otherSelector = availableResolutions => availableResolutions.LastOrDefault();
+		var configuration = new CameraConfiguration(CameraLocation.Rear, "rear-camera", selector);
+
+		Assert.True(CameraManager.RequiresCameraConfiguration(null, configuration, hasInput: true, hasOutput: true));
+		Assert.True(CameraManager.RequiresCameraConfiguration(configuration, configuration, hasInput: false, hasOutput: true));
+		Assert.True(CameraManager.RequiresCameraConfiguration(configuration, configuration, hasInput: true, hasOutput: false));
+		Assert.True(CameraManager.RequiresCameraConfiguration(
+			configuration,
+			new CameraConfiguration(CameraLocation.Front, "front-camera", selector),
+			hasInput: true,
+			hasOutput: true));
+		Assert.True(CameraManager.RequiresCameraConfiguration(
+			configuration,
+			new CameraConfiguration(CameraLocation.Rear, "other-rear-camera", selector),
+			hasInput: true,
+			hasOutput: true));
+		Assert.True(CameraManager.RequiresCameraConfiguration(
+			configuration,
+			new CameraConfiguration(CameraLocation.Rear, "rear-camera", otherSelector),
+			hasInput: true,
+			hasOutput: true));
+	}
 }
