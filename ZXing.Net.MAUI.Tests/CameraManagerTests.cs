@@ -125,6 +125,11 @@ public class CameraManagerTests
 			hasOutput: true));
 		Assert.True(CameraManager.RequiresCameraConfiguration(
 			configuration,
+			new CameraConfiguration(CameraLocation.Rear, "other-rear-camera", selector),
+			hasInput: true,
+			hasOutput: true));
+		Assert.True(CameraManager.RequiresCameraConfiguration(
+			configuration,
 			new CameraConfiguration(CameraLocation.Rear, "rear-camera", otherSelector),
 			hasInput: true,
 			hasOutput: true));
