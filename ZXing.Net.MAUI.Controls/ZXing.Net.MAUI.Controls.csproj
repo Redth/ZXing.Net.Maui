@@ -18,7 +18,9 @@
 		<DebugType>portable</DebugType>
 		<OutputType>Library</OutputType>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-    </PropertyGroup>
+		<IsAotCompatible>true</IsAotCompatible>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="ZXing.Net" Version="0.16.11" />
 	</ItemGroup>
