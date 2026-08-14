@@ -13,6 +13,13 @@ namespace ZXing.Net.Maui
 			return checked(width * height * BytesPerPixel);
 		}
 
+		public static int GetLuminanceLength(int width, int height)
+		{
+			ValidateDimensions(width, height);
+
+			return checked(width * height);
+		}
+
 		public static int GetRequiredSourceLength(int width, int height, int rowStride, int pixelStride)
 		{
 			ValidateLayout(width, height, rowStride, pixelStride);
@@ -66,6 +73,34 @@ namespace ZXing.Net.Maui
 					source.Slice(sourceRowOffset + (x * pixelStride), BytesPerPixel)
 						.CopyTo(destination.Slice(destinationRowOffset + (x * BytesPerPixel), BytesPerPixel));
 				}
+			}
+		}
+
+		public static void CopyToLuminance(
+			ReadOnlySpan<byte> source,
+			Span<byte> destination,
+			int width,
+			int height)
+		{
+			var sourceLength = GetContiguousLength(width, height);
+			if (source.Length < sourceLength)
+				throw new ArgumentException("Source buffer is smaller than the RGBA frame requires.", nameof(source));
+
+			var destinationLength = GetLuminanceLength(width, height);
+			if (destination.Length < destinationLength)
+				throw new ArgumentException("Destination buffer is smaller than the luminance frame requires.", nameof(destination));
+
+			source = source[..sourceLength];
+			destination = destination[..destinationLength];
+
+			for (var sourceOffset = 0; sourceOffset < source.Length; sourceOffset += BytesPerPixel)
+			{
+				var destinationOffset = sourceOffset / BytesPerPixel;
+				var red = source[sourceOffset];
+				var green = source[sourceOffset + 1];
+				var blue = source[sourceOffset + 2];
+
+				destination[destinationOffset] = (byte)(((66 * red + 129 * green + 25 * blue) >> 8) + 16);
 			}
 		}
 

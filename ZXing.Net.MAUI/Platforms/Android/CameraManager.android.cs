@@ -290,8 +290,13 @@ namespace ZXing.Net.Maui
                 .SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
                 .Build();
 
-            _imageAnalyzer.SetAnalyzer(cameraExecutor, new FrameAnalyzer((buffer, size) =>
-                FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
+            _imageAnalyzer.SetAnalyzer(cameraExecutor, new FrameAnalyzer((rgbaData, size) =>
+                FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder
+                {
+                    Data = Java.Nio.ByteBuffer.Wrap(rgbaData),
+                    RgbaData = rgbaData,
+                    Size = size
+                }))));
         }
 
         ResolutionSelector CreateResolutionSelector()

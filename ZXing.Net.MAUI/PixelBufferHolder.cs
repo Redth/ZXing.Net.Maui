@@ -19,5 +19,9 @@ namespace ZXing.Net.Maui.Readers
 #endif
 
 		Data { get; init; }
+
+#if ANDROID
+		internal byte[] RgbaData { get; init; }
+#endif
 	}
 }
