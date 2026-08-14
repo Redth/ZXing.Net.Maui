@@ -238,7 +238,11 @@ namespace ZXing.Net.Maui
                             if (await CameraManager.CheckPermissions())
                             {
                                 if (handler._isConnected && handler.cameraManager == manager)
+#if __IOS__
+                                    manager.UpdateCameraStart();
+#else
                                     manager.UpdateCamera();
+#endif
                             }
                         }
                     }

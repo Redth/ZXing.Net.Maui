@@ -30,6 +30,8 @@ namespace ZXing.Net.Maui
 
         public void UpdateCamera()
             => LogUnsupported();
+        public void UpdateCameraStart()
+            => LogUnsupported();
 
         public void UpdateTorch(bool on)
             => LogUnsupported();

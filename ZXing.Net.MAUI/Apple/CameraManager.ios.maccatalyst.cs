@@ -73,7 +73,7 @@ namespace ZXing.Net.Maui
 
 		public void Connect()
 		{
-			UpdateCamera(startIfStopped: true);
+			UpdateCamera(startIfStopped: false);
 			view?.StartObservingOrientationChanges();
 
 			if (videoDataOutput == null)
@@ -111,6 +111,8 @@ namespace ZXing.Net.Maui
 
 		public void UpdateCamera()
 			=> UpdateCamera(startIfStopped: false);
+        public void UpdateCameraStart()
+            => UpdateCamera(startIfStopped: true);
 
 		void UpdateCamera(bool startIfStopped)
 		{
