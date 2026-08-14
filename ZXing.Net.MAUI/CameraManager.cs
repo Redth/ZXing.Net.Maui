@@ -26,6 +26,8 @@ namespace ZXing.Net.Maui
 		public float ZoomFactor { get; private set; }
 
 		protected CameraManagerOptions Options => options;
+		internal CameraConfiguration Configuration
+			=> new(CameraLocation, SelectedCamera?.DeviceId, Options.CameraResolutionSelector);
 
 		/// <summary>
 		/// Gets a value indicating whether barcode scanning is supported on this device.
@@ -81,6 +83,13 @@ namespace ZXing.Net.Maui
 			return false;
 		}
 
+		internal static bool RequiresCameraConfiguration(
+			CameraConfiguration? appliedConfiguration,
+			CameraConfiguration configuration,
+			bool hasInput,
+			bool hasOutput)
+			=> !hasInput || !hasOutput || appliedConfiguration != configuration;
+
 		public void UpdateZoomFactor(float zoomFactor)
 		{
 			if (float.IsNaN(zoomFactor))
@@ -98,4 +107,9 @@ namespace ZXing.Net.Maui
 		private static partial bool ShouldApplyPlatformCameraOptions(CameraManagerOptions currentOptions, CameraManagerOptions nextOptions);
 		partial void ApplyZoomFactor();
 	}
+
+	internal readonly record struct CameraConfiguration(
+		CameraLocation CameraLocation,
+		string SelectedCameraDeviceId,
+		CameraResolutionSelectorDelegate CameraResolutionSelector);
 }
