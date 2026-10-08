@@ -106,6 +106,8 @@ The delay options are expressed in milliseconds and default to the Xamarin plugi
 
 The selected camera resolution is also the frame size passed to the barcode decoder. Higher resolutions provide more pixels but increase the amount of work needed for every frame, so selecting the largest available resolution can reduce scan throughput. Prefer the lowest resolution that reliably decodes for your use case, such as a size close to `1280x720` or `640x480`, instead of always ordering by the highest pixel count.
 
+For applications that only scan specific barcode types, restrict `Formats` to those types instead of using `BarcodeFormats.All`. For example, use `BarcodeFormat.Ean13 | BarcodeFormat.UpcA` for those retail barcode formats. A checksum-valid decode can still be a false positive; applications that require higher confidence can confirm the same format and value across multiple camera frames before accepting a result.
+
 QR codes with international characters (e.g., £, €, ¥, or non-Latin scripts) are supported by default with UTF-8 encoding. You can override this if needed:
 ```csharp
 cameraBarcodeReaderView.Options = new BarcodeReaderOptions

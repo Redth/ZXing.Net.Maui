@@ -51,6 +51,32 @@ public class LuminanceBufferTests
 	}
 
 	[Theory]
+	[InlineData(0)]
+	[InlineData(4)]
+	[InlineData(60)]
+	public void Bgra32ToLuminanceIgnoresCameraRowPadding(int padding)
+	{
+		const int width = 2;
+		const int height = 2;
+		var rowStride = width * 4 + padding;
+		var source = Enumerable.Repeat((byte)99, rowStride * height).ToArray();
+		new byte[] { 0, 0, 0, 255, 255, 255, 255, 255 }.CopyTo(source, 0);
+		new byte[] { 255, 255, 255, 255, 0, 0, 0, 255 }.CopyTo(source, rowStride);
+		var luminance = new byte[width * height];
+
+		LuminanceBuffer.Bgra32ToLuminance(source, width, height, rowStride, luminance);
+
+		Assert.Equal(new byte[] { 0, 255, 255, 0 }, luminance);
+	}
+
+	[Fact]
+	public void Bgra32ToLuminanceRejectsTruncatedRows()
+	{
+		Assert.Throws<ArgumentException>(() =>
+			LuminanceBuffer.Bgra32ToLuminance(new byte[19], width: 2, height: 2, rowStride: 12, new byte[4]));
+	}
+
+	[Theory]
 	[InlineData((int)ImageOrientation.Normal, 3, 2, new byte[] { 1, 2, 3, 4, 5, 6 })]
 	[InlineData((int)ImageOrientation.FlipHorizontal, 3, 2, new byte[] { 3, 2, 1, 6, 5, 4 })]
 	[InlineData((int)ImageOrientation.Rotate180, 3, 2, new byte[] { 6, 5, 4, 3, 2, 1 })]
